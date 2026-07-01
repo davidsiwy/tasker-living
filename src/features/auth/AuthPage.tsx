@@ -4,6 +4,7 @@ import { useSession } from '../../state/session'
 import { roleNames } from '../../lib/types'
 import type { Role } from '../../lib/types'
 import { Icon } from '../../components/Icon'
+import logoWhite from '../../assets/logo-stacked-white.png'
 
 const DEMO_DESC: Record<Role, string> = {
   rezident: 'Nástěnka, závady, můj nájem',
@@ -15,7 +16,7 @@ const DEMO_DESC: Record<Role, string> = {
 function Side() {
   return (
     <div className="auth-side">
-      <div className="logo"><span className="mark"><span className="f f1" /><span className="f f2" /><span className="f f3" /><span className="w" /></span><div><b>Tasker Living</b><small>Součást Tasker</small></div></div>
+      <img className="auth-logo" src={logoWhite} alt="Tasker Living" />
       <div className="auth-quote"><h2>Celý dům v jedné aplikaci</h2><p>Přihlaste se přístupovým kódem, který jste dostali od výboru nebo správce domu.</p></div>
       <div className="auth-feats">
         <div className="auth-feat"><span className="cf-ic"><Icon name="check" small /></span> Živá nástěnka a závady</div>

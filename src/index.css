@@ -58,9 +58,9 @@
   .cf-ic{width:34px;height:34px;border-radius:var(--r-sm);background:var(--surface-2);color:var(--green-ink);display:flex;align-items:center;justify-content:center;flex:none}
 
   /* ---------- brand: green T badge ---------- */
-  .mark{width:30px;height:30px;border-radius:9px;background:var(--green);position:relative;flex:none;display:inline-flex;box-shadow:0 4px 10px -4px rgba(6,196,10,.6)}
+  .mark{width:30px;height:30px;border-radius:8px;background:url('./assets/mark.png') center/cover no-repeat;position:relative;flex:none;display:inline-flex;box-shadow:0 4px 10px -4px rgba(6,196,10,.5)}
   .mark span{display:none}
-  .mark::before{content:"T";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-family:var(--fd);font-weight:800;font-size:17px;line-height:1}
+  .auth-logo{height:130px;width:auto;align-self:flex-start;position:relative;z-index:2;filter:drop-shadow(0 6px 18px rgba(0,0,0,.35))}
   .logo{display:inline-flex;align-items:center;gap:11px}
   .logo b{font-family:var(--fd);font-weight:800;font-size:16px;letter-spacing:-.02em}
   .logo small{display:block;font-family:var(--fm);font-size:9.5px;letter-spacing:.14em;color:var(--ink-3);text-transform:uppercase;margin-top:1px}
