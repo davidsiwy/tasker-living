@@ -38,12 +38,9 @@ export default function AppShell() {
           </NavLink>
         ))}
         {isPlatformAdmin && (
-          <>
-            <div className="side-lbl">Platforma</div>
-            <NavLink to="/app/operator" className={({ isActive }) => 'nav-item' + (isActive ? ' active' : '')}>
-              <Icon name="bank" />Operátor
-            </NavLink>
-          </>
+          <div className="side-foot" style={{ marginTop: 0 }}>
+            <NavLink to="/operator" className="nav-item"><Icon name="sprava" />Zpět do konzole</NavLink>
+          </div>
         )}
         <div className="side-foot">
           <NavLink to="/app/nastaveni" className={({ isActive }) => 'nav-item' + (isActive ? ' active' : '')}><Icon name="sprava" />Nastavení</NavLink>

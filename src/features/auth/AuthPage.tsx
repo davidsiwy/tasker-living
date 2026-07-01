@@ -45,7 +45,7 @@ export default function AuthPage() {
     try {
       if (mode === 'login') await signIn(email, pw)
       else await signUp(email, pw, name, code)
-      nav('/app/nastenka')
+      nav('/go')
     } catch (e: any) { setErr(e.message || 'Něco se nepovedlo') } finally { setBusy(false) }
   }
 

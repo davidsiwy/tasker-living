@@ -21,9 +21,11 @@ async function call(action: string, payload: Record<string, unknown> = {}): Prom
 }
 
 export interface PlatformMembership { membershipId: string; role: Role; building: string; buildingId: string; unit: string }
-export interface PlatformUser { id: string; email: string; name: string; created: string; lastLogin: string; banned: boolean; memberships: PlatformMembership[] }
-export interface PlatformBuilding { id: string; name: string; slug: string; units: number; members: number }
-export interface ActivityRow { at: string; kind: string; actor: string; detail: string }
+export interface PlatformUser { id: string; email: string; name: string; created: string; createdIso: string; lastLogin: string; lastLoginIso: string; banned: boolean; memberships: PlatformMembership[] }
+export interface PlatformBuilding { id: string; name: string; slug: string; units: number; members: number; posts: number }
+export interface ActivityRow { iso: string; at: string; kind: string; actor: string; detail: string }
+export interface OperatorRow { userId: string; name: string; email: string; since: string }
+export interface UnitRow { id: string; label: string; members: number }
 export interface PUnit { id: string; label: string }
 
 const czDate = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString('cs-CZ') : '')
@@ -52,7 +54,7 @@ export const platformApi = {
     }
     return (users as any[]).map((u) => ({
       id: u.id, email: u.email || '', name: names[u.id] || '',
-      created: czDate(u.created_at), lastLogin: czDateTime(u.last_sign_in_at),
+      created: czDate(u.created_at), createdIso: u.created_at || '', lastLogin: czDateTime(u.last_sign_in_at), lastLoginIso: u.last_sign_in_at || '',
       banned: !!u.banned, memberships: byUser[u.id] || [],
     })).sort((a, b) => a.email.localeCompare(b.email))
   },
@@ -84,11 +86,11 @@ export const platformApi = {
 
   async listBuildings(): Promise<PlatformBuilding[]> {
     const { data, error } = await supabase!.from('buildings')
-      .select('id, name, slug, units(count), memberships(count)').order('name')
+      .select('id, name, slug, units(count), memberships(count), posts(count)').order('name')
     if (error) throw error
     return (data || []).map((b: any) => ({
       id: b.id, name: b.name, slug: b.slug || '',
-      units: b.units?.[0]?.count || 0, members: b.memberships?.[0]?.count || 0,
+      units: b.units?.[0]?.count || 0, members: b.memberships?.[0]?.count || 0, posts: b.posts?.[0]?.count || 0,
     }))
   },
 
@@ -112,6 +114,54 @@ export const platformApi = {
   async activity(): Promise<ActivityRow[]> {
     const { data, error } = await supabase!.rpc('admin_activity', { p_limit: 80 })
     if (error) throw error
-    return (data || []).map((r: any) => ({ at: czDateTime(r.at), kind: r.kind, actor: r.actor || '', detail: r.detail || '' }))
+    return (data || []).map((r: any) => ({ iso: r.at, at: czDateTime(r.at), kind: r.kind, actor: r.actor || '', detail: r.detail || '' }))
+  },
+}
+
+export const operatorApi = {
+  async listOperators(): Promise<OperatorRow[]> {
+    const sb = supabase!
+    const { data, error } = await sb.from('platform_admins').select('user_id, created_at')
+    if (error) throw error
+    const ids = (data || []).map((r: any) => r.user_id)
+    const profs: Record<string, { full_name: string; email: string | null }> = {}
+    if (ids.length) {
+      const { data: ps } = await sb.from('profiles').select('id, full_name, email').in('id', ids)
+      for (const p of (ps || []) as any[]) profs[p.id] = { full_name: p.full_name, email: p.email }
+    }
+    return (data || []).map((r: any) => ({
+      userId: r.user_id, name: profs[r.user_id]?.full_name || '', email: profs[r.user_id]?.email || '',
+      since: czDate(r.created_at),
+    }))
+  },
+  async addOperator(userId: string): Promise<void> {
+    const { error } = await supabase!.from('platform_admins').insert({ user_id: userId })
+    if (error) throw error
+  },
+  async removeOperator(userId: string): Promise<void> {
+    const { error } = await supabase!.from('platform_admins').delete().eq('user_id', userId)
+    if (error) throw error
+  },
+  async unitsWithCounts(buildingId: string): Promise<UnitRow[]> {
+    const { data, error } = await supabase!.from('units')
+      .select('id, label, memberships(count)').eq('building_id', buildingId).order('label')
+    if (error) throw error
+    return (data || []).map((u: any) => ({ id: u.id, label: u.label, members: u.memberships?.[0]?.count || 0 }))
+  },
+  async addUnit(buildingId: string, label: string): Promise<void> {
+    const { error } = await supabase!.from('units').insert({ building_id: buildingId, label })
+    if (error) throw error
+  },
+  async renameUnit(unitId: string, label: string): Promise<void> {
+    const { error } = await supabase!.from('units').update({ label }).eq('id', unitId)
+    if (error) throw error
+  },
+  async deleteUnit(unitId: string): Promise<void> {
+    const { error } = await supabase!.from('units').delete().eq('id', unitId)
+    if (error) throw error
+  },
+  async renameBuilding(buildingId: string, name: string): Promise<void> {
+    const { error } = await supabase!.from('buildings').update({ name }).eq('id', buildingId)
+    if (error) throw error
   },
 }

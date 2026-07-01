@@ -101,6 +101,21 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   return <C.Provider value={value}>{children}</C.Provider>
 }
 
+export function PostLogin() {
+  const { user, isPlatformAdmin, isDemo } = useSession()
+  if (isDemo) return <Navigate to="/app/nastenka" replace />
+  if (!user) return <div style={{ padding: 40, color: 'var(--ink-3)' }}>Přihlašování...</div>
+  return <Navigate to={isPlatformAdmin ? '/operator' : '/app/nastenka'} replace />
+}
+
+export function RequireOperator({ children }: { children: ReactNode }) {
+  const { user, loading, isPlatformAdmin } = useSession()
+  if (loading) return <div style={{ padding: 40, color: 'var(--ink-3)' }}>Načítání...</div>
+  if (!user) return <Navigate to="/prihlaseni" replace />
+  if (!isPlatformAdmin) return <Navigate to="/app/nastenka" replace />
+  return <>{children}</>
+}
+
 export function RequireAuth({ children }: { children: ReactNode }) {
   const { user, loading } = useSession()
   if (loading) return <div style={{ padding: 40, color: 'var(--ink-3)' }}>Načítání...</div>

@@ -69,8 +69,8 @@ export const adminApi = {
     }))
   },
 
-  async createCode(buildingId: string, role: Role, unitId: string | null): Promise<string> {
-    const code = 'TL-VP-' + Math.random().toString(36).slice(2, 6).toUpperCase()
+  async createCode(buildingId: string, role: Role, unitId: string | null, prefix = 'TL-VP'): Promise<string> {
+    const code = prefix + '-' + Math.random().toString(36).slice(2, 6).toUpperCase()
     if (!isSupabaseConfigured) { await wait(); demoCodes = [{ code, role, unit: 'nepřiřazeno', used: false, created: 'dnes' }, ...demoCodes]; return code }
     const { error } = await supabase!.from('access_codes').insert({ code, building_id: buildingId, role, unit_id: unitId })
     if (error) throw error
