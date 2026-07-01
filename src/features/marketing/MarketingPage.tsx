@@ -174,36 +174,26 @@ export default function MarketingPage() {
       <div className="wrap" id="cenik">
         <section className="band">
           <div className="kicker">Ceník</div>
-          <h2>Jednoduchý ceník podle velikosti domu</h2>
-          <div className="plans">
-            <div className="plan">
-              <div className="ptop"><span className="pname">SVJ Základ</span></div>
-              <div className="price">od 29 Kč <small>/ byt / měsíc</small></div>
-              <div className="pdesc">Pro menší SVJ, které chce mít web a komunikaci v pořádku.</div>
-              <ul>
-                <li><Icon name="check" small /> Nástěnka a závady</li>
-                <li><Icon name="check" small /> Schůze a hlasování</li>
-                <li><Icon name="check" small /> Dokumenty a stížnosti</li>
-                <li><Icon name="check" small /> Splňuje povinnost webu SVJ</li>
-              </ul>
-              <button className="btn btn-soft" onClick={() => nav('/prihlaseni')}>Vyzkoušet demo</button>
-            </div>
+          <h2>Jeden ceník, všechno v ceně</h2>
+          <div className="plans plans-2">
             <div className="plan pop">
-              <div className="ptop"><span className="pname">SVJ Plus</span><span className="pill pill-ok">Doporučeno</span></div>
-              <div className="price">od 49 Kč <small>/ byt / měsíc</small></div>
-              <div className="pdesc">Kompletní správa včetně financí a párování plateb z banky.</div>
+              <div className="ptop"><span className="pname">Tasker Living</span><span className="pill pill-ok">Vše v ceně</span></div>
+              <div className="price">399 Kč <small>/ byt / měsíc</small></div>
+              <div className="pdesc">Kompletní správa domu v jedné aplikaci. Žádné moduly ani příplatky, platíte jen za obsazené jednotky.</div>
               <ul>
-                <li><Icon name="check" small /> Vše ze Základu</li>
-                <li><Icon name="check" small /> Nájmy a párování plateb (Fio)</li>
-                <li><Icon name="check" small /> Portfolio a reporty</li>
-                <li><Icon name="check" small /> Přednostní podpora</li>
+                <li><Icon name="check" small /> Nástěnka, závady a stížnosti</li>
+                <li><Icon name="check" small /> Nájmy, zálohy a párování plateb z banky</li>
+                <li><Icon name="check" small /> QR platby i automatické platby</li>
+                <li><Icon name="check" small /> Schůze, hlasování a dokumenty</li>
+                <li><Icon name="check" small /> Služby Tasker s ověřenými pracovníky</li>
+                <li><Icon name="check" small /> Splňuje zákonnou povinnost webu SVJ</li>
               </ul>
               <button className="btn btn-primary" onClick={() => nav('/prihlaseni')}>Vyzkoušet demo</button>
             </div>
             <div className="plan">
               <div className="ptop"><span className="pname">Developer a investor</span></div>
               <div className="price">Na míru</div>
-              <div className="pdesc">Portfolio více domů a předání novostavby rezidentům s aplikací.</div>
+              <div className="pdesc">Portfolio více domů a předání novostavby rezidentům s hotovou aplikací.</div>
               <ul>
                 <li><Icon name="check" small /> Neomezený počet domů</li>
                 <li><Icon name="check" small /> Předání domu rezidentům</li>
@@ -213,7 +203,7 @@ export default function MarketingPage() {
               <button className="btn btn-ghost" onClick={() => go('faq')}>Domluvit ukázku</button>
             </div>
           </div>
-          <p className="plans-note">Ceny jsou bez DPH. Konečnou cenu ladíme podle velikosti a potřeb domu.</p>
+          <p className="plans-note">Ceny jsou bez DPH.</p>
         </section>
       </div>
 

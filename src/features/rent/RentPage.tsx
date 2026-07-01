@@ -17,6 +17,7 @@ export default function RentPage() {
   const [units, setUnits] = useState<Unit[]>([])
   const [pays, setPays] = useState(M.myPayments)
   const [modal, setModal] = useState<PayItem | null>(null)
+  const [auto, setAuto] = useState<Record<string, boolean>>({})
   useEffect(() => { api.getUnits().then(setUnits) }, [])
 
   const occupied = units.filter((u) => u.tenant !== 'Volné')
@@ -42,9 +43,11 @@ export default function RentPage() {
                 <div className="lead-col"><b>{p.label}</b><span>VS {p.vs} · splatnost {p.due} dne</span></div>
                 <div className="row-metrics">
                   <div className="metric"><div className="k">Částka</div><div className="val">{money(p.amount)}</div></div>
-                  {p.status === 'paid'
-                    ? <span className="pill pill-ok"><Icon name="check" small /> Zaplaceno</span>
-                    : <button className="btn btn-primary btn-sm" onClick={() => setModal(asItem(p))}><Icon name="bank" small /> Zaplatit QR</button>}
+                  {auto[p.id]
+                    ? <span className="pill pill-ok"><Icon name="check" small /> Automaticky</span>
+                    : p.status === 'paid'
+                      ? <span className="pill pill-ok"><Icon name="check" small /> Zaplaceno</span>
+                      : <button className="btn btn-primary btn-sm" onClick={() => setModal(asItem(p))}><Icon name="bank" small /> Zaplatit</button>}
                 </div>
               </div>
             ))}
@@ -63,7 +66,7 @@ export default function RentPage() {
             <div className="doc-row" key={h.id}><span className="cf-ic"><Icon name="bank" small /></span><div style={{ flex: 1 }}><b>{h.label}</b><span>{h.date}</span></div><span style={{ fontWeight: 700, fontSize: 13.5 }}>{money(h.amount)}</span></div>
           ))}
         </div>
-        <PayModal item={modal} account={M.payAccount} recipient={M.payRecipient} onClose={() => setModal(null)} onPaid={(id) => { setPays((s) => s.map((p) => p.id === id ? { ...p, status: 'paid' } : p)); toast('Označeno jako zaplaceno, čeká na spárování') }} />
+        <PayModal item={modal} account={M.payAccount} recipient={M.payRecipient} onClose={() => setModal(null)} onPaid={(id) => { setPays((s) => s.map((p) => p.id === id ? { ...p, status: 'paid' } : p)); toast('Označeno jako zaplaceno, čeká na spárování') }} onAutopay={(id) => { setAuto((a) => ({ ...a, [id]: true })); setPays((s) => s.map((p) => p.id === id ? { ...p, status: 'paid' } : p)); toast('Automatické platby zapnuty') }} />
       </div>
     )
   }

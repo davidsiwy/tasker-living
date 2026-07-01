@@ -483,6 +483,13 @@ function Settings({ toast }: { toast: Toast }) {
           <p className="adm-mini" style={{ marginTop: 10 }}>Nájem, zálohy, fond oprav a kauce se hradí QR platbou nebo trvalým příkazem na tento účet, párováno podle VS. Služby Tasker se platí přes Tasker API. Platba kartou přes Stripe se připravuje.</p>
           <button className="btn btn-primary btn-sm" style={{ marginTop: 12 }} onClick={() => toast('Účet pro platby uložen')}>Uložit</button>
         </div>
+        <div className="card">
+          <div className="card-h"><h3>Předplatné Tasker Living</h3></div>
+          <div className="qr-line"><span>Jednotek v domě</span><b>{A.units.length}</b></div>
+          <div className="qr-line"><span>Cena za jednotku</span><b>399 Kč / měsíc</b></div>
+          <div className="qr-line"><span>Celkem</span><b>{(A.units.length * 399).toLocaleString('cs-CZ')} Kč / měsíc</b></div>
+          <p className="adm-mini" style={{ marginTop: 10 }}>Účtováno měsíčně podle počtu jednotek, bez DPH. Vše v ceně, bez modulů a příplatků.</p>
+        </div>
         <div className="card" style={{ borderColor: 'var(--bad-bg)' }}>
           <div className="card-h"><h3>Nebezpečná zóna</h3></div>
           <p className="adm-mini" style={{ marginBottom: 12 }}>Archivace odpojí dům od aplikace. Data zůstanou uložena podle nastavení retence GDPR.</p>
