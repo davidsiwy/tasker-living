@@ -486,3 +486,36 @@
   .pay-or span{padding:0 12px}
   .plans.plans-2{grid-template-columns:repeat(2,minmax(0,1fr));max-width:800px;margin-left:auto;margin-right:auto}
   @media(max-width:760px){ .plans.plans-2{grid-template-columns:1fr} }
+
+  /* ---------- faults timeline + photos ---------- */
+  .tl{position:relative;margin:6px 0 2px;padding-left:22px}
+  .tl:before{content:'';position:absolute;left:5px;top:6px;bottom:10px;width:2px;background:var(--line)}
+  .tl-item{position:relative;padding:5px 0}
+  .tl-dot{position:absolute;left:-22px;top:8px;width:12px;height:12px;border-radius:50%;background:var(--surface-2);border:2px solid var(--line)}
+  .tl-item.done .tl-dot{background:var(--green);border-color:var(--green)}
+  .tl-item.cur .tl-dot{background:var(--green);border-color:var(--green);box-shadow:0 0 0 4px var(--green-050)}
+  .tl-s{font-weight:600;font-size:13.5px;color:var(--ink)}
+  .tl-m{font-size:12px;color:var(--ink-3)}
+  .tl-n{font-size:12.5px;color:var(--ink-2);margin-top:2px}
+  .thumbs{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0}
+  .thumb{width:64px;height:64px;border-radius:10px;object-fit:cover;border:1px solid var(--line);background:var(--surface-2)}
+  .thumb-add{width:64px;height:64px;border-radius:10px;border:1px dashed var(--line);display:flex;align-items:center;justify-content:center;color:var(--ink-3);cursor:pointer;background:var(--paper)}
+  .file-in{display:none}
+  .linklike{background:none;border:none;color:var(--green-ink);font:inherit;font-weight:600;cursor:pointer;padding:0}
+  /* ---------- vote bars ---------- */
+  .vbar{margin:9px 0}
+  .vbar .vhead{display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:4px;color:var(--ink-2)}
+  .vtrack{height:10px;border-radius:99px;background:var(--line);overflow:hidden}
+  .vfill{height:10px;border-radius:99px;transition:width .3s}
+  .quorum{display:flex;align-items:flex-start;gap:10px;margin-top:14px;padding:12px;border-radius:var(--r-sm);background:var(--surface-2)}
+  /* ---------- outbox + channel badges ---------- */
+  .chan{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:99px;text-transform:uppercase;letter-spacing:.03em}
+  .chan-email{background:var(--purple-050);color:var(--purple-ink)}
+  .chan-sms{background:var(--green-050);color:var(--green-ink)}
+  .chan-push{background:var(--surface-2);color:var(--ink-2)}
+  .msg-row{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-top:1px solid var(--line)}
+  .msg-row:first-child{border-top:none}
+  /* ---------- doc visibility chips ---------- */
+  .vis-chips{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px}
+  .vis-chip{font-size:11px;padding:3px 9px;border-radius:99px;background:var(--surface-2);color:var(--ink-3);cursor:pointer;border:1px solid transparent;font-weight:600}
+  .vis-chip.on{background:var(--green-050);color:var(--green-ink);border-color:var(--green)}

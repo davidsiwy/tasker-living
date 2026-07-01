@@ -1,11 +1,13 @@
-import { useMemo, useState } from 'react'
-import { feed } from '../../lib/api'
+import { useMemo, useState, useEffect, useRef } from 'react'
+import { feed, api } from '../../lib/api'
 import { can } from '../../lib/types'
-import type { Role } from '../../lib/types'
+import type { Role, DocItem } from '../../lib/types'
 import * as M from '../../lib/mockData'
 import * as A from '../../lib/adminData'
 import type { AUnit } from '../../lib/adminData'
 import { parseAccount, czIban, formatIban } from '../../lib/payments'
+import { uploadFile, storageConfigured } from '../../lib/storage'
+import { runReminders, reminderRules, onOutbox, notifyConfigured, setPref, prefs } from '../../lib/notify'
 import { useSession } from '../../state/session'
 import { useToast } from '../../components/Toast'
 import { Icon } from '../../components/Icon'
@@ -244,6 +246,10 @@ function Finance({ toast }: { toast: Toast }) {
   const collected = rented.filter((u) => u.paid).reduce((s, u) => s + u.rent, 0)
   const unmatched = txns.filter((t) => !t.unit)
   function assign(id: string) { setTxns((s) => s.map((t) => t.id === id ? { ...t, unit: 'ručně' } : t)); toast('Platba přiřazena k jednotce') }
+  const [out, setOut] = useState<any[]>([])
+  useEffect(() => onOutbox(setOut), [])
+  const debtors = rented.filter((u) => !u.paid).map((u) => ({ unit: u.id, name: u.owner || u.tenant, amount: u.rent, vs: u.vs }))
+  async function remindAll() { const s = await runReminders(debtors, 'overdue'); toast(`Odesláno ${s.length} upomínek`) }
 
   return (
     <div>
@@ -282,12 +288,30 @@ function Finance({ toast }: { toast: Toast }) {
           ))}
         </div>
         <div className="card">
-          <div className="card-h"><h3>Nezaplacené nájmy</h3><button className="btn btn-soft btn-sm" onClick={() => toast('Upomínky odeslány')}>Upomenout vše</button></div>
+          <div className="card-h"><h3>Nezaplacené nájmy</h3><button className="btn btn-soft btn-sm" onClick={remindAll}>Upomenout vše</button></div>
           {rented.filter((u) => !u.paid).map((u) => (
             <div className="doc-row" key={u.id}><span className="cf-ic"><Icon name="najmy" small /></span><div style={{ flex: 1 }}><b style={{ fontWeight: 600, fontSize: 13.5 }}>{u.id} · {u.tenant}</b><span>VS {u.vs}</span></div><span style={{ fontWeight: 600, fontSize: 13.5 }}>{money(u.rent)}</span></div>
           ))}
           {rented.every((u) => u.paid) && <p className="adm-mini">Vše zaplaceno.</p>}
           <button className="btn btn-ghost btn-sm" style={{ marginTop: 12 }} onClick={() => toast('Export pro účetní stažen')}><Icon name="doc" small /> Export pro účetní</button>
+        </div>
+      </div>
+
+      <div className="grid-2">
+        <div className="card">
+          <div className="card-h"><h3>Automatické upomínky</h3><span className={'pill ' + (notifyConfigured ? 'pill-ok' : 'pill-neutral')}>{notifyConfigured ? 'Napojeno' : 'Demo režim'}</span></div>
+          <p className="adm-mini" style={{ marginBottom: 8 }}>Denní úloha odešle upomínky podle rozvrhu. Spustit lze i ručně.</p>
+          {reminderRules.map((r) => (
+            <div className="doc-row" key={r.id}><span className="cf-ic"><Icon name="clock" small /></span><div style={{ flex: 1 }}><b style={{ fontWeight: 600, fontSize: 13.5 }}>{r.label}</b></div><span className={'chan chan-' + r.channel}>{r.channel}</span></div>
+          ))}
+          <button className="btn btn-primary btn-sm" style={{ marginTop: 12 }} onClick={remindAll}>Spustit upomínky teď</button>
+        </div>
+        <div className="card">
+          <div className="card-h"><h3>Odeslané zprávy</h3><span className="adm-mini">{out.length}</span></div>
+          {out.length === 0 && <p className="adm-mini">Zatím nic neodešlo. Spusťte upomínky nebo odešlete oznámení.</p>}
+          {out.slice(0, 8).map((m) => (
+            <div className="msg-row" key={m.id}><span className={'chan chan-' + m.channel}>{m.channel}</span><div style={{ flex: 1, minWidth: 0 }}><b style={{ fontWeight: 600, fontSize: 13 }}>{m.subject}</b><div className="adm-mini">{m.to} · {m.ts}</div></div><span className={'pill ' + (m.status === 'sent' ? 'pill-ok' : m.status === 'queued' ? 'pill-warn' : 'pill-bad')}>{m.status === 'sent' ? 'Odesláno' : m.status === 'queued' ? 'Ve frontě' : 'Chyba'}</span></div>
+          ))}
         </div>
       </div>
     </div>
@@ -412,23 +436,43 @@ function Board({ toast, user }: { toast: Toast; user: { role: Role; buildingId: 
 }
 
 /* ---------------- Dokumenty ---------------- */
+const DOC_ROLES: { k: Role; l: string }[] = [{ k: 'rezident', l: 'Rezidenti' }, { k: 'vybor', l: 'Výbor' }, { k: 'developer', l: 'Developer' }, { k: 'investor', l: 'Investor' }]
 function Documents({ toast }: { toast: Toast }) {
+  const [docs, setDocs] = useState<DocItem[]>([])
+  const [q, setQ] = useState(''); const [busy, setBusy] = useState(false)
+  const fileRef = useRef<HTMLInputElement>(null)
+  useEffect(() => { api.getDocuments().then(setDocs) }, [])
+  async function upload(files: FileList | null) {
+    if (!files || !files.length) return; setBusy(true); const f = files[0]; const st = await uploadFile(f, 'docs')
+    await api.uploadDocument({ name: f.name, kind: (f.name.split('.').pop() || 'PDF').toUpperCase(), date: 'dnes', cat: 'Ostatní', vis: ['vybor'], url: st.url })
+    setBusy(false); setDocs(await api.getDocuments()); toast('Dokument nahrán')
+  }
+  async function toggleVis(d: DocItem, role: Role) {
+    const cur = d.vis || []; const next = cur.includes(role) ? cur.filter((r) => r !== role) : [...cur, role]
+    await api.setDocVisibility(d.id!, next as any); setDocs(await api.getDocuments())
+  }
+  const shown = docs.filter((d) => d.name.toLowerCase().includes(q.toLowerCase()))
   return (
     <div>
       <div className="adm-bar">
-        <input className="input" placeholder="Hledat dokument" onChange={() => {}} />
-        <button className="btn btn-primary btn-sm" onClick={() => toast('Nahrání dokumentu')}><Icon name="plus" small /> Nahrát dokument</button>
+        <input className="input" placeholder="Hledat dokument" value={q} onChange={(e) => setQ(e.target.value)} />
+        <button className="btn btn-primary btn-sm" onClick={() => fileRef.current?.click()}>{busy ? <span className="spin" style={{ width: 16, height: 16, margin: 0 }} /> : <><Icon name="plus" small /> Nahrát dokument</>}</button>
+        <input ref={fileRef} className="file-in" type="file" onChange={(e) => upload(e.target.files)} />
       </div>
-      <div className="grid-2">
-        {A.docCats.map((cat) => (
-          <div className="card" key={cat.name}>
-            <div className="card-h"><h3>{cat.name}</h3><span className="adm-mini">{cat.docs.length}</span></div>
-            {cat.docs.map((d) => (
-              <div className="doc-row" key={d.name}><span className="cf-ic"><Icon name={cat.icon} small /></span><div style={{ flex: 1, minWidth: 0 }}><b style={{ fontWeight: 600, fontSize: 13.5 }}>{d.name}</b><span>{d.date} · {d.size}</span></div><button className="btn btn-ghost btn-sm" onClick={() => toast('Stahuji dokument')}>Otevřít</button></div>
-            ))}
+      <div className="card">
+        <div className="card-h"><h3>Dokumenty a viditelnost</h3><span className="adm-mini">{shown.length}</span></div>
+        {shown.map((d) => (
+          <div className="doc-row" key={d.id} style={{ alignItems: 'flex-start' }}>
+            <span className="cf-ic"><Icon name="doc" small /></span>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <b style={{ fontWeight: 600, fontSize: 13.5 }}>{d.name}</b><span>{d.cat ? d.cat + ' · ' : ''}{d.kind} · {d.date}</span>
+              <div className="vis-chips">{DOC_ROLES.map((r) => <span key={r.k} className={'vis-chip' + ((d.vis || []).includes(r.k) ? ' on' : '')} onClick={() => toggleVis(d, r.k)}>{r.l}</span>)}</div>
+            </div>
+            <button className="btn btn-ghost btn-sm" onClick={() => d.url ? window.open(d.url, '_blank') : toast('Ukázkový dokument')}>Otevřít</button>
           </div>
         ))}
       </div>
+      <p className="adm-mini" style={{ marginTop: 10 }}>Klepnutím na roli nastavíte, kdo dokument uvidí. {storageConfigured ? 'Soubory se ukládají do úložiště.' : 'V demu se soubory drží v prohlížeči, po napojení úložiště se ukládají trvale.'}</p>
     </div>
   )
 }
@@ -436,7 +480,7 @@ function Documents({ toast }: { toast: Toast }) {
 /* ---------------- Nastavení ---------------- */
 function Settings({ toast }: { toast: Toast }) {
   const [integ, setInteg] = useState(A.integrations)
-  const [notif, setNotif] = useState({ email: true, sms: false, push: true })
+  const [notif, setNotif] = useState({ ...prefs })
   const [payAcc, setPayAcc] = useState(M.payAccount)
   const _a = parseAccount(payAcc); const iban = czIban(_a.prefix, _a.account, _a.bank)
   function toggle(id: string) { setInteg((s) => s.map((i) => i.id === id ? { ...i, on: !i.on, tag: i.on ? 'Nepřipojeno' : 'Připojeno' } : i)); toast('Nastavení integrace uloženo') }
@@ -461,8 +505,16 @@ function Settings({ toast }: { toast: Toast }) {
         <div className="card">
           <div className="card-h"><h3>Notifikace</h3></div>
           {([['email', 'E-mailem'], ['sms', 'SMS'], ['push', 'Push do aplikace']] as const).map(([k, l]) => (
-            <div className="contact-row" key={k}><div style={{ flex: 1 }}><b style={{ fontWeight: 600, fontSize: 14 }}>{l}</b></div><button className={'toggle' + ((notif as any)[k] ? ' on' : '')} onClick={() => setNotif((n) => ({ ...n, [k]: !(n as any)[k] }))} /></div>
+            <div className="contact-row" key={k}><div style={{ flex: 1 }}><b style={{ fontWeight: 600, fontSize: 14 }}>{l}</b></div><button className={'toggle' + ((notif as any)[k] ? ' on' : '')} onClick={() => setNotif((n) => { const v = !(n as any)[k]; setPref(k as any, v); return { ...n, [k]: v } })} /></div>
           ))}
+          <p className="adm-mini" style={{ marginTop: 8 }}>Vypnutý kanál se neodesílá. Upomínky i oznámení respektují toto nastavení.</p>
+        </div>
+        <div className="card">
+          <div className="card-h"><h3>Doručování</h3><span className={'pill ' + (notifyConfigured ? 'pill-ok' : 'pill-neutral')}>{notifyConfigured ? 'Napojeno' : 'Demo režim'}</span></div>
+          {[['E-mail (SendGrid)', 'email'], ['SMS (Twilio)', 'sms'], ['Push (web push)', 'push']].map(([l, k]) => (
+            <div className="contact-row" key={k as string}><span className="cf-ic"><Icon name={k === 'sms' ? 'msg' : k === 'push' ? 'bell' : 'doc'} small /></span><div style={{ flex: 1 }}><b style={{ fontWeight: 600, fontSize: 13.5 }}>{l as string}</b></div><span className={'pill ' + (notifyConfigured ? 'pill-ok' : 'pill-neutral')}>{notifyConfigured ? 'Aktivní' : 'Připraveno'}</span></div>
+          ))}
+          <p className="adm-mini" style={{ marginTop: 8 }}>Zadejte VITE_NOTIFY_API_URL pro reálné odesílání e-mailů, SMS a push.</p>
         </div>
       </div>
       <div className="col">

@@ -10,6 +10,9 @@ const P: Record<string, string> = {
   stiznosti: '<path d="M4 5h16v11H8l-4 3z"/><path d="M12 8v3M12 13h.01"/>',
   sprava: '<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4 4l2 2M18 18l2 2M2 12h3M19 12h3M4 20l2-2M18 6l2-2"/>',
   check: '<path d="M4 12l5 5L20 6"/>',
+  chevron: '<path d="M9 6l6 6-6 6"/>',
+  paperclip: '<path d="M21 11l-9 9a5 5 0 0 1-7-7l9-9a3 3 0 0 1 4 4l-9 9a1 1 0 0 1-2-2l8-8"/>',
+
   plus: '<path d="M12 5v14M5 12h14"/>',
   clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
   doc: '<path d="M6 2h8l4 4v16H6z"/><path d="M14 2v4h4M9 13h6M9 17h6"/>',

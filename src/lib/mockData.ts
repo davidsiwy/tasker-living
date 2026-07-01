@@ -29,10 +29,11 @@ export const feed: FeedPost[] = [
   { id: 'p5', authorName: 'Správa', handle: 'sprava', role: 'developer', kind: 'zav', body: 'Výtah C je opět v provozu, servis dokončen. Děkujeme za trpělivost.', createdAt: ago(1600), likes: 8, liked: false, commentCount: 0, comments: [] },
 ]
 
+const PHOTO = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%23e2e8f0'/><stop offset='1' stop-color='%23cbd5e1'/></linearGradient></defs><rect width='120' height='120' fill='url(%23g)'/><circle cx='60' cy='50' r='16' fill='none' stroke='%2394a3b8' stroke-width='5'/><rect x='40' y='72' width='40' height='8' rx='4' fill='%2394a3b8'/></svg>"
 export const faults: Fault[] = [
-  { id: 1, cat: 'Osvětlení', loc: 'Chodba, 3. patro', desc: 'Nesvítí světlo u výtahu, čidlo nereaguje.', status: 'V řešení', date: 'před 2 dny', by: 'A-304' },
-  { id: 2, cat: 'Výtah', loc: 'Vchod C', desc: 'Občas nedojede do přízemí, zasekne se mezi patry.', status: 'Nahlášeno', date: 'včera', by: 'C-118' },
-  { id: 3, cat: 'Voda', loc: 'Garáž -1', desc: 'Kapající kohout u stání 12.', status: 'Vyřešeno', date: 'před týdnem', by: 'B-204' },
+  { id: 1, cat: 'Osvětlení', loc: 'Chodba, 3. patro', desc: 'Nesvítí světlo u výtahu, čidlo nereaguje.', status: 'V řešení', date: 'před 2 dny', by: 'A-304', vendor: 'ElektroRevize Praha', photos: [PHOTO], timeline: [ { status: 'Nahlášeno', at: 'před 2 dny' }, { status: 'Přiřazen dodavatel', at: 'včera', note: 'ElektroRevize Praha' }, { status: 'V řešení', at: 'včera', note: 'Objednán náhradní senzor' } ] },
+  { id: 2, cat: 'Výtah', loc: 'Vchod C', desc: 'Občas nedojede do přízemí, zasekne se mezi patry.', status: 'Nahlášeno', date: 'včera', by: 'C-118', photos: [], timeline: [ { status: 'Nahlášeno', at: 'včera' } ] },
+  { id: 3, cat: 'Voda', loc: 'Garáž -1', desc: 'Kapající kohout u stání 12.', status: 'Vyřešeno', date: 'před týdnem', by: 'B-204', vendor: 'Instalatér Novák', photos: [], timeline: [ { status: 'Nahlášeno', at: 'před týdnem' }, { status: 'Přiřazen dodavatel', at: 'před 6 dny', note: 'Instalatér Novák' }, { status: 'V řešení', at: 'před 6 dny' }, { status: 'Vyřešeno', at: 'před 5 dny', note: 'Vyměněno těsnění a hlavice' } ] },
 ]
 
 export const units: Unit[] = [
@@ -59,9 +60,10 @@ export const meetings: Meeting[] = [
   { id: 1, date: '24. dubna 2026, 18:00', place: 'Společenská místnost', agenda: ['Roční vyúčtování za 2025', 'Stav fondu oprav', 'Rekonstrukce střechy'], rsvp: false },
 ]
 export const documents: DocItem[] = [
-  { name: 'Zápis ze schůze 11/2025', kind: 'PDF', date: '18. 11. 2025' },
-  { name: 'Stanovy SVJ', kind: 'PDF', date: 'platné' },
-  { name: 'Vyúčtování služeb 2024', kind: 'PDF', date: '5. 5. 2025' },
+  { id: 'd1', name: 'Zápis ze schůze 11/2025', kind: 'PDF', date: '18. 11. 2025', cat: 'Zápisy', vis: ['rezident', 'vybor', 'developer', 'investor'] },
+  { id: 'd2', name: 'Stanovy SVJ', kind: 'PDF', date: 'platné', cat: 'Právní', vis: ['rezident', 'vybor', 'developer', 'investor'] },
+  { id: 'd3', name: 'Vyúčtování služeb 2024', kind: 'PDF', date: '5. 5. 2025', cat: 'Vyúčtování', vis: ['vybor', 'developer', 'investor'] },
+  { id: 'd4', name: 'Smlouva o dílo, střecha', kind: 'PDF', date: '2026', cat: 'Smlouvy', vis: ['vybor'] },
 ]
 export const poll: Poll = { q: 'Souhlasíte s rekonstrukcí střechy za 1,8 mil. Kč z fondu oprav?', yes: 14, no: 5, voted: false }
 export const neighbors: Neighbor[] = [
@@ -107,3 +109,17 @@ export const payHistory = [
   { id: 'h2', label: 'Zálohy, leden 2026', amount: 3200, date: '3. 1. 2026' },
   { id: 'h3', label: 'Nájem, prosinec 2025', amount: 24500, date: '2. 12. 2025' },
 ]
+
+// Owners assembly voting: shares per unit, quorum as % of total shares.
+export interface VoteRow { unit: string; owner: string; shares: number }
+export const voteRoster: VoteRow[] = [
+  { unit: 'A-101', owner: 'Petr Kalina', shares: 2.1 },
+  { unit: 'A-102', owner: 'Gallery Point', shares: 2.3 },
+  { unit: 'B-204', owner: 'Gallery Point', shares: 2.7 },
+  { unit: 'B-205', owner: 'Eva Horáková', shares: 2.8 },
+  { unit: 'C-302', owner: 'Gallery Point', shares: 3.2 },
+  { unit: 'C-118', owner: 'Gallery Point', shares: 2.5 },
+  { unit: 'D-410', owner: 'Gallery Point', shares: 3.7 },
+]
+export const voteQuestion = 'Souhlasíte s rekonstrukcí střechy za 1,8 mil. Kč z fondu oprav?'
+export const voteQuorum = 50 // % podílů nutných k usnášeníschopnosti

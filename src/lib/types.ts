@@ -30,14 +30,16 @@ export interface FeedPost {
 }
 
 export type FaultStatus = 'Nahlášeno' | 'V řešení' | 'Vyřešeno'
-export interface Fault { id: number; cat: string; loc: string; desc: string; status: FaultStatus; date: string; by: string }
+export interface FaultEvent { status: string; at: string; note?: string }
+export interface Fault { id: number; cat: string; loc: string; desc: string; status: FaultStatus; date: string; by: string; photos?: string[]; vendor?: string; timeline?: FaultEvent[] }
 export interface Unit { id: string; floor: string; tenant: string; rent: number; vs: string; paid: boolean; due: string; end: string; endSoon: boolean }
 export interface Service { id: string; name: string; from: number; icon: string; unit: string; desc: string }
 export interface Booking { id: number; name: string; date: string; status: 'new' | 'assigned' | 'done'; worker?: string; rating?: string }
 export interface ComplaintItem { type: string; date: string; note: string }
 export interface Meeting { id: number; date: string; place: string; agenda: string[]; rsvp: boolean }
-export interface DocItem { name: string; kind: string; date: string }
+export interface DocItem { id?: string; name: string; kind: string; date: string; cat?: string; vis?: Role[]; url?: string }
 export interface Poll { q: string; yes: number; no: number; voted: boolean }
+export type VoteChoice = 'ano' | 'ne' | 'zdrzel'
 export interface Neighbor { name: string; unit: string; floor: string; phone: string; shares: boolean }
 export interface Resident { name: string; unit: string; role: string }
 export interface AccessCode { code: string; unit: string; used: boolean }

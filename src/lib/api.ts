@@ -4,7 +4,7 @@
 import * as M from './mockData'
 import type {
   FeedPost, FeedComment, FeedType, Fault, Unit, Service, Booking, Meeting,
-  DocItem, Poll, Neighbor, Resident, AccessCode, AppNotification, ComplaintItem, FaultStatus,
+  DocItem, Poll, Neighbor, Resident, AccessCode, AppNotification, ComplaintItem, FaultStatus, VoteChoice,
 } from './types'
 import { supabase, isSupabaseConfigured } from './supabase'
 
@@ -110,6 +110,8 @@ const db = {
   poll: clone(M.poll), neighbors: clone(M.neighbors), residents: clone(M.residents),
   codes: clone(M.codes), notifications: clone(M.notifications),
   complaints: clone(M.complaints) as Record<string, ComplaintItem[]>,
+  voteBallots: { 'A-101': 'ano', 'B-205': 'ano', 'C-302': 'ne', 'D-410': 'ano' } as Record<string, VoteChoice>,
+  voteProxies: {} as Record<string, string>,
 }
 const rnd = () => Math.random().toString(36).slice(2, 6).toUpperCase()
 
@@ -138,7 +140,7 @@ export const api = {
   async rsvp(id: number): Promise<void> { await wait(90); const m = db.meetings.find((x) => x.id === id); if (m) m.rsvp = !m.rsvp },
   async getPoll(): Promise<Poll> { await wait(); return clone(db.poll) },
   async vote(choice: 'yes' | 'no'): Promise<Poll> { await wait(120); if (!db.poll.voted) { db.poll[choice] += 1; db.poll.voted = true } return clone(db.poll) },
-  async getDocuments(): Promise<DocItem[]> { await wait(); return clone(db.documents) },
+  async getDocuments(role?: string): Promise<DocItem[]> { await wait(); let d = clone(db.documents); if (role) d = d.filter((x: DocItem) => !x.vis || x.vis.includes(role as any)); return d },
 
   async getNeighbors(): Promise<Neighbor[]> { await wait(); return clone(db.neighbors) },
   async setVisibility(name: string, shares: boolean): Promise<void> { await wait(80); const n = db.neighbors.find((x) => x.name === name); if (n) n.shares = shares },
@@ -148,4 +150,31 @@ export const api = {
   async generateCode(): Promise<AccessCode> { await wait(); const c: AccessCode = { code: 'TL-VP-' + rnd(), unit: 'nepřiřazeno', used: false }; db.codes.unshift(c); return clone(c) },
 
   async getNotifications(): Promise<AppNotification[]> { await wait(60); return clone(db.notifications) },
+
+  // faults: timeline, vendor, photos
+  async advanceFault(id: number, status: FaultStatus, note?: string): Promise<void> {
+    await wait(90); const f = db.faults.find((x) => x.id === id); if (!f) return
+    f.status = status; f.timeline = f.timeline || []; f.timeline.push({ status, at: 'právě teď', note })
+  },
+  async assignVendor(id: number, vendor: string): Promise<void> {
+    await wait(90); const f = db.faults.find((x) => x.id === id); if (!f) return
+    f.vendor = vendor; f.timeline = f.timeline || []; f.timeline.push({ status: 'Přiřazen dodavatel', at: 'právě teď', note: vendor })
+  },
+  async addFaultPhoto(id: number, url: string): Promise<void> {
+    await wait(60); const f = db.faults.find((x) => x.id === id); if (!f) return; f.photos = f.photos || []; f.photos.push(url)
+  },
+
+  // owners voting: share-weighted ballots + proxies
+  async getVote(): Promise<{ q: string; quorum: number; roster: M.VoteRow[]; ballots: Record<string, VoteChoice>; proxies: Record<string, string> }> {
+    await wait(); return { q: M.voteQuestion, quorum: M.voteQuorum, roster: clone(M.voteRoster), ballots: { ...db.voteBallots }, proxies: { ...db.voteProxies } }
+  },
+  async castVote(unit: string, choice: VoteChoice): Promise<void> { await wait(90); db.voteBallots[unit] = choice; delete db.voteProxies[unit] },
+  async setProxy(fromUnit: string, toUnit: string): Promise<void> { await wait(90); db.voteProxies[fromUnit] = toUnit; delete db.voteBallots[fromUnit] },
+  async clearProxy(fromUnit: string): Promise<void> { await wait(60); delete db.voteProxies[fromUnit] },
+
+  // documents: per-role visibility + upload
+  async uploadDocument(doc: { name: string; kind: string; date: string; cat?: string; vis?: string[]; url?: string }): Promise<DocItem> {
+    await wait(); const nd: DocItem = { id: 'd' + rid(), ...(doc as any) }; db.documents.unshift(nd); return clone(nd)
+  },
+  async setDocVisibility(id: string, vis: string[]): Promise<void> { await wait(60); const d = db.documents.find((x: DocItem) => x.id === id); if (d) d.vis = vis as any },
 }
