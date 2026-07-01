@@ -51,10 +51,12 @@ export default function AdminPage() {
       </div>
       <div className="stat" style={{ marginTop: 16 }}>
         <div className="card-h"><h3>Obyvatelé</h3><span className="sub">{residents.length} v domě</span></div>
+        <div className="tbl-scroll">
         <table className="tbl">
           <thead><tr><th>Jméno</th><th>Jednotka</th><th>Role</th></tr></thead>
           <tbody>{residents.map((r) => (<tr key={r.name}><td>{r.name}</td><td className="mono">{r.unit}</td><td>{r.role}</td></tr>))}</tbody>
         </table>
+        </div>
       </div>
     </div>
   )

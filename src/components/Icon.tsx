@@ -21,6 +21,7 @@ const P: Record<string, string> = {
   bell: '<path d="M6 9a6 6 0 1112 0c0 5 2 6 2 6H4s2-1 2-6z"/><path d="M10 20a2 2 0 004 0"/>',
   x: '<path d="M6 6l12 12M18 6L6 18"/>',
   send: '<path d="M4 12l16-7-7 16-2-6z"/>',
+  menu: '<path d="M4 7h16M4 12h16M4 17h16"/>',
 }
 
 export function Icon({ name, small }: { name: string; small?: boolean }) {

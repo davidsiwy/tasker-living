@@ -18,9 +18,13 @@ export default function AppShell() {
   const { user, isDemo, setRole, notifications, clearNotifications, signOut } = useSession()
   const nav = useNavigate()
   const [bell, setBell] = useState(false)
+  const [sheet, setSheet] = useState(false)
   if (!user) return null
   const items = NAV.filter((n) => !n.adminOnly || can(user.role as Role, 'admin'))
-  async function logout() { await signOut(); nav('/') }
+  const primary = items.slice(0, 4)
+  async function logout() { setSheet(false); await signOut(); nav('/') }
+  function go(id: string) { setSheet(false); nav(`/app/${id}`) }
+  const showComplaintBadge = user.role !== 'rezident'
 
   return (
     <div className="app">
@@ -30,7 +34,7 @@ export default function AppShell() {
         {items.map((n) => (
           <NavLink key={n.id} to={`/app/${n.id}`} className={({ isActive }) => 'nav-item' + (isActive ? ' active' : '')}>
             <Icon name={n.icon} />{n.label}
-            {n.id === 'stiznosti' && user.role !== 'rezident' && <span className="badge">3</span>}
+            {n.id === 'stiznosti' && showComplaintBadge && <span className="badge">3</span>}
           </NavLink>
         ))}
         <div className="side-foot">
@@ -42,7 +46,7 @@ export default function AppShell() {
         <header className="topbar">
           <div className="bldg">
             <span className="cf-ic"><Icon name="nastenka" small /></span>
-            <div><b>{user.buildingName}</b><br /><span>{user.role === 'rezident' && user.unit ? `Jednotka ${user.unit}` : roleNames[user.role]}</span></div>
+            <div style={{ minWidth: 0 }}><b>{user.buildingName}</b><br /><span>{user.role === 'rezident' && user.unit ? `Jednotka ${user.unit}` : roleNames[user.role]}</span></div>
           </div>
           <div className="top-actions">
             {isDemo ? (
@@ -53,7 +57,7 @@ export default function AppShell() {
                 </select>
               </div>
             ) : (
-              <span className="pill pill-neutral">{roleNames[user.role]}</span>
+              <span className="pill pill-neutral hide-mobile">{roleNames[user.role]}</span>
             )}
             <div className="bell">
               <button className="btn btn-ghost btn-icon" onClick={() => setBell((v) => !v)} aria-label="Notifikace">
@@ -69,18 +73,41 @@ export default function AppShell() {
                 </div>
               )}
             </div>
-            <button className="btn btn-ghost btn-icon" onClick={logout} title="Odhlásit se"><Icon name="x" /></button>
-            <span className="cf-ic" style={{ background: 'var(--green-800)', color: '#f4f0e5', fontFamily: 'var(--fm)', fontSize: 12, fontWeight: 600 }}>{user.initials}</span>
+            <button className="btn btn-ghost btn-icon hide-mobile" onClick={logout} title="Odhlásit se"><Icon name="x" /></button>
+            <span className="cf-ic avatar-plate">{user.initials}</span>
           </div>
         </header>
 
         <main className="view"><Outlet /></main>
 
         <nav className="mobile-nav">
-          {items.map((n) => (
-            <NavLink key={n.id} to={`/app/${n.id}`} className={({ isActive }) => 'mnav-item' + (isActive ? ' active' : '')}><Icon name={n.icon} />{n.label}</NavLink>
+          {primary.map((n) => (
+            <NavLink key={n.id} to={`/app/${n.id}`} className={({ isActive }) => 'mnav-item' + (isActive ? ' active' : '')}>
+              <Icon name={n.icon} />{n.label}
+              {n.id === 'stiznosti' && showComplaintBadge && <span className="badge">3</span>}
+            </NavLink>
           ))}
+          <button className={'mnav-item' + (sheet ? ' active' : '')} onClick={() => setSheet(true)}><Icon name="menu" />Více</button>
         </nav>
+
+        {sheet && (
+          <div className="sheet-scrim" onClick={() => setSheet(false)}>
+            <div className="sheet" onClick={(e) => e.stopPropagation()}>
+              <div className="sheet-handle" />
+              <div className="sheet-h"><b>{user.buildingName}</b><button className="btn btn-ghost btn-icon" onClick={() => setSheet(false)} aria-label="Zavřít"><Icon name="x" small /></button></div>
+              <div className="sheet-grid">
+                {items.map((n) => (
+                  <button key={n.id} className="sheet-item" onClick={() => go(n.id)}>
+                    <Icon name={n.icon} />{n.label}
+                    {n.id === 'stiznosti' && showComplaintBadge && <span className="badge">3</span>}
+                  </button>
+                ))}
+                <button className="sheet-item" onClick={() => go('nastaveni')}><Icon name="sprava" />Nastavení</button>
+              </div>
+              <button className="btn btn-ghost sheet-foot" style={{ width: '100%', justifyContent: 'center' }} onClick={logout}><Icon name="x" small /> Odhlásit se</button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
