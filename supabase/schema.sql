@@ -216,3 +216,32 @@ insert into public.access_codes (code, building_id, role, unit_id) values
   ('TL-VP-B204',  '11111111-1111-1111-1111-111111111111', 'rezident',
      (select id from public.units where building_id = '11111111-1111-1111-1111-111111111111' and label = 'B-204'))
   on conflict (code) do nothing;
+
+-- ---------- admin console (Správa, tab Lidé) ----------
+-- profiles carry email so the console can show contacts
+alter table public.profiles add column if not exists email text;
+create or replace function public.handle_new_user()
+returns trigger language plpgsql security definer set search_path = public as $$
+begin
+  insert into public.profiles (id, full_name, email)
+  values (new.id, coalesce(new.raw_user_meta_data->>'full_name', 'Rezident'), new.email)
+  on conflict (id) do update set email = excluded.email;
+  return new;
+end;
+$$;
+
+-- committee and developer manage codes, members and units of their building
+drop policy if exists codes_admin_read on public.access_codes;
+create policy codes_admin_read on public.access_codes for select using (member_role(building_id) in ('vybor','developer'));
+drop policy if exists codes_admin_insert on public.access_codes;
+create policy codes_admin_insert on public.access_codes for insert with check (member_role(building_id) in ('vybor','developer'));
+drop policy if exists codes_admin_delete on public.access_codes;
+create policy codes_admin_delete on public.access_codes for delete using (member_role(building_id) in ('vybor','developer') and used_by is null);
+drop policy if exists memberships_admin_update on public.memberships;
+create policy memberships_admin_update on public.memberships for update using (member_role(building_id) in ('vybor','developer')) with check (member_role(building_id) in ('vybor','developer'));
+drop policy if exists memberships_admin_delete on public.memberships;
+create policy memberships_admin_delete on public.memberships for delete using (member_role(building_id) in ('vybor','developer') and user_id <> auth.uid());
+drop policy if exists units_admin_insert on public.units;
+create policy units_admin_insert on public.units for insert with check (member_role(building_id) in ('vybor','developer'));
+drop policy if exists posts_delete on public.posts;
+create policy posts_delete on public.posts for delete using (author_id = auth.uid() or member_role(building_id) in ('vybor','developer'));

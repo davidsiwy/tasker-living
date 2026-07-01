@@ -1,7 +1,9 @@
 import { useMemo, useState, useEffect, useRef } from 'react'
 import { feed, api } from '../../lib/api'
-import { can } from '../../lib/types'
+import { can, roleNames } from '../../lib/types'
 import type { Role, DocItem } from '../../lib/types'
+import { adminApi } from '../../lib/adminApi'
+import type { LiveMember, LiveCode, LiveUnit } from '../../lib/adminApi'
 import * as M from '../../lib/mockData'
 import * as A from '../../lib/adminData'
 import type { AUnit } from '../../lib/adminData'
@@ -198,41 +200,101 @@ function Detail({ k, v, mono }: { k: string; v: string; mono?: boolean }) {
 
 /* ---------------- Lidé ---------------- */
 function People({ toast }: { toast: Toast }) {
-  const [codes, setCodes] = useState(A.codes)
-  function gen() { const c = { code: 'TL-VP-' + Math.random().toString(36).slice(2, 6).toUpperCase(), unit: 'nepřiřazeno', role: 'Rezident', status: 'Aktivní' as const, expires: '30 dní' }; setCodes((s) => [c, ...s]); toast(`Kód vytvořen: ${c.code}`) }
-  function revoke(code: string) { setCodes((s) => s.map((c) => c.code === code ? { ...c, status: 'Zrušen' as const } : c)); toast('Kód zrušen') }
+  const { user } = useSession()
+  const bid = user?.buildingId || 'demo'
+  const [members, setMembers] = useState<LiveMember[]>([])
+  const [codes, setCodes] = useState<LiveCode[]>([])
+  const [units, setUnits] = useState<LiveUnit[]>([])
+  const [loading, setLoading] = useState(true)
+  const [newRole, setNewRole] = useState<Role>('rezident')
+  const [newUnit, setNewUnit] = useState('')
+  const [busy, setBusy] = useState(false)
+
+  async function reload() {
+    const [m, c, u] = await Promise.all([adminApi.listMembers(bid), adminApi.listCodes(bid), adminApi.listUnits(bid)])
+    setMembers(m); setCodes(c); setUnits(u); setLoading(false)
+  }
+  useEffect(() => { reload().catch((e: any) => { setLoading(false); toast('Nepodařilo se načíst data: ' + (e.message || e)) }) }, [bid])
+
+  async function gen() {
+    setBusy(true)
+    try {
+      const code = await adminApi.createCode(bid, newRole, newRole === 'rezident' && newUnit ? newUnit : null)
+      toast(`Kód vytvořen: ${code}`); await reload()
+    } catch (e: any) { toast('Chyba: ' + (e.message || e)) } finally { setBusy(false) }
+  }
+  async function del(code: string) {
+    try { await adminApi.deleteCode(code); toast('Kód smazán'); await reload() }
+    catch (e: any) { toast('Chyba: ' + (e.message || e)) }
+  }
+  async function changeRole(m: LiveMember, role: Role) {
+    try { await adminApi.setRole(m.membershipId, role); toast(`${m.name} je nyní ${roleNames[role]}`); await reload() }
+    catch (e: any) { toast('Chyba: ' + (e.message || e)) }
+  }
+  async function remove(m: LiveMember) {
+    if (!window.confirm(`Odebrat ${m.name} z domu? Přijde o přístup do aplikace.`)) return
+    try { await adminApi.removeMember(m.membershipId); toast('Člen odebrán'); await reload() }
+    catch (e: any) { toast('Chyba: ' + (e.message || e)) }
+  }
 
   return (
     <div className="grid-2">
       <div className="card" style={{ padding: 0 }}>
-        <div className="card-h" style={{ padding: '16px 18px 0' }}><h3>Obyvatelé a členové</h3><span className="adm-mini">{A.members.length} osob</span></div>
+        <div className="card-h" style={{ padding: '16px 18px 0' }}><h3>Obyvatelé a členové</h3><span className="adm-mini">{members.length} osob</span></div>
         <div style={{ overflowX: 'auto' }}>
           <table className="tbl">
-            <thead><tr><th>Jméno</th><th>Jednotka</th><th>Role</th><th>Stav</th><th></th></tr></thead>
+            <thead><tr><th>Jméno</th><th>Jednotka</th><th>Role</th><th></th></tr></thead>
             <tbody>
-              {A.members.map((m) => (
-                <tr key={m.name + m.unit}>
-                  <td><b style={{ fontWeight: 600 }}>{m.name}</b><br /><span className="adm-mini">{m.email || 'bez e-mailu'}</span></td>
-                  <td className="mono">{m.unit}</td>
-                  <td><span className={'pill ' + (m.role === 'Výbor' ? 'pill-ok' : 'pill-neutral')}>{m.role}</span></td>
-                  <td>{m.status === 'Aktivní' ? <span className="pill pill-ok">Aktivní</span> : <span className="pill pill-warn">{m.status}</span>}</td>
-                  <td style={{ textAlign: 'right' }}><button className="btn btn-ghost btn-sm" onClick={() => toast(`Úprava, ${m.name}`)}>Upravit</button></td>
+              {loading && <tr><td colSpan={4} className="adm-mini" style={{ padding: 18 }}>Načítání...</td></tr>}
+              {!loading && members.length === 0 && (
+                <tr><td colSpan={4} className="adm-mini" style={{ padding: 18 }}>Zatím se nikdo neregistroval. Vygenerujte kód vpravo a pošlete ho.</td></tr>
+              )}
+              {members.map((m) => (
+                <tr key={m.membershipId}>
+                  <td><b style={{ fontWeight: 600 }}>{m.name}</b><br /><span className="adm-mini">{m.email || 'bez e-mailu'} · od {m.since}</span></td>
+                  <td className="mono">{m.unit || <span className="adm-mini">bez jednotky</span>}</td>
+                  <td>
+                    <select className="input" style={{ padding: '4px 8px', fontSize: 12.5, width: 'auto' }} value={m.role}
+                      onChange={(e) => changeRole(m, e.target.value as Role)} disabled={m.userId === user?.userId}>
+                      {(Object.keys(roleNames) as Role[]).map((r) => <option key={r} value={r}>{roleNames[r]}</option>)}
+                    </select>
+                  </td>
+                  <td style={{ textAlign: 'right' }}>
+                    {m.userId !== user?.userId && <button className="btn btn-ghost btn-sm" onClick={() => remove(m)}>Odebrat</button>}
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
       </div>
+
       <div className="card">
-        <div className="card-h"><h3>Přístupové kódy</h3><button className="btn btn-soft btn-sm" onClick={gen}><Icon name="plus" small /> Vygenerovat</button></div>
+        <div className="card-h"><h3>Přístupové kódy</h3></div>
+        <div style={{ display: 'flex', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
+          <select className="input" style={{ flex: 1, minWidth: 110 }} value={newRole} onChange={(e) => setNewRole(e.target.value as Role)}>
+            {(Object.keys(roleNames) as Role[]).map((r) => <option key={r} value={r}>{roleNames[r]}</option>)}
+          </select>
+          {newRole === 'rezident' && (
+            <select className="input" style={{ flex: 1, minWidth: 110 }} value={newUnit} onChange={(e) => setNewUnit(e.target.value)}>
+              <option value="">bez jednotky</option>
+              {units.map((u) => <option key={u.id} value={u.id}>{u.label}</option>)}
+            </select>
+          )}
+          <button className="btn btn-soft btn-sm" onClick={gen} disabled={busy}><Icon name="plus" small /> Vygenerovat</button>
+        </div>
+        {!loading && codes.length === 0 && <p className="adm-mini">Žádné kódy. Vygenerujte první nahoře.</p>}
         {codes.map((c) => (
           <div className="doc-row" key={c.code}>
-            <span className="cf-ic"><Icon name="check" small /></span>
-            <div style={{ flex: 1, minWidth: 0 }}><b className="mono" style={{ fontSize: 13.5 }}>{c.code}</b><span>{c.unit} · {c.role} · {c.expires}</span></div>
-            {c.status === 'Aktivní' ? <button className="btn btn-ghost btn-sm" onClick={() => revoke(c.code)}>Zrušit</button> : <span className={'pill ' + (c.status === 'Použit' ? 'pill-neutral' : 'pill-bad')}>{c.status}</span>}
+            <span className="cf-ic"><Icon name={c.used ? 'check' : 'clock'} small /></span>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <b className="mono" style={{ fontSize: 13.5 }}>{c.code}</b>
+              <span>{roleNames[c.role]}{c.unit ? ' · ' + c.unit : ''} · {c.created}</span>
+            </div>
+            {c.used ? <span className="pill pill-neutral">Použit</span> : <button className="btn btn-ghost btn-sm" onClick={() => del(c.code)}>Smazat</button>}
           </div>
         ))}
-        <p className="adm-mini" style={{ marginTop: 12 }}>Rezident se kódem připojí k jednotce se správnou rolí. Kódy pro výbor mají plná práva správy.</p>
+        <p className="adm-mini" style={{ marginTop: 12 }}>Kód pošlete rezidentovi, při registraci ho připojí k domu se správnou rolí a jednotkou. Nepoužité kódy lze smazat, použité zůstávají v historii.</p>
       </div>
     </div>
   )
