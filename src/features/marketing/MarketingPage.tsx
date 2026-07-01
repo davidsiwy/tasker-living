@@ -72,10 +72,10 @@ export default function MarketingPage() {
         </section>
       </div>
 
-      <div style={{ background: 'var(--pine-900)', color: '#c6ccc0', padding: '28px 0', marginTop: 8 }}>
+      <div style={{ background: 'var(--ink)', color: '#c6ccc0', padding: '28px 0', marginTop: 8 }}>
         <div className="wrap" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
           <span style={{ fontFamily: 'var(--fm)', fontSize: 11.5, letterSpacing: '.04em' }}>TASKER LIVING · SOUČÁST RODINY TASKER</span>
-          <button className="btn btn-gold" onClick={() => nav('/prihlaseni')}>Otevřít aplikaci</button>
+          <button className="btn btn-primary" onClick={() => nav('/prihlaseni')}>Otevřít aplikaci</button>
         </div>
       </div>
     </div>
