@@ -1,0 +1,9 @@
+{
+  "name": "Tasker Living",
+  "short_name": "Living",
+  "start_url": "/app",
+  "display": "standalone",
+  "background_color": "#f5f0e6",
+  "theme_color": "#1e3a34",
+  "icons": [{ "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml" }]
+}
