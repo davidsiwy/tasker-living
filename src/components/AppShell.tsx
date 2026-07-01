@@ -15,7 +15,7 @@ function Logo() {
 }
 
 export default function AppShell() {
-  const { user, isDemo, setRole, notifications, clearNotifications, signOut } = useSession()
+  const { user, isDemo, isPlatformAdmin, setRole, notifications, clearNotifications, signOut } = useSession()
   const nav = useNavigate()
   const [bell, setBell] = useState(false)
   const [sheet, setSheet] = useState(false)
@@ -37,6 +37,14 @@ export default function AppShell() {
             {n.id === 'stiznosti' && showComplaintBadge && <span className="badge">3</span>}
           </NavLink>
         ))}
+        {isPlatformAdmin && (
+          <>
+            <div className="side-lbl">Platforma</div>
+            <NavLink to="/app/operator" className={({ isActive }) => 'nav-item' + (isActive ? ' active' : '')}>
+              <Icon name="bank" />Operátor
+            </NavLink>
+          </>
+        )}
         <div className="side-foot">
           <NavLink to="/app/nastaveni" className={({ isActive }) => 'nav-item' + (isActive ? ' active' : '')}><Icon name="sprava" />Nastavení</NavLink>
         </div>

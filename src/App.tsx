@@ -12,6 +12,7 @@ import ContactsPage from './features/contacts/ContactsPage'
 import ComplaintsPage from './features/complaints/ComplaintsPage'
 import AdminPage from './features/admin/AdminPage'
 import SettingsPage from './features/settings/SettingsPage'
+import PlatformAdminPage from './features/platform/PlatformAdminPage'
 
 export default function App() {
   return (
@@ -29,6 +30,7 @@ export default function App() {
         <Route path="stiznosti" element={<ComplaintsPage />} />
         <Route path="sprava" element={<AdminPage />} />
         <Route path="nastaveni" element={<SettingsPage />} />
+        <Route path="operator" element={<PlatformAdminPage />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

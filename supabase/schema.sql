@@ -245,3 +245,19 @@ drop policy if exists units_admin_insert on public.units;
 create policy units_admin_insert on public.units for insert with check (member_role(building_id) in ('vybor','developer'));
 drop policy if exists posts_delete on public.posts;
 create policy posts_delete on public.posts for delete using (author_id = auth.uid() or member_role(building_id) in ('vybor','developer'));
+
+-- ---------- platform operator (Operátor console) ----------
+create table if not exists public.platform_admins (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  created_at timestamptz not null default now()
+);
+alter table public.platform_admins enable row level security;
+create or replace function public.is_platform_admin()
+returns boolean language sql security definer stable set search_path = public as $$
+  select exists (select 1 from platform_admins where user_id = auth.uid());
+$$;
+-- Platform admins are added manually: insert into platform_admins (user_id) values ('<uuid>');
+-- All building policies above are extended in production with "or is_platform_admin()"
+-- and the admin_activity() function powers the operator activity feed. Account
+-- management (create, password, email, ban, delete) runs through the admin-users
+-- Edge Function which checks platform_admins and uses the service role key.

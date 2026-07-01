@@ -13,6 +13,7 @@ export interface SessionUser {
 interface Ctx {
   user: SessionUser | null
   isDemo: boolean
+  isPlatformAdmin: boolean
   loading: boolean
   notifications: AppNotification[]
   clearNotifications: () => void
@@ -37,16 +38,26 @@ const DEMO: Record<Role, SessionUser> = {
 
 export function SessionProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<SessionUser | null>(null)
+  const [isPlatformAdmin, setIsPlatformAdmin] = useState(false)
   const [loading, setLoading] = useState<boolean>(isSupabaseConfigured)
   const [notifications, setNotifs] = useState<AppNotification[]>(M.notifications)
 
   async function loadMembership(uid: string) {
     const sb = supabase!
     const { data: prof } = await sb.from('profiles').select('full_name').eq('id', uid).maybeSingle()
+    const { data: pa } = await sb.rpc('is_platform_admin')
+    const admin = pa === true
+    setIsPlatformAdmin(admin)
     const { data: mem } = await sb.from('memberships')
       .select('role, building_id, unit_id, buildings(name), units(label)')
       .eq('user_id', uid).limit(1).maybeSingle()
-    if (!mem) { setUser(null); return }
+    if (!mem) {
+      if (admin) {
+        const name = (prof as any)?.full_name || 'Operátor'
+        setUser({ userId: uid, name, initials: initialsOf(name), role: 'developer', buildingId: '', buildingName: 'Tasker Living', unit: '', handle: 'operator' })
+      } else setUser(null)
+      return
+    }
     const m = mem as any
     const name = (prof as any)?.full_name || 'Rezident'
     const unit = m.units?.label || ''
@@ -69,7 +80,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const value: Ctx = {
-    user, isDemo: !isSupabaseConfigured, loading, notifications,
+    user, isDemo: !isSupabaseConfigured, isPlatformAdmin, loading, notifications,
     clearNotifications: () => setNotifs([]),
     setRole: (r) => setUser(DEMO[r]),
     async signIn(email, pw) {
@@ -85,7 +96,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       if (rErr) throw new Error('Přihlášení proběhlo, ale kód selhal: ' + rErr.message)
       await loadMembership(data.session.user.id)
     },
-    async signOut() { if (supabase) await supabase.auth.signOut(); setUser(null) },
+    async signOut() { if (supabase) await supabase.auth.signOut(); setUser(null); setIsPlatformAdmin(false) },
   }
   return <C.Provider value={value}>{children}</C.Provider>
 }
