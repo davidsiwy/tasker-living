@@ -2,9 +2,12 @@ import { useEffect, useState } from 'react'
 import { api } from '../../lib/api'
 import type { Unit } from '../../lib/types'
 import { can } from '../../lib/types'
+import * as M from '../../lib/mockData'
 import { useSession } from '../../state/session'
 import { useToast } from '../../components/Toast'
 import { Icon } from '../../components/Icon'
+import { PayModal } from '../../components/QrPlatba'
+import type { PayItem } from '../../components/QrPlatba'
 
 const money = (n: number) => n.toLocaleString('cs-CZ') + ' Kč'
 
@@ -12,6 +15,8 @@ export default function RentPage() {
   const { user } = useSession(); const role = user?.role; const unit = user?.unit ?? ''
   const toast = useToast()
   const [units, setUnits] = useState<Unit[]>([])
+  const [pays, setPays] = useState(M.myPayments)
+  const [modal, setModal] = useState<PayItem | null>(null)
   useEffect(() => { api.getUnits().then(setUnits) }, [])
 
   const occupied = units.filter((u) => u.tenant !== 'Volné')
@@ -19,34 +24,51 @@ export default function RentPage() {
   const unpaid = occupied.filter((u) => !u.paid)
   const ending = units.filter((u) => u.endSoon)
   async function remind(u: Unit) { await api.remind(u.id); toast(`Upomínka odeslána: ${u.id}`) }
+  const asItem = (o: { id: string; label: string; amount: number; vs: string; due?: string; recurring?: boolean; msg?: string }): PayItem =>
+    ({ id: o.id, label: o.label, amount: o.amount, vs: o.vs, due: o.due || '15.', recurring: o.recurring ?? true, msg: o.msg || o.label })
 
-  // Rezident: own rent only
+  // ---------- Rezident: my payments with QR ----------
   if (can(role!, 'own_rent')) {
     const me = units.find((u) => u.id === unit)
+    const due = pays.filter((p) => p.status === 'unpaid')
     return (
       <div>
-        <div className="view-head"><div><h1>Můj nájem</h1><div className="desc">Přehled plateb za jednotku {unit}</div></div></div>
+        <div className="view-head"><div><h1>Moje platby</h1><div className="desc">Nájem, zálohy a poplatky za jednotku {unit}</div></div></div>
         <div className="grid-2">
-          <div className="stat">
-            <div className="card-h"><h3>Aktuální nájem</h3>{me?.paid ? <span className="pill pill-ok">Zaplaceno</span> : <span className="pill pill-warn">Čeká</span>}</div>
-            <div style={{ fontFamily: 'var(--fd)', fontSize: 30, fontWeight: 700, letterSpacing: '-.02em' }}>{me ? money(me.rent) : '-'}</div>
-            <div style={{ marginTop: 12, display: 'grid', gap: 4 }}>
-              <div className="doc-row"><span className="cf-ic"><Icon name="bank" small /></span><div><b>Variabilní symbol</b><span className="mono">{me?.vs}</span></div></div>
-              <div className="doc-row"><span className="cf-ic"><Icon name="clock" small /></span><div><b>Splatnost</b><span>{me?.due} v měsíci</span></div></div>
-            </div>
-            <button className="btn btn-gold btn-sm" style={{ marginTop: 14 }} onClick={() => toast('Platba by proběhla přes platební bránu')}>Zaplatit nájem</button>
+          <div className="card">
+            <div className="card-h"><h3>K úhradě</h3>{due.length > 0 ? <span className="pill pill-warn">{due.length} k zaplacení</span> : <span className="pill pill-ok">Vše uhrazeno</span>}</div>
+            {pays.map((p) => (
+              <div className="row-card" key={p.id} style={{ marginTop: 10 }}>
+                <div className="lead-col"><b>{p.label}</b><span>VS {p.vs} · splatnost {p.due} dne</span></div>
+                <div className="row-metrics">
+                  <div className="metric"><div className="k">Částka</div><div className="val">{money(p.amount)}</div></div>
+                  {p.status === 'paid'
+                    ? <span className="pill pill-ok"><Icon name="check" small /> Zaplaceno</span>
+                    : <button className="btn btn-primary btn-sm" onClick={() => setModal(asItem(p))}><Icon name="bank" small /> Zaplatit QR</button>}
+                </div>
+              </div>
+            ))}
           </div>
-          <div className="stat">
-            <div className="card-h"><h3>Smlouva</h3></div>
-            <div className="doc-row"><span className="cf-ic"><Icon name="doc" small /></span><div><b>Konec smlouvy</b><span>{me?.end || '-'}</span></div></div>
-            <div className="doc-row"><span className="cf-ic"><Icon name="check" small /></span><div><b>Poslední platba</b><span>únor 2026, spárováno</span></div></div>
+          <div className="card">
+            <div className="card-h"><h3>Smlouva a způsob platby</h3></div>
+            <div className="doc-row"><span className="cf-ic"><Icon name="doc" small /></span><div><b>Konec smlouvy</b><span>{me?.end || '31. 8. 2026'}</span></div></div>
+            <div className="doc-row"><span className="cf-ic"><Icon name="bank" small /></span><div><b>Způsob platby</b><span>QR platba nebo trvalý příkaz</span></div></div>
+            <div className="doc-row"><span className="cf-ic"><Icon name="check" small /></span><div><b>Poslední platba</b><span>leden 2026, spárováno</span></div></div>
+            <div className="qr-soon" style={{ marginTop: 8 }}><Icon name="bank" small /> Automatické strhávání kartou brzy.</div>
           </div>
         </div>
+        <div className="card" style={{ marginTop: 16 }}>
+          <div className="card-h"><h3>Historie plateb</h3><span className="sub">spárováno z banky</span></div>
+          {M.payHistory.map((h) => (
+            <div className="doc-row" key={h.id}><span className="cf-ic"><Icon name="bank" small /></span><div style={{ flex: 1 }}><b>{h.label}</b><span>{h.date}</span></div><span style={{ fontWeight: 700, fontSize: 13.5 }}>{money(h.amount)}</span></div>
+          ))}
+        </div>
+        <PayModal item={modal} account={M.payAccount} recipient={M.payRecipient} onClose={() => setModal(null)} onPaid={(id) => { setPays((s) => s.map((p) => p.id === id ? { ...p, status: 'paid' } : p)); toast('Označeno jako zaplaceno, čeká na spárování') }} />
       </div>
     )
   }
 
-  // Výbor: SVJ contributions and debtors
+  // ---------- Výbor: SVJ contributions and debtors ----------
   if (can(role!, 'svj_contrib')) {
     return (
       <div>
@@ -63,15 +85,17 @@ export default function RentPage() {
             <div className="row-card" key={u.id} style={{ marginTop: 10 }}>
               <div className="lead-col"><b className="mono">{u.id}</b><span>{u.tenant}</span></div>
               <div className="row-metrics"><div className="metric"><div className="k">Dluží</div><div className="val">{money(u.rent)}</div></div>
+                <button className="btn btn-ghost btn-sm" onClick={() => setModal(asItem({ id: u.id, label: `Příspěvek ${u.id}`, amount: u.rent, vs: u.vs, msg: `Prispevek ${u.id}` }))}><Icon name="bank" small /> QR</button>
                 <button className="btn btn-soft btn-sm" onClick={() => remind(u)}>Upomenout</button></div>
             </div>
           ))}
         </div>
+        <PayModal item={modal} account={M.payAccount} recipient={M.payRecipient} onClose={() => setModal(null)} />
       </div>
     )
   }
 
-  // Developer and investor: portfolio with bank matching
+  // ---------- Developer and investor: portfolio with bank matching + QR ----------
   return (
     <div>
       <div className="view-head">
@@ -96,12 +120,16 @@ export default function RentPage() {
                 <td className="mono">{u.vs}</td>
                 <td>{u.tenant === 'Volné' ? <span className="pill pill-neutral">Volné</span> : u.paid ? <span className="pill pill-ok">Zaplaceno</span> : <span className="pill pill-bad">Nezaplaceno</span>}</td>
                 <td>{u.endSoon ? <span className="pill pill-warn">{u.end}</span> : (u.end || '-')}</td>
-                <td style={{ textAlign: 'right' }}>{!u.paid && u.tenant !== 'Volné' && <button className="btn btn-soft btn-sm" onClick={() => remind(u)}>Upomenout</button>}</td>
+                <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
+                  {u.tenant !== 'Volné' && u.rent > 0 && <button className="btn btn-ghost btn-sm" onClick={() => setModal(asItem({ id: u.id, label: `Nájem ${u.id}`, amount: u.rent, vs: u.vs, msg: `Najem ${u.id}` }))}>QR</button>}
+                  {!u.paid && u.tenant !== 'Volné' && <button className="btn btn-soft btn-sm" style={{ marginLeft: 6 }} onClick={() => remind(u)}>Upomenout</button>}
+                </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+      <PayModal item={modal} account={M.payAccount} recipient={M.payRecipient} onClose={() => setModal(null)} />
     </div>
   )
 }

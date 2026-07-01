@@ -3,6 +3,7 @@ import { api } from '../../lib/api'
 import type { Service, Booking } from '../../lib/types'
 import { useToast } from '../../components/Toast'
 import { Icon } from '../../components/Icon'
+import { taskerApi } from '../../lib/taskerApi'
 
 export default function ServicesPage() {
   const toast = useToast()
@@ -22,6 +23,15 @@ export default function ServicesPage() {
     if (assigned) { setBookings((s) => s.map((x) => (x.id === b.id ? assigned : x))); toast(`${assigned.worker} přiřazen`) }
   }
 
+  // Payment for services is handled by the Tasker platform via its API.
+  async function payService(name: string) {
+    try {
+      const r = await taskerApi.createOrder({ service: name, unit: 'B-204' })
+      if (r.payUrl) window.open(r.payUrl, '_blank')
+      else toast(`Objednávka ${r.orderId} vytvořena v Taskeru, platbu dokončíte v aplikaci Tasker`)
+    } catch { toast('Platbu služby vyřídíte v aplikaci Tasker') }
+  }
+
   return (
     <div>
       <div className="view-head"><div><h1>Služby Tasker</h1><div className="desc">Ověření pracovníci, objednáte na pár kliknutí</div></div></div>
@@ -35,7 +45,7 @@ export default function ServicesPage() {
               <div className="row-metrics">
                 {b.status === 'new' && <span style={{ display: 'flex', alignItems: 'center', gap: 10, color: 'var(--ink-3)', fontSize: 13 }}><span className="spin" style={{ width: 20, height: 20, margin: 0 }} /> přiřazujeme pracovníka</span>}
                 {b.status !== 'new' && b.worker && <div className="worker"><span className="cf-ic"><Icon name="check" small /></span><div style={{ fontSize: 13 }}><b>{b.worker}</b> <span style={{ color: 'var(--gold)' }}>★ {b.rating}</span></div></div>}
-                {b.status === 'assigned' && <span className="pill pill-ok">Naplánováno</span>}
+                {b.status === 'assigned' && <><span className="pill pill-ok">Naplánováno</span><button className="btn btn-soft btn-sm" onClick={() => payService(b.name)}><Icon name="bank" small /> Zaplatit přes Tasker</button></>}
                 {b.status === 'done' && <span className="pill pill-neutral">Dokončeno</span>}
               </div>
             </div>
@@ -59,7 +69,7 @@ export default function ServicesPage() {
           <div className="modal">
             <div className="modal-h"><h3>{pick.name}</h3><button className="btn btn-ghost btn-icon" onClick={() => setPick(null)}><Icon name="x" small /></button></div>
             <div className="modal-b">
-              <p style={{ color: 'var(--ink-2)', fontSize: 14, marginBottom: 14 }}>Od {pick.from} Kč{pick.unit}. Po objednání přiřadíme ověřeného pracovníka Tasker.</p>
+              <p style={{ color: 'var(--ink-2)', fontSize: 14, marginBottom: 14 }}>Od {pick.from} Kč{pick.unit}. Po objednání přiřadíme ověřeného pracovníka Tasker. Platbu dokončíte přes Tasker.</p>
               <div className="field"><label>Poznámka</label><textarea className="input" placeholder="Termín, detaily..." value={note} onChange={(e) => setNote(e.target.value)} /></div>
             </div>
             <div className="modal-f"><button className="btn btn-ghost" onClick={() => setPick(null)}>Zrušit</button><button className="btn btn-gold" onClick={order}>Objednat</button></div>

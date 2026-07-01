@@ -5,6 +5,7 @@ import type { Role } from '../../lib/types'
 import * as M from '../../lib/mockData'
 import * as A from '../../lib/adminData'
 import type { AUnit } from '../../lib/adminData'
+import { parseAccount, czIban, formatIban } from '../../lib/payments'
 import { useSession } from '../../state/session'
 import { useToast } from '../../components/Toast'
 import { Icon } from '../../components/Icon'
@@ -436,6 +437,8 @@ function Documents({ toast }: { toast: Toast }) {
 function Settings({ toast }: { toast: Toast }) {
   const [integ, setInteg] = useState(A.integrations)
   const [notif, setNotif] = useState({ email: true, sms: false, push: true })
+  const [payAcc, setPayAcc] = useState(M.payAccount)
+  const _a = parseAccount(payAcc); const iban = czIban(_a.prefix, _a.account, _a.bank)
   function toggle(id: string) { setInteg((s) => s.map((i) => i.id === id ? { ...i, on: !i.on, tag: i.on ? 'Nepřipojeno' : 'Připojeno' } : i)); toast('Nastavení integrace uloženo') }
 
   return (
@@ -472,6 +475,13 @@ function Settings({ toast }: { toast: Toast }) {
               <button className={i.on ? 'btn btn-ghost btn-sm' : 'btn btn-soft btn-sm'} onClick={() => toggle(i.id)}>{i.on ? 'Odpojit' : 'Připojit'}</button>
             </div>
           ))}
+        </div>
+        <div className="card">
+          <div className="card-h"><h3>Platby a QR</h3></div>
+          <div className="field"><label>Účet pro QR platby</label><input className="input mono" value={payAcc} onChange={(e) => setPayAcc(e.target.value)} /></div>
+          <div className="qr-line"><span>IBAN</span><b className="mono" style={{ fontSize: 11 }}>{formatIban(iban)}</b></div>
+          <p className="adm-mini" style={{ marginTop: 10 }}>Nájem, zálohy, fond oprav a kauce se hradí QR platbou nebo trvalým příkazem na tento účet, párováno podle VS. Služby Tasker se platí přes Tasker API. Platba kartou přes Stripe se připravuje.</p>
+          <button className="btn btn-primary btn-sm" style={{ marginTop: 12 }} onClick={() => toast('Účet pro platby uložen')}>Uložit</button>
         </div>
         <div className="card" style={{ borderColor: 'var(--bad-bg)' }}>
           <div className="card-h"><h3>Nebezpečná zóna</h3></div>

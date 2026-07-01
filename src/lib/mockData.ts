@@ -92,3 +92,18 @@ export const complaints: Record<string, ComplaintItem[]> = {
   ],
   'C-118': [{ type: 'Nepořádek', date: '20. 1.', note: 'Odpadky ponechané na chodbě' }],
 }
+
+// Payments (resident facing). payAccount is the account the QR platba points to.
+export const payAccount = '2402042042/2010'
+export const payRecipient = 'SV Vista Park'
+export interface PayItemData { id: string; label: string; kind: string; amount: number; vs: string; due: string; recurring: boolean; status: 'unpaid' | 'paid'; msg: string }
+export const myPayments: PayItemData[] = [
+  { id: 'p-rent', label: 'Nájem, únor 2026', kind: 'najem', amount: 24500, vs: '2042041', due: '15.', recurring: true, status: 'unpaid', msg: 'Najem B-204 unor 2026' },
+  { id: 'p-zal', label: 'Zálohy na služby', kind: 'zaloha', amount: 3200, vs: '2042042', due: '15.', recurring: true, status: 'unpaid', msg: 'Zalohy sluzby B-204' },
+  { id: 'p-fond', label: 'Příspěvek do fondu oprav', kind: 'fond', amount: 1800, vs: '2042043', due: '15.', recurring: true, status: 'paid', msg: 'Fond oprav B-204' },
+]
+export const payHistory = [
+  { id: 'h1', label: 'Nájem, leden 2026', amount: 24500, date: '3. 1. 2026' },
+  { id: 'h2', label: 'Zálohy, leden 2026', amount: 3200, date: '3. 1. 2026' },
+  { id: 'h3', label: 'Nájem, prosinec 2025', amount: 24500, date: '2. 12. 2025' },
+]
