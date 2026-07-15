@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { Icon } from '../../components/Icon'
 import { enterDemo } from '../../lib/supabase'
@@ -23,6 +23,53 @@ export default function MarketingPage() {
   const [cName, setCName] = useState(''); const [cEmail, setCEmail] = useState(''); const [cPhone, setCPhone] = useState('')
   const [cSize, setCSize] = useState('do 20 jednotek'); const [cMsg, setCMsg] = useState('')
   const [cState, setCState] = useState<'idle' | 'busy' | 'done' | 'err'>('idle')
+  const [navScrolled, setNavScrolled] = useState(false)
+  const [showSticky, setShowSticky] = useState(false)
+
+  // one passive scroll listener drives the nav shadow and the sticky CTA
+  useEffect(() => {
+    const onScroll = () => { setNavScrolled(window.scrollY > 8); setShowSticky(window.scrollY > 560) }
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+
+  // scroll reveal: sections fade up as they enter. Content stays visible if JS fails.
+  useEffect(() => {
+    const root = document.querySelector('.lp')
+    if (!root) return
+    root.classList.add('anim-ready')
+    const io = new IntersectionObserver((entries) => {
+      for (const e of entries) if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target) }
+    }, { threshold: 0.1, rootMargin: '0px 0px -8% 0px' })
+    root.querySelectorAll('.rv').forEach((el) => io.observe(el))
+    return () => io.disconnect()
+  }, [])
+
+  // the board is alive: a new event slides in every few seconds
+  const POOL = [
+    { icon: 'nastenka', t: 'Odstávka vody ve čtvrtek', s: 'Oznámení dorazilo 38 sousedům', tag: 'DŮM' },
+    { icon: 'bank', t: 'Nájem B-204 zaplacen', s: 'QR platba, potvrzeno správou', tag: 'B-204' },
+    { icon: 'zavady', t: 'Výtah C: přiřazen servis', s: 'Ohlašovatel dostal notifikaci', tag: 'VCHOD C' },
+    { icon: 'schuze', t: 'Hlasování: 62 % podílů pro', s: 'Usnášeníschopné, bez obcházení', tag: 'SCHŮZE' },
+    { icon: 'sluzby', t: 'Úklid objednán na zítra', s: 'Marek H. potvrdil termín', tag: 'B-205' },
+    { icon: 'doc', t: 'Nahrán zápis ze schůze', s: 'Viditelný pro všechny vlastníky', tag: 'DOKUMENTY' },
+    { icon: 'stiznosti', t: 'Byt A-101 upozorněn', s: 'Jedním tlačítkem, bez konfliktu', tag: 'VÝBOR' },
+    { icon: 'zavady', t: 'Světlo na chodbě svítí', s: 'Závada uzavřena, soused ví', tag: '3. PATRO' },
+  ]
+  const [live, setLive] = useState(() => POOL.slice(0, 4).map((r, i) => ({ ...r, id: i })))
+  const nextRef = useRef(4)
+  useEffect(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    const iv = setInterval(() => {
+      setLive((s) => {
+        const n = POOL[nextRef.current % POOL.length]
+        nextRef.current += 1
+        return [{ ...n, id: Date.now() }, ...s].slice(0, 4)
+      })
+    }, 4200)
+    return () => clearInterval(iv)
+  }, [])
 
   async function sendContact() {
     if (cState === 'busy') return
@@ -43,12 +90,6 @@ export default function MarketingPage() {
     } catch { setCState('err') }
   }
 
-  const board = [
-    { icon: 'nastenka', t: 'Odstávka vody ve čtvrtek', s: 'Oznámení dorazilo 38 sousedům', tag: 'DŮM' },
-    { icon: 'bank', t: 'Nájem B-204 zaplacen', s: 'QR platba, potvrzeno správou', tag: 'B-204' },
-    { icon: 'zavady', t: 'Výtah C: přiřazen servis', s: 'Ohlašovatel dostal notifikaci', tag: 'VCHOD C' },
-    { icon: 'schuze', t: 'Hlasování: 62 % podílů pro', s: 'Usnášeníschopné, bez obcházení', tag: 'SCHŮZE' },
-  ]
 
   const pains = [
     {
@@ -123,7 +164,7 @@ export default function MarketingPage() {
 
   return (
     <div className="lp">
-      <nav className="nav">
+      <nav className={'nav' + (navScrolled ? ' scrolled' : '')}>
         <div className="nav-in">
           <div className="logo"><span className="mark"><span className="f f1" /><span className="f f2" /><span className="f f3" /><span className="w" /></span><div><b>Tasker Living</b><small>Součást Tasker</small></div></div>
           <div className="nav-links">
@@ -158,25 +199,31 @@ export default function MarketingPage() {
               <div><b>0 Kč</b>za nastavení domu</div>
             </div>
           </div>
-          <aside className="board">
-            <div className="board-h">
-              <div><div className="board-k">Rezidence</div><b>Vista Park</b></div>
-              <span className="pill pill-ok"><span className="dot" /> 40 jednotek</span>
-            </div>
-            {board.map((b) => (
-              <div className="board-row" key={b.t}>
-                <span className="cf-ic"><Icon name={b.icon} small /></span>
-                <div className="br-main"><b>{b.t}</b><span>{b.s}</span></div>
-                <span className="br-tag">{b.tag}</span>
+          <aside className="board-wrap">
+            <div className="board">
+              <div className="board-h">
+                <div><div className="board-k">Rezidence</div><b>Vista Park</b></div>
+                <span className="pill pill-ok"><span className="dot dot-pulse" /> Živě</span>
               </div>
-            ))}
+              {live.map((b) => (
+                <div className="board-row" key={b.id}>
+                  <span className="cf-ic"><Icon name={b.icon} small /></span>
+                  <div className="br-main"><b>{b.t}</b><span>{b.s}</span></div>
+                  <span className="br-tag">{b.tag}</span>
+                </div>
+              ))}
+            </div>
+            <div className="float-card">
+              <span className="cf-ic"><Icon name="bank" small /></span>
+              <div><b>QR platba přijata</b><span>24 500 Kč · nájem B-204</span></div>
+            </div>
           </aside>
         </section>
       </div>
 
       {/* social proof strip */}
       <div className="wrap">
-        <div className="trust-strip">
+        <div className="trust-strip rv">
           <span className="trust-chip"><Icon name="check" small /> Součást rodiny Tasker</span>
           <span className="trust-chip"><Icon name="check" small /> Pilotní provoz: Rezidence Vista Park, Praha 5</span>
           <span className="trust-chip"><Icon name="check" small /> Data uložena v EU</span>
@@ -186,11 +233,11 @@ export default function MarketingPage() {
 
       {/* problem: agitate what today looks like */}
       <div className="wrap">
-        <section className="band" style={{ borderTop: 'none' }}>
+        <section className="band rv" style={{ borderTop: 'none' }}>
           <div className="kicker">Poznáváte to?</div>
           <h2>Takhle dnes vypadá správa většiny domů</h2>
           <p className="sub">Výbor to dělá po večerech a zadarmo. Nástroje k tomu má z roku 2005: nástěnku, Excel a trpělivost.</p>
-          <div className="pains">
+          <div className="pains rv">
             {pains.map((p) => (
               <div className="pain-card" key={p.q}>
                 <div className="p-quote">{p.q}</div>
@@ -204,11 +251,11 @@ export default function MarketingPage() {
 
       {/* solution: benefits answering objections */}
       <div className="wrap" id="reseni">
-        <section className="band">
+        <section className="band rv">
           <div className="kicker">Co Tasker Living umí</div>
           <h2>Šest věcí, které přestanete řešit ručně</h2>
           <p className="sub">Každá funkce šetří konkrétní večer výboru. Žádné moduly navíc, všechno je v ceně od prvního dne.</p>
-          <div className="feat">
+          <div className="feat rv">
             {features.map((f) => (
               <div className="feat-card" key={f.h}><div className="feat-ic"><Icon name={f.i} /></div><h3>{f.h}</h3><p>{f.p}</p></div>
             ))}
@@ -218,7 +265,7 @@ export default function MarketingPage() {
 
       {/* moat */}
       <div className="wrap">
-        <section className="moat">
+        <section className="moat rv">
           <div className="m-copy">
             <div className="kicker">Tohle nikdo jiný nemá</div>
             <h2>Pošleme do bytu i ruce, které to udělají</h2>
@@ -234,11 +281,11 @@ export default function MarketingPage() {
 
       {/* how it works: minimize time and effort */}
       <div className="wrap" id="jaktofunguje">
-        <section className="band">
+        <section className="band rv">
           <div className="kicker">Jak to funguje</div>
           <h2>Vy pošlete tabulku, my uděláme zbytek</h2>
           <p className="sub">Žádná instalace, žádná migrace, žádné školení na půl dne. Nastavení domu je naše práce, ne vaše.</p>
-          <div className="steps">
+          <div className="steps rv">
             {steps.map((s, i) => (
               <div className="step" key={s.h}><div className="step-num">{i + 1}</div><h4>{s.h}</h4><p>{s.p}</p></div>
             ))}
@@ -248,7 +295,7 @@ export default function MarketingPage() {
 
       {/* founder note: proof and likelihood */}
       <div className="wrap">
-        <section className="band" style={{ borderTop: 'none', paddingTop: 10 }}>
+        <section className="band rv" style={{ borderTop: 'none', paddingTop: 10 }}>
           <div className="founder">
             <div className="f-ava">DS</div>
             <div>
@@ -261,12 +308,13 @@ export default function MarketingPage() {
 
       {/* pricing with offer and risk reversal */}
       <div className="wrap" id="cenik">
-        <section className="band">
+        <section className="band rv">
           <div className="kicker">Ceník</div>
           <h2>Jedna cena, všechno v ní</h2>
           <p className="sub">Žádné moduly, žádné příplatky, žádný ceník na tři stránky. Platíte jen za obsazené jednotky.</p>
-          <div className="plans plans-2">
+          <div className="plans plans-2 rv">
             <div className="plan pop">
+              <span className="pop-badge">Pilotní program 2026</span>
               <div className="ptop"><span className="pname">Tasker Living</span><span className="pill pill-ok">Vše v ceně</span></div>
               <div className="price">{OFFER.pricePerUnit} Kč <small>/ jednotka / měsíc</small></div>
               <div className="pdesc">Zhruba 13 Kč na byt a den. Méně, než dům platí za úklid schodiště, a ušetří výboru večery každý měsíc.</div>
@@ -303,7 +351,7 @@ export default function MarketingPage() {
 
       {/* faq: tie up loose ends */}
       <div className="wrap" id="faq">
-        <section className="band">
+        <section className="band rv">
           <div className="kicker">Časté dotazy</div>
           <h2>Na co se výbory ptají, než řeknou ano</h2>
           <div className="faq-wrap">
@@ -319,7 +367,7 @@ export default function MarketingPage() {
 
       {/* final CTA + lead form */}
       <div className="wrap" id="kontakt">
-        <section className="band">
+        <section className="band rv">
           <div className="kicker">Ukázka zdarma</div>
           <h2>Pošlete kontakt, zbytek zařídíme</h2>
           <p className="sub">Do 24 hodin v pracovní dny se ozveme, ukážeme vám aplikaci na skutečném domě a když dává smysl, do {OFFER.launch} spustíme tu vaši. Prvních {OFFER.freeMonths} zdarma.</p>
@@ -359,7 +407,7 @@ export default function MarketingPage() {
       </footer>
 
       {/* sticky mobile CTA for ad traffic */}
-      <div className="sticky-cta">
+      <div className={'sticky-cta' + (showSticky ? ' show' : '')}>
         <button className="btn btn-ghost" onClick={enterDemo}>Demo</button>
         <button className="btn btn-gold" onClick={() => go('kontakt')}>Ukázka zdarma</button>
       </div>
