@@ -6,6 +6,7 @@ import { roleNames } from '../../lib/types'
 import type { Role } from '../../lib/types'
 import { useToast } from '../../components/Toast'
 import { Icon } from '../../components/Icon'
+import { backendAvailable, exitDemo } from '../../lib/supabase'
 
 export default function SettingsPage() {
   const { user, isDemo, setRole, signOut } = useSession()
@@ -81,7 +82,8 @@ export default function SettingsPage() {
       </div>
       {isDemo && (
         <div className="stat" style={{ marginTop: 16, background: 'var(--gold-tint)', borderColor: '#e7dab4' }}>
-          <p style={{ fontSize: 14, color: '#6b5a2a' }}>Demo režim. Toto je veřejná ukázka na mock datech. Reálný provoz běží na Supabase s vlastním přihlášením.</p>
+          <p style={{ fontSize: 14, color: '#6b5a2a' }}>Demo režim. Prohlížíte si veřejnou ukázku na smyšlených datech, nic se neukládá.</p>
+          {backendAvailable && <button className="btn btn-soft btn-sm" style={{ marginTop: 10 }} onClick={exitDemo}>Ukončit demo a přihlásit se</button>}
         </div>
       )}
     </div>

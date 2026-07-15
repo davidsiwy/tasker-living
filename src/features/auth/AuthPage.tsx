@@ -4,6 +4,7 @@ import { useSession } from '../../state/session'
 import { roleNames } from '../../lib/types'
 import type { Role } from '../../lib/types'
 import { Icon } from '../../components/Icon'
+import { backendAvailable, exitDemo } from '../../lib/supabase'
 import logoWhite from '../../assets/logo-stacked-white.png'
 
 const DEMO_DESC: Record<Role, string> = {
@@ -70,6 +71,9 @@ export default function AuthPage() {
                 </button>
               ))}
             </div>
+            {backendAvailable && (
+              <button className="linklike" style={{ display: 'block', margin: '18px auto 0', fontSize: 13 }} onClick={exitDemo}>Mám účet, přihlásit se do svého domu</button>
+            )}
           </div>
         </div>
       </div>
