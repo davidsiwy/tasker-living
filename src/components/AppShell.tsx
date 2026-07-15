@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useSession } from '../state/session'
 import { NAV, roleNames, can } from '../lib/types'
 import type { Role } from '../lib/types'
+import { api } from '../lib/api'
 import { Icon } from './Icon'
 
 function Logo() {
@@ -19,12 +20,20 @@ export default function AppShell() {
   const nav = useNavigate()
   const [bell, setBell] = useState(false)
   const [sheet, setSheet] = useState(false)
+  const [complaintCount, setComplaintCount] = useState(0)
+  const manage = user ? can(user.role as Role, 'complaint_log') : false
+
+  useEffect(() => {
+    if (!user || !manage) { setComplaintCount(0); return }
+    api.getComplaintsCount(user.buildingId).then(setComplaintCount).catch(() => setComplaintCount(0))
+  }, [user?.buildingId, manage])
+
   if (!user) return null
   const items = NAV.filter((n) => !n.adminOnly || can(user.role as Role, 'admin'))
   const primary = items.slice(0, 4)
   async function logout() { setSheet(false); await signOut(); nav('/') }
   function go(id: string) { setSheet(false); nav(`/app/${id}`) }
-  const showComplaintBadge = user.role !== 'rezident'
+  const badgeFor = (id: string) => id === 'stiznosti' && manage && complaintCount > 0 ? <span className="badge">{complaintCount}</span> : null
 
   return (
     <div className="app">
@@ -34,7 +43,7 @@ export default function AppShell() {
         {items.map((n) => (
           <NavLink key={n.id} to={`/app/${n.id}`} className={({ isActive }) => 'nav-item' + (isActive ? ' active' : '')}>
             <Icon name={n.icon} />{n.label}
-            {n.id === 'stiznosti' && showComplaintBadge && <span className="badge">3</span>}
+            {badgeFor(n.id)}
           </NavLink>
         ))}
         {isPlatformAdmin && (
@@ -70,10 +79,10 @@ export default function AppShell() {
               </button>
               {bell && (
                 <div className="notif-pop">
-                  <div className="h">Notifikace<button className="mono" style={{ fontSize: 12, color: 'var(--ink-3)' }} onClick={clearNotifications}>Vyčistit</button></div>
+                  <div className="h">Notifikace<button className="mono" style={{ fontSize: 12, color: 'var(--ink-3)' }} onClick={clearNotifications}>Označit přečtené</button></div>
                   {notifications.length === 0 && <div className="notif-item"><span style={{ color: 'var(--ink-3)', fontSize: 13 }}>Žádné nové notifikace.</span></div>}
                   {notifications.map((n, i) => (
-                    <div className="notif-item" key={i}><span className="cf-ic"><Icon name={n.icon} small /></span><div><b>{n.t}</b><span>{n.s}</span></div></div>
+                    <div className="notif-item" key={n.id || i}><span className="cf-ic"><Icon name={n.icon} small /></span><div><b>{n.t}</b><span>{n.s}</span></div></div>
                   ))}
                 </div>
               )}
@@ -89,7 +98,7 @@ export default function AppShell() {
           {primary.map((n) => (
             <NavLink key={n.id} to={`/app/${n.id}`} className={({ isActive }) => 'mnav-item' + (isActive ? ' active' : '')}>
               <Icon name={n.icon} />{n.label}
-              {n.id === 'stiznosti' && showComplaintBadge && <span className="badge">3</span>}
+              {badgeFor(n.id)}
             </NavLink>
           ))}
           <button className={'mnav-item' + (sheet ? ' active' : '')} onClick={() => setSheet(true)}><Icon name="menu" />Více</button>
@@ -104,7 +113,7 @@ export default function AppShell() {
                 {items.map((n) => (
                   <button key={n.id} className="sheet-item" onClick={() => go(n.id)}>
                     <Icon name={n.icon} />{n.label}
-                    {n.id === 'stiznosti' && showComplaintBadge && <span className="badge">3</span>}
+                    {badgeFor(n.id)}
                   </button>
                 ))}
                 <button className="sheet-item" onClick={() => go('nastaveni')}><Icon name="sprava" />Nastavení</button>

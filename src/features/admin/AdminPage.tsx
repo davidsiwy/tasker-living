@@ -1,15 +1,10 @@
-import { useMemo, useState, useEffect, useRef } from 'react'
-import { feed, api } from '../../lib/api'
+import { useEffect, useState } from 'react'
+import { feed, api, currentPeriod, periodLabel } from '../../lib/api'
 import { can, roleNames } from '../../lib/types'
-import type { Role, DocItem } from '../../lib/types'
+import type { Role, DocItem, Fault, FaultStatus, UnitFull, Charge, VoteData, FeedPost } from '../../lib/types'
 import { adminApi } from '../../lib/adminApi'
 import type { LiveMember, LiveCode, LiveUnit } from '../../lib/adminApi'
-import * as M from '../../lib/mockData'
 import * as A from '../../lib/adminData'
-import type { AUnit } from '../../lib/adminData'
-import { parseAccount, czIban, formatIban } from '../../lib/payments'
-import { uploadFile, storageConfigured } from '../../lib/storage'
-import { runReminders, reminderRules, onOutbox, notifyConfigured, setPref, prefs } from '../../lib/notify'
 import { useSession } from '../../state/session'
 import { useToast } from '../../components/Toast'
 import { Icon } from '../../components/Icon'
@@ -24,76 +19,85 @@ const TABS = [
 ]
 
 export default function AdminPage() {
-  const { user } = useSession()
+  const { user, isDemo } = useSession()
   const toast = useToast()
   const [tab, setTab] = useState('prehled')
-  const [building, setBuilding] = useState(A.portfolio[0].id)
 
   if (!user || !can(user.role as Role, 'admin')) {
     return (
       <div>
         <div className="view-head"><div><h1>Správa domu</h1></div></div>
-        <div className="empty"><span className="cf-ic"><Icon name="sprava" /></span><p>Správa je dostupná jen výboru SVJ a developerovi. Přepněte roli nahoře.</p></div>
+        <div className="empty"><span className="cf-ic"><Icon name="sprava" /></span><p>Správa je dostupná jen výboru SVJ a developerovi.</p></div>
       </div>
     )
   }
+  const bid = user.buildingId
 
   return (
     <div>
       <div className="view-head">
         <div><h1>Správa domu</h1><div className="desc">Kompletní řízení budovy, jednotek, financí a provozu</div></div>
-        <div className="role-switch"><label>Budova</label>
-          <select value={building} onChange={(e) => setBuilding(e.target.value)}>
-            {A.portfolio.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
-          </select>
-        </div>
+        <span className="pill pill-neutral">{user.buildingName}</span>
       </div>
 
       <div className="adm-tabs">
         {TABS.map((t) => <button key={t.id} className={'adm-tab' + (tab === t.id ? ' on' : '')} onClick={() => setTab(t.id)}>{t.label}</button>)}
       </div>
 
-      {tab === 'prehled' && <Overview toast={toast} />}
-      {tab === 'jednotky' && <Units toast={toast} />}
+      {tab === 'prehled' && <Overview toast={toast} bid={bid} />}
+      {tab === 'jednotky' && <Units toast={toast} bid={bid} />}
       {tab === 'lide' && <People toast={toast} />}
-      {tab === 'finance' && <Finance toast={toast} />}
-      {tab === 'udrzba' && <Maintenance toast={toast} />}
-      {tab === 'schuze' && <Meetings toast={toast} />}
-      {tab === 'nastenka' && <Board toast={toast} user={user} />}
-      {tab === 'dokumenty' && <Documents toast={toast} />}
-      {tab === 'nastaveni' && <Settings toast={toast} />}
+      {tab === 'finance' && <Finance toast={toast} bid={bid} />}
+      {tab === 'udrzba' && <Maintenance toast={toast} bid={bid} isDemo={isDemo} />}
+      {tab === 'schuze' && <MeetingsAdmin toast={toast} bid={bid} />}
+      {tab === 'nastenka' && <Board toast={toast} user={{ role: user.role, buildingId: bid, name: user.name, handle: user.handle }} />}
+      {tab === 'dokumenty' && <Documents toast={toast} bid={bid} role={user.role} />}
+      {tab === 'nastaveni' && <BuildingSettingsTab toast={toast} bid={bid} isDemo={isDemo} buildingName={user.buildingName} />}
     </div>
   )
 }
 
 /* ---------------- Přehled ---------------- */
-function Overview({ toast }: { toast: Toast }) {
-  const rented = A.units.filter((u) => u.rent > 0 && u.tenant !== 'Volné')
-  const vacant = A.units.filter((u) => u.tenant === 'Volné')
-  const rentRoll = rented.reduce((s, u) => s + u.rent, 0)
-  const collected = rented.filter((u) => u.paid).reduce((s, u) => s + u.rent, 0)
-  const unpaid = rented.filter((u) => !u.paid)
-  const faultsOpen = M.faults.filter((f) => f.status !== 'Vyřešeno')
-  const complaints = Object.values(M.complaints).reduce((s, a) => s + a.length, 0)
-  const revizeSoon = A.revize.filter((r) => r.status !== 'Platná')
-  const codesFree = A.codes.filter((c) => c.status === 'Aktivní' && c.unit !== 'výbor').length
+function Overview({ toast, bid }: { toast: Toast; bid: string }) {
+  const [units, setUnits] = useState<UnitFull[]>([])
+  const [charges, setCharges] = useState<Charge[]>([])
+  const [faults, setFaults] = useState<Fault[]>([])
+  const [complaints, setComplaints] = useState(0)
+  const [codes, setCodes] = useState<LiveCode[]>([])
+  const period = currentPeriod()
+
+  useEffect(() => {
+    Promise.all([
+      api.getUnitsFull(bid), api.getCharges(bid, period), api.getFaults(bid),
+      api.getComplaintsCount(bid), adminApi.listCodes(bid),
+    ]).then(([u, c, f, cc, cd]) => { setUnits(u); setCharges(c); setFaults(f); setComplaints(cc); setCodes(cd) })
+      .catch((e: any) => toast('Načtení přehledu selhalo: ' + (e.message || e)))
+  }, [bid])
+
+  const occupied = units.filter((u) => u.tenant)
+  const rentRoll = charges.reduce((s, c) => s + c.amount, 0)
+  const collected = charges.filter((c) => c.status === 'paid').reduce((s, c) => s + c.amount, 0)
+  const unpaid = charges.filter((c) => c.status !== 'paid')
+  const faultsOpen = faults.filter((f) => f.status !== 'Vyřešeno')
+  const noVendor = faultsOpen.filter((f) => !f.vendor)
+  const codesFree = codes.filter((c) => !c.used).length
+  const soon = (d: string) => { if (!d) return false; const p = d.split('. '); if (p.length < 3) return false; const dt = new Date(+p[2], +p[1] - 1, +p[0]); const diff = dt.getTime() - Date.now(); return diff > 0 && diff < 60 * 86400000 }
+  const ending = units.filter((u) => soon(u.leaseEnd))
 
   const kpis = [
-    { l: 'Obsazenost', v: `${A.units.length - vacant.length}/${A.units.length}`, i: 'nastenka' },
-    { l: 'Výběr nájmů', v: `${Math.round((collected / rentRoll) * 100)} %`, i: 'bank' },
+    { l: 'Obsazenost', v: `${occupied.length}/${units.length}`, i: 'nastenka' },
+    { l: 'Výběr ' + periodLabel(period), v: rentRoll ? `${Math.round((collected / rentRoll) * 100)} %` : 'bez předpisů', i: 'bank' },
     { l: 'Měsíční předpis', v: money(rentRoll), i: 'najmy' },
-    { l: 'Fond oprav', v: money(A.fund.balance), i: 'sprava' },
     { l: 'Otevřené závady', v: String(faultsOpen.length), i: 'zavady' },
-    { l: 'Stížnosti tento měsíc', v: String(complaints), i: 'stiznosti' },
+    { l: 'Stížnosti celkem', v: String(complaints), i: 'stiznosti' },
+    { l: 'Volné kódy', v: String(codesFree), i: 'kontakty' },
   ]
-  const alerts = [
-    { c: 'var(--bad)', t: `${unpaid.length} jednotky nezaplatily nájem`, s: unpaid.map((u) => u.id).join(', '), a: 'Upomenout', act: () => toast('Upomínky odeslány nájemníkům') },
-    { c: 'var(--bad)', t: 'Revize plynu po termínu', s: 'GasKontrol, termín byl 2. 12. 2025', a: 'Objednat', act: () => toast('Poptávka odeslána dodavateli') },
-    { c: 'var(--warn)', t: `${faultsOpen.length} závady bez technika`, s: 'Čekají na přiřazení', a: 'Přiřadit', act: () => toast('Otevřete záložku Údržba pro přiřazení') },
-    { c: 'var(--warn)', t: 'Revize výtahu za 12 dní', s: 'VýtahServis s.r.o., 14. 3. 2026', a: 'Naplánovat', act: () => toast('Termín revize navržen') },
-    { c: 'var(--warn)', t: 'Smlouva C-118 končí za 30 dní', s: 'Tomáš Blažek, 28. 2. 2026', a: 'Prodloužit', act: () => toast('Návrh prodloužení připraven') },
-    { c: 'var(--ok)', t: `${codesFree} přístupové kódy nevyužité`, s: 'A-102, D-410, 1 volný', a: 'Spravovat', act: () => toast('Otevřete záložku Lidé') },
-  ]
+  const alerts: { c: string; t: string; s: string }[] = []
+  if (unpaid.length) alerts.push({ c: 'var(--bad)', t: `${unpaid.length} předpisů nezaplaceno`, s: unpaid.map((c) => c.unitLabel).join(', ') })
+  if (noVendor.length) alerts.push({ c: 'var(--warn)', t: `${noVendor.length} závad bez dodavatele`, s: noVendor.map((f) => f.cat).join(', ') })
+  if (ending.length) alerts.push({ c: 'var(--warn)', t: `Končící smlouvy do 60 dní`, s: ending.map((u) => `${u.label} (${u.leaseEnd})`).join(', ') })
+  if (!charges.length && occupied.some((u) => u.rent > 0)) alerts.push({ c: 'var(--warn)', t: 'Předpisy za tento měsíc nejsou vystavené', s: 'Vygenerujte je v záložce Finance' })
+  if (codesFree) alerts.push({ c: 'var(--ok)', t: `${codesFree} přístupových kódů čeká na použití`, s: 'Rozešlete je rezidentům, záložka Lidé' })
 
   return (
     <div>
@@ -104,24 +108,25 @@ function Overview({ toast }: { toast: Toast }) {
       </div>
       <div className="grid-2">
         <div className="card">
-          <div className="card-h"><h3>Vyžaduje pozornost</h3><span className="pill pill-warn">{alerts.length}</span></div>
+          <div className="card-h"><h3>Vyžaduje pozornost</h3><span className={'pill ' + (alerts.length ? 'pill-warn' : 'pill-ok')}>{alerts.length || 'vše v pořádku'}</span></div>
+          {alerts.length === 0 && <p className="adm-mini">Nic nehoří. Dům běží.</p>}
           {alerts.map((al, i) => (
             <div className="adm-alert" key={i}>
               <span className="adm-dot" style={{ background: al.c }} />
               <div className="a-main"><b>{al.t}</b><span>{al.s}</span></div>
-              <button className="btn btn-soft btn-sm" onClick={al.act}>{al.a}</button>
             </div>
           ))}
         </div>
         <div className="card">
-          <div className="card-h"><h3>Poslední aktivita</h3><span className="adm-mini">audit log</span></div>
-          {A.activity.map((e, i) => (
-            <div className="doc-row" key={i}>
-              <span className="cf-ic"><Icon name={e.icon} small /></span>
-              <div style={{ flex: 1, minWidth: 0 }}><b style={{ fontWeight: 600, fontSize: 13.5 }}>{e.actor} {e.action}</b><span>{e.target}</span></div>
-              <span className="adm-mini">{e.time}</span>
+          <div className="card-h"><h3>Poslední závady</h3><span className="adm-mini">{faults.length} celkem</span></div>
+          {faults.slice(0, 6).map((f) => (
+            <div className="doc-row" key={f.id}>
+              <span className="cf-ic"><Icon name="zavady" small /></span>
+              <div style={{ flex: 1, minWidth: 0 }}><b style={{ fontWeight: 600 }}>{f.cat}</b><span>{f.loc} · {f.by} · {f.date}</span></div>
+              <span className={'pill ' + (f.status === 'Vyřešeno' ? 'pill-ok' : f.status === 'V řešení' ? 'pill-warn' : 'pill-neutral')}>{f.status}</span>
             </div>
           ))}
+          {faults.length === 0 && <p className="adm-mini">Žádné závady zatím nikdo nenahlásil.</p>}
         </div>
       </div>
     </div>
@@ -129,76 +134,117 @@ function Overview({ toast }: { toast: Toast }) {
 }
 
 /* ---------------- Jednotky ---------------- */
-function Units({ toast }: { toast: Toast }) {
-  const [q, setQ] = useState('')
-  const [filter, setFilter] = useState('vse')
-  const [sel, setSel] = useState<AUnit | null>(null)
-  const list = A.units.filter((u) => {
-    const okQ = !q || u.id.toLowerCase().includes(q.toLowerCase()) || u.tenant.toLowerCase().includes(q.toLowerCase()) || u.owner.toLowerCase().includes(q.toLowerCase())
-    const okF = filter === 'vse' || (filter === 'obsazene' && u.tenant !== 'Volné') || (filter === 'volne' && u.tenant === 'Volné') || (filter === 'parking' && u.type === 'Parking')
-    return okQ && okF
-  })
-  const occ = A.units.filter((u) => u.tenant !== 'Volné').length
+function Units({ toast, bid }: { toast: Toast; bid: string }) {
+  const [units, setUnits] = useState<UnitFull[]>([])
+  const [edit, setEdit] = useState<UnitFull | null>(null)
+  const [adding, setAdding] = useState(false)
+  const [newLabel, setNewLabel] = useState('')
+  const [busy, setBusy] = useState(false)
+
+  const reload = () => api.getUnitsFull(bid).then(setUnits).catch((e: any) => toast('Načtení selhalo: ' + (e.message || e)))
+  useEffect(() => { reload() }, [bid])
+
+  async function add() {
+    if (!newLabel.trim() || busy) return
+    setBusy(true)
+    try { await api.addUnit(bid, newLabel.trim().toUpperCase()); setNewLabel(''); setAdding(false); await reload(); toast('Jednotka přidána') }
+    catch (e: any) { toast(e.message || 'Přidání selhalo') } finally { setBusy(false) }
+  }
+  async function save() {
+    if (!edit || busy) return
+    setBusy(true)
+    try {
+      await api.saveUnit(edit.id, {
+        label: edit.label, floor: edit.floor, tenant: edit.tenant, rent: edit.rent, vs: edit.vs, share: edit.share,
+        leaseEnd: edit.leaseEnd ? toIso(edit.leaseEnd) : '',
+      })
+      setEdit(null); await reload(); toast('Jednotka uložena')
+    } catch (e: any) { toast(e.message || 'Uložení selhalo') } finally { setBusy(false) }
+  }
+  async function del(u: UnitFull) {
+    if (!window.confirm(`Smazat jednotku ${u.label}? Smaže se i historie plateb a hlasování.`)) return
+    try { await api.deleteUnit(u.id); await reload(); toast('Jednotka smazána') }
+    catch (e: any) { toast(e.message || 'Smazání selhalo') }
+  }
+  const toIso = (cz: string) => {
+    const m = cz.match(/^(\d{4})-(\d{2})-(\d{2})$/); if (m) return cz
+    const p = cz.split('.').map((x) => x.trim()).filter(Boolean)
+    if (p.length === 3) return `${p[2]}-${String(+p[1]).padStart(2, '0')}-${String(+p[0]).padStart(2, '0')}`
+    return ''
+  }
+  const totalShare = units.reduce((s, u) => s + u.share, 0)
 
   return (
     <div>
-      <div className="adm-kpis" style={{ gridTemplateColumns: 'repeat(4,1fr)' }}>
-        <div className="stat"><div className="l">Jednotek</div><div className="v">{A.units.length}</div></div>
-        <div className="stat"><div className="l">Obsazeno</div><div className="v">{occ}</div></div>
-        <div className="stat"><div className="l">Volných</div><div className="v">{A.units.length - occ}</div></div>
-        <div className="stat"><div className="l">Podíl celkem</div><div className="v">{A.units.reduce((s, u) => s + u.share, 0).toFixed(1)} %</div></div>
-      </div>
-      <div className="adm-bar">
-        <input className="input" placeholder="Hledat jednotku, vlastníka nebo nájemníka" value={q} onChange={(e) => setQ(e.target.value)} />
-        <div className="chips" style={{ margin: 0 }}>
-          {[['vse', 'Vše'], ['obsazene', 'Obsazené'], ['volne', 'Volné'], ['parking', 'Parking']].map(([k, l]) => (
-            <button key={k} className={'chip' + (filter === k ? ' on' : '')} onClick={() => setFilter(k)}>{l}</button>
-          ))}
+      <div className="card" style={{ padding: 0 }}>
+        <div className="card-h" style={{ padding: '16px 18px 0' }}>
+          <h3>Jednotky domu</h3>
+          <button className="btn btn-soft btn-sm" onClick={() => setAdding(true)}><Icon name="plus" small /> Přidat</button>
         </div>
-        <button className="btn btn-primary btn-sm" onClick={() => toast('Formulář nové jednotky')}><Icon name="plus" small /> Přidat jednotku</button>
-      </div>
-      <div className="card" style={{ overflowX: 'auto', padding: 0 }}>
-        <table className="tbl">
-          <thead><tr><th>Jednotka</th><th>Podlaží</th><th>Plocha</th><th>Typ</th><th>Vlastník</th><th>Nájemník</th><th>Nájem</th><th>VS</th><th>Podíl</th><th>Stav</th></tr></thead>
-          <tbody>
-            {list.map((u) => (
-              <tr key={u.id} style={{ cursor: 'pointer' }} onClick={() => setSel(u)}>
-                <td className="mono">{u.id}</td><td>{u.floor}</td><td>{u.area ? `${u.area} m²` : '-'}</td><td>{u.type}</td>
-                <td>{u.owner}</td><td>{u.tenant === 'Volné' ? <span className="adm-mini">Volné</span> : u.tenant}</td>
-                <td>{u.rent ? money(u.rent) : '-'}</td><td className="mono">{u.vs}</td><td>{u.share} %</td>
-                <td>{u.tenant === 'Volné' ? <span className="pill pill-neutral">Volné</span> : u.rent === 0 ? <span className="pill pill-ok">Vlastník</span> : u.paid ? <span className="pill pill-ok">Zaplaceno</span> : <span className="pill pill-bad">Dluh</span>}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <div style={{ overflowX: 'auto' }}>
+          <table className="tbl">
+            <thead><tr><th>Jednotka</th><th>Patro</th><th>Nájemník / vlastník</th><th>Nájem</th><th>VS</th><th>Podíl %</th><th>Konec smlouvy</th><th></th></tr></thead>
+            <tbody>
+              {units.map((u) => (
+                <tr key={u.id}>
+                  <td className="mono">{u.label}</td>
+                  <td>{u.floor}</td>
+                  <td>{u.tenant || <span className="adm-mini">volné</span>}</td>
+                  <td>{u.rent ? money(u.rent) : ''}</td>
+                  <td className="mono">{u.vs}</td>
+                  <td>{u.share || ''}</td>
+                  <td>{u.leaseEnd}</td>
+                  <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
+                    <button className="btn btn-ghost btn-sm" onClick={() => setEdit({ ...u })}>Upravit</button>
+                    <button className="btn btn-ghost btn-sm" onClick={() => del(u)}>Smazat</button>
+                  </td>
+                </tr>
+              ))}
+              {units.length === 0 && <tr><td colSpan={8} className="adm-mini" style={{ padding: 18 }}>Žádné jednotky. Přidejte první.</td></tr>}
+            </tbody>
+          </table>
+        </div>
+        {units.length > 0 && <p className="adm-mini" style={{ padding: '0 18px 14px' }}>Součet podílů: {totalShare.toFixed(1)} %. Podíly se používají pro hlasování vlastníků.</p>}
       </div>
 
-      {sel && (
-        <div className="overlay" onClick={() => setSel(null)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-h"><h3>Jednotka {sel.id}</h3><button className="btn btn-ghost btn-icon" onClick={() => setSel(null)}><Icon name="x" small /></button></div>
+      {adding && (
+        <div className="overlay" onClick={(e) => { if (e.target === e.currentTarget) setAdding(false) }}>
+          <div className="modal">
+            <div className="modal-h"><h3>Nová jednotka</h3><button className="btn btn-ghost btn-icon" onClick={() => setAdding(false)}><Icon name="x" small /></button></div>
+            <div className="modal-b"><div className="field"><label>Označení</label><input className="input mono" placeholder="Např. A-103" value={newLabel} onChange={(e) => setNewLabel(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') add() }} autoFocus /></div></div>
+            <div className="modal-f"><button className="btn btn-ghost" onClick={() => setAdding(false)}>Zrušit</button><button className="btn btn-primary" onClick={add} disabled={busy}>Přidat</button></div>
+          </div>
+        </div>
+      )}
+
+      {edit && (
+        <div className="overlay" onClick={(e) => { if (e.target === e.currentTarget) setEdit(null) }}>
+          <div className="modal">
+            <div className="modal-h"><h3>Jednotka {edit.label}</h3><button className="btn btn-ghost btn-icon" onClick={() => setEdit(null)}><Icon name="x" small /></button></div>
             <div className="modal-b">
-              <div className="grid-2" style={{ gap: 12 }}>
-                <Detail k="Podlaží" v={sel.floor} /><Detail k="Plocha" v={sel.area ? `${sel.area} m²` : '-'} />
-                <Detail k="Typ" v={sel.type} /><Detail k="Podíl na domě" v={`${sel.share} %`} />
-                <Detail k="Vlastník" v={sel.owner} /><Detail k="Nájemník" v={sel.tenant} />
-                <Detail k="Nájem" v={sel.rent ? money(sel.rent) : 'bez nájmu'} /><Detail k="Kauce" v={sel.deposit ? money(sel.deposit) : '-'} />
-                <Detail k="Variabilní symbol" v={sel.vs} mono /><Detail k="Konec smlouvy" v={sel.leaseEnd || '-'} />
-                <Detail k="Vodoměr" v={sel.water || '-'} /><Detail k="Teplo" v={sel.heat || '-'} />
+              <div className="grid-2">
+                <div className="field"><label>Označení</label><input className="input mono" value={edit.label} onChange={(e) => setEdit({ ...edit, label: e.target.value })} /></div>
+                <div className="field"><label>Patro</label><input className="input" value={edit.floor} onChange={(e) => setEdit({ ...edit, floor: e.target.value })} /></div>
+              </div>
+              <div className="field"><label>Nájemník / vlastník</label><input className="input" placeholder="Prázdné = volné" value={edit.tenant} onChange={(e) => setEdit({ ...edit, tenant: e.target.value })} /></div>
+              <div className="grid-2">
+                <div className="field"><label>Nájem (Kč / měsíc)</label><input className="input" type="number" value={edit.rent || ''} onChange={(e) => setEdit({ ...edit, rent: Number(e.target.value) || 0 })} /></div>
+                <div className="field"><label>Variabilní symbol</label><input className="input mono" value={edit.vs} onChange={(e) => setEdit({ ...edit, vs: e.target.value })} /></div>
+              </div>
+              <div className="grid-2">
+                <div className="field"><label>Vlastnický podíl (%)</label><input className="input" type="number" step="0.1" value={edit.share || ''} onChange={(e) => setEdit({ ...edit, share: Number(e.target.value) || 0 })} /></div>
+                <div className="field"><label>Konec smlouvy</label><input className="input" placeholder="DD. MM. RRRR" value={edit.leaseEnd} onChange={(e) => setEdit({ ...edit, leaseEnd: e.target.value })} /></div>
               </div>
             </div>
-            <div className="modal-f"><button className="btn btn-ghost btn-sm" onClick={() => toast('Historie jednotky')}>Historie</button><button className="btn btn-primary btn-sm" onClick={() => { setSel(null); toast('Úprava jednotky uložena') }}>Upravit</button></div>
+            <div className="modal-f"><button className="btn btn-ghost" onClick={() => setEdit(null)}>Zrušit</button><button className="btn btn-primary" onClick={save} disabled={busy}>Uložit</button></div>
           </div>
         </div>
       )}
     </div>
   )
 }
-function Detail({ k, v, mono }: { k: string; v: string; mono?: boolean }) {
-  return <div><div className="adm-mini" style={{ marginBottom: 3 }}>{k}</div><div className={mono ? 'mono' : ''} style={{ fontSize: 14, fontWeight: 600 }}>{v}</div></div>
-}
 
-/* ---------------- Lidé ---------------- */
+/* ---------------- Lidé (live) ---------------- */
 function People({ toast }: { toast: Toast }) {
   const { user } = useSession()
   const bid = user?.buildingId || 'demo'
@@ -219,7 +265,7 @@ function People({ toast }: { toast: Toast }) {
   async function gen() {
     setBusy(true)
     try {
-      const code = await adminApi.createCode(bid, newRole, newRole === 'rezident' && newUnit ? newUnit : null)
+      const code = await adminApi.createCode(bid, newRole, newRole === 'rezident' && newUnit ? newUnit : null, 'TLV')
       toast(`Kód vytvořen: ${code}`); await reload()
     } catch (e: any) { toast('Chyba: ' + (e.message || e)) } finally { setBusy(false) }
   }
@@ -301,197 +347,271 @@ function People({ toast }: { toast: Toast }) {
 }
 
 /* ---------------- Finance ---------------- */
-function Finance({ toast }: { toast: Toast }) {
-  const [txns, setTxns] = useState(A.transactions)
-  const rented = A.units.filter((u) => u.rent > 0 && u.tenant !== 'Volné')
-  const rentRoll = rented.reduce((s, u) => s + u.rent, 0)
-  const collected = rented.filter((u) => u.paid).reduce((s, u) => s + u.rent, 0)
-  const unmatched = txns.filter((t) => !t.unit)
-  function assign(id: string) { setTxns((s) => s.map((t) => t.id === id ? { ...t, unit: 'ručně' } : t)); toast('Platba přiřazena k jednotce') }
-  const [out, setOut] = useState<any[]>([])
-  useEffect(() => onOutbox(setOut), [])
-  const debtors = rented.filter((u) => !u.paid).map((u) => ({ unit: u.id, name: u.owner || u.tenant, amount: u.rent, vs: u.vs }))
-  async function remindAll() { const s = await runReminders(debtors, 'overdue'); toast(`Odesláno ${s.length} upomínek`) }
+function Finance({ toast, bid }: { toast: Toast; bid: string }) {
+  const [period, setPeriod] = useState(currentPeriod())
+  const [charges, setCharges] = useState<Charge[]>([])
+  const [busy, setBusy] = useState(false)
+
+  const reload = (p = period) => api.getCharges(bid, p).then(setCharges).catch((e: any) => toast('Načtení selhalo: ' + (e.message || e)))
+  useEffect(() => { reload(period) }, [bid, period])
+
+  const periods = (() => {
+    const out: string[] = []
+    const d = new Date()
+    for (let i = -1; i < 6; i++) { const x = new Date(d.getFullYear(), d.getMonth() - i, 1); out.push(x.getFullYear() + '-' + String(x.getMonth() + 1).padStart(2, '0')) }
+    return out
+  })()
+
+  async function generate() {
+    if (busy) return
+    setBusy(true)
+    try {
+      const n = await api.generateCharges(bid, period)
+      await reload()
+      toast(n ? `Vystaveno ${n} předpisů za ${periodLabel(period)}` : 'Žádné jednotky s nastaveným nájmem. Doplňte je v záložce Jednotky.')
+    } catch (e: any) { toast(e.message || 'Generování selhalo') } finally { setBusy(false) }
+  }
+  async function setStatus(c: Charge, status: 'paid' | 'unpaid') {
+    try { await api.setChargeStatus(c.id, status); await reload(); toast(status === 'paid' ? `${c.unitLabel} označeno jako zaplaceno` : 'Vráceno na nezaplaceno') }
+    catch (e: any) { toast(e.message || 'Uložení selhalo') }
+  }
+  async function remind(c: Charge) {
+    try { const n = await api.remindCharge(c.id); toast(n > 0 ? `Upomínka odeslána (${c.unitLabel})` : `Jednotka ${c.unitLabel} nemá v aplikaci žádného člena`) }
+    catch (e: any) { toast(e.message || 'Upomínka selhala') }
+  }
+
+  const total = charges.reduce((s, c) => s + c.amount, 0)
+  const paid = charges.filter((c) => c.status === 'paid').reduce((s, c) => s + c.amount, 0)
+  const awaiting = charges.filter((c) => c.status === 'awaiting')
+  const unpaid = charges.filter((c) => c.status === 'unpaid')
 
   return (
     <div>
-      <div className="adm-kpis" style={{ gridTemplateColumns: 'repeat(4,1fr)' }}>
-        <div className="stat"><div className="l"><Icon name="najmy" small /> Měsíční předpis</div><div className="v">{money(rentRoll)}</div></div>
-        <div className="stat"><div className="l"><Icon name="bank" small /> Vybráno</div><div className="v">{money(collected)}</div></div>
-        <div className="stat"><div className="l"><Icon name="zavady" small /> Nezaplaceno</div><div className="v">{money(rentRoll - collected)}</div></div>
-        <div className="stat"><div className="l"><Icon name="sprava" small /> Fond oprav</div><div className="v">{money(A.fund.balance)}</div></div>
+      <div className="grid-3" style={{ marginBottom: 16 }}>
+        <div className="stat"><div className="l"><Icon name="najmy" small /> Předpis {periodLabel(period)}</div><div className="v">{money(total)}</div></div>
+        <div className="stat"><div className="l"><Icon name="check" small /> Uhrazeno</div><div className="v">{money(paid)}</div></div>
+        <div className="stat"><div className="l"><Icon name="zavady" small /> Dluží</div><div className="v">{unpaid.length + awaiting.length}</div></div>
       </div>
 
-      <div className="card" style={{ marginBottom: 16 }}>
-        <div className="card-h"><h3>Bankovní pohyby</h3><span className="pill pill-ok"><Icon name="bank" small /> Fio, párování dle VS</span></div>
+      <div className="card" style={{ padding: 0 }}>
+        <div className="card-h" style={{ padding: '16px 18px 0', flexWrap: 'wrap', gap: 10 }}>
+          <h3>Předpisy plateb</h3>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <select className="input" style={{ width: 'auto', padding: '6px 10px', fontSize: 13 }} value={period} onChange={(e) => setPeriod(e.target.value)}>
+              {periods.map((p) => <option key={p} value={p}>{periodLabel(p)}</option>)}
+            </select>
+            <button className="btn btn-soft btn-sm" onClick={generate} disabled={busy}><Icon name="plus" small /> Vygenerovat předpisy</button>
+          </div>
+        </div>
         <div style={{ overflowX: 'auto' }}>
           <table className="tbl">
-            <thead><tr><th>Datum</th><th>Protistrana</th><th>Částka</th><th>VS</th><th>Stav</th><th></th></tr></thead>
+            <thead><tr><th>Jednotka</th><th>Předpis</th><th>Částka</th><th>VS</th><th>Splatnost</th><th>Stav</th><th></th></tr></thead>
             <tbody>
-              {txns.map((t) => (
-                <tr key={t.id}>
-                  <td className="adm-mini">{t.date}</td><td>{t.party}</td><td>{money(t.amount)}</td><td className="mono">{t.vs}</td>
-                  <td>{t.unit ? <span className="pill pill-ok">Spárováno {t.unit}</span> : <span className="pill pill-warn">Nespárováno</span>}</td>
-                  <td style={{ textAlign: 'right' }}>{!t.unit && <button className="btn btn-soft btn-sm" onClick={() => assign(t.id)}>Přiřadit</button>}</td>
+              {charges.map((c) => (
+                <tr key={c.id}>
+                  <td className="mono">{c.unitLabel}</td>
+                  <td>{c.label}</td>
+                  <td>{money(c.amount)}</td>
+                  <td className="mono">{c.vs}</td>
+                  <td>{c.due}</td>
+                  <td>{c.status === 'paid' ? <span className="pill pill-ok">Zaplaceno</span> : c.status === 'awaiting' ? <span className="pill pill-warn">Čeká na potvrzení</span> : <span className="pill pill-bad">Nezaplaceno</span>}</td>
+                  <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
+                    {c.status !== 'paid' && <button className="btn btn-soft btn-sm" onClick={() => setStatus(c, 'paid')}>Potvrdit platbu</button>}
+                    {c.status === 'unpaid' && <button className="btn btn-ghost btn-sm" style={{ marginLeft: 6 }} onClick={() => remind(c)}>Upomenout</button>}
+                    {c.status === 'paid' && <button className="btn btn-ghost btn-sm" onClick={() => setStatus(c, 'unpaid')}>Vrátit</button>}
+                  </td>
                 </tr>
               ))}
+              {charges.length === 0 && <tr><td colSpan={7} className="adm-mini" style={{ padding: 18 }}>Za {periodLabel(period)} nejsou vystavené předpisy. Vygenerujte je tlačítkem nahoře, vychází z nájmů u jednotek.</td></tr>}
             </tbody>
           </table>
         </div>
-        {unmatched.length > 0 && <p className="adm-mini" style={{ marginTop: 10 }}>{unmatched.length} platby čekají na ruční přiřazení, chybí nebo nesedí variabilní symbol.</p>}
-      </div>
-
-      <div className="grid-2">
-        <div className="card">
-          <div className="card-h"><h3>Fond oprav</h3><span className="adm-mini">+ {money(A.fund.contributionsMonthly)} / měsíc</span></div>
-          <div className="stat" style={{ border: 'none', padding: 0, marginBottom: 8 }}><div className="v">{money(A.fund.balance)}</div><div className="adm-mini">aktuální zůstatek</div></div>
-          {A.fund.expenses.map((e, i) => (
-            <div className="doc-row" key={i}><span className="cf-ic"><Icon name="doc" small /></span><div style={{ flex: 1 }}><b style={{ fontWeight: 600, fontSize: 13.5 }}>{e.name}</b><span>{e.date}</span></div><span style={{ color: 'var(--bad)', fontWeight: 600, fontSize: 13.5 }}>- {money(e.amount)}</span></div>
-          ))}
-        </div>
-        <div className="card">
-          <div className="card-h"><h3>Nezaplacené nájmy</h3><button className="btn btn-soft btn-sm" onClick={remindAll}>Upomenout vše</button></div>
-          {rented.filter((u) => !u.paid).map((u) => (
-            <div className="doc-row" key={u.id}><span className="cf-ic"><Icon name="najmy" small /></span><div style={{ flex: 1 }}><b style={{ fontWeight: 600, fontSize: 13.5 }}>{u.id} · {u.tenant}</b><span>VS {u.vs}</span></div><span style={{ fontWeight: 600, fontSize: 13.5 }}>{money(u.rent)}</span></div>
-          ))}
-          {rented.every((u) => u.paid) && <p className="adm-mini">Vše zaplaceno.</p>}
-          <button className="btn btn-ghost btn-sm" style={{ marginTop: 12 }} onClick={() => toast('Export pro účetní stažen')}><Icon name="doc" small /> Export pro účetní</button>
-        </div>
-      </div>
-
-      <div className="grid-2">
-        <div className="card">
-          <div className="card-h"><h3>Automatické upomínky</h3><span className={'pill ' + (notifyConfigured ? 'pill-ok' : 'pill-neutral')}>{notifyConfigured ? 'Napojeno' : 'Demo režim'}</span></div>
-          <p className="adm-mini" style={{ marginBottom: 8 }}>Denní úloha odešle upomínky podle rozvrhu. Spustit lze i ručně.</p>
-          {reminderRules.map((r) => (
-            <div className="doc-row" key={r.id}><span className="cf-ic"><Icon name="clock" small /></span><div style={{ flex: 1 }}><b style={{ fontWeight: 600, fontSize: 13.5 }}>{r.label}</b></div><span className={'chan chan-' + r.channel}>{r.channel}</span></div>
-          ))}
-          <button className="btn btn-primary btn-sm" style={{ marginTop: 12 }} onClick={remindAll}>Spustit upomínky teď</button>
-        </div>
-        <div className="card">
-          <div className="card-h"><h3>Odeslané zprávy</h3><span className="adm-mini">{out.length}</span></div>
-          {out.length === 0 && <p className="adm-mini">Zatím nic neodešlo. Spusťte upomínky nebo odešlete oznámení.</p>}
-          {out.slice(0, 8).map((m) => (
-            <div className="msg-row" key={m.id}><span className={'chan chan-' + m.channel}>{m.channel}</span><div style={{ flex: 1, minWidth: 0 }}><b style={{ fontWeight: 600, fontSize: 13 }}>{m.subject}</b><div className="adm-mini">{m.to} · {m.ts}</div></div><span className={'pill ' + (m.status === 'sent' ? 'pill-ok' : m.status === 'queued' ? 'pill-warn' : 'pill-bad')}>{m.status === 'sent' ? 'Odesláno' : m.status === 'queued' ? 'Ve frontě' : 'Chyba'}</span></div>
-          ))}
-        </div>
+        <p className="adm-mini" style={{ padding: '0 18px 14px' }}>Upomínka pošle notifikaci členům jednotky v aplikaci. Automatické párování z banky připravujeme.</p>
       </div>
     </div>
   )
 }
 
 /* ---------------- Údržba ---------------- */
-function Maintenance({ toast }: { toast: Toast }) {
-  const [faults, setFaults] = useState(M.faults.map((f) => ({ ...f, worker: '', prio: f.status === 'Nahlášeno' ? 'Střední' : 'Vysoká' })))
-  function assign(id: number) { setFaults((s) => s.map((f) => f.id === id ? { ...f, worker: 'Instalatér Novák', status: 'V řešení' as const } : f)); toast('Technik přiřazen, Instalatér Novák') }
+function Maintenance({ toast, bid, isDemo }: { toast: Toast; bid: string; isDemo: boolean }) {
+  const [faults, setFaults] = useState<Fault[]>([])
+  const [note, setNote] = useState<Record<string, string>>({})
+  const [vendor, setVendor] = useState<Record<string, string>>({})
+  const STEPS: FaultStatus[] = ['Nahlášeno', 'V řešení', 'Vyřešeno']
+
+  const reload = () => api.getFaults(bid).then(setFaults).catch((e: any) => toast('Načtení selhalo: ' + (e.message || e)))
+  useEffect(() => { reload() }, [bid])
+
+  async function assign(f: Fault) {
+    const v = (vendor[f.id] || '').trim(); if (!v) return
+    try { await api.assignVendor(f.id, v); setVendor((s) => ({ ...s, [f.id]: '' })); await reload(); toast('Dodavatel přiřazen') }
+    catch (e: any) { toast(e.message || 'Přiřazení selhalo') }
+  }
+  async function advance(f: Fault, status: FaultStatus) {
+    try { await api.advanceFault(f.id, status, (note[f.id] || '').trim() || undefined); setNote((s) => ({ ...s, [f.id]: '' })); await reload(); toast('Stav aktualizován, ohlašovatel dostal notifikaci') }
+    catch (e: any) { toast(e.message || 'Aktualizace selhala') }
+  }
 
   return (
     <div>
-      <div className="card" style={{ marginBottom: 16 }}>
-        <div className="card-h"><h3>Závady</h3><span className="pill pill-warn">{faults.filter((f) => f.status !== 'Vyřešeno').length} otevřených</span></div>
+      <div className="card">
+        <div className="card-h"><h3>Závady k řešení</h3><span className="adm-mini">{faults.filter((f) => f.status !== 'Vyřešeno').length} otevřených</span></div>
         {faults.map((f) => (
-          <div className="row-card" key={f.id} style={{ marginBottom: 8 }}>
-            <div className="lead-col"><b>{f.cat}</b><span>{f.loc}</span></div>
-            <div style={{ flex: 1, minWidth: 140, fontSize: 13.5, color: 'var(--ink-2)' }}>{f.desc}</div>
-            <div className="row-metrics">
-              <div className="metric"><div className="k">Priorita</div><div className="val">{f.prio}</div></div>
-              <div className="metric"><div className="k">Technik</div><div className="val">{f.worker || 'nepřiřazen'}</div></div>
-              <span className={'pill ' + (f.status === 'Vyřešeno' ? 'pill-ok' : f.status === 'V řešení' ? 'pill-warn' : 'pill-bad')}>{f.status}</span>
-              {f.status !== 'Vyřešeno' && !f.worker && <button className="btn btn-soft btn-sm" onClick={() => assign(f.id)}>Přiřadit</button>}
+          <div className="row-card" key={f.id} style={{ marginTop: 10, flexWrap: 'wrap' }}>
+            <div className="lead-col"><b>{f.cat}</b><span>{f.loc} · {f.by} · {f.date}</span></div>
+            <div style={{ flex: 1, minWidth: 220, fontSize: 13.5, color: 'var(--ink-2)' }}>{f.desc}
+              {f.vendor && <div className="adm-mini" style={{ marginTop: 4 }}>Dodavatel: {f.vendor}</div>}
+            </div>
+            <div style={{ display: 'grid', gap: 6, minWidth: 240 }}>
+              <div style={{ display: 'flex', gap: 6 }}>
+                <input className="input" style={{ fontSize: 12.5, padding: '6px 8px' }} list="adm-vendors" placeholder="Dodavatel" value={vendor[f.id] || ''} onChange={(e) => setVendor((s) => ({ ...s, [f.id]: e.target.value }))} />
+                <button className="btn btn-ghost btn-sm" onClick={() => assign(f)}>Přiřadit</button>
+              </div>
+              <div style={{ display: 'flex', gap: 6 }}>
+                <input className="input" style={{ fontSize: 12.5, padding: '6px 8px' }} placeholder="Poznámka" value={note[f.id] || ''} onChange={(e) => setNote((s) => ({ ...s, [f.id]: e.target.value }))} />
+                {STEPS.filter((s) => s !== f.status).map((s) => <button key={s} className="btn btn-soft btn-sm" onClick={() => advance(f, s)}>{s}</button>)}
+              </div>
             </div>
           </div>
         ))}
+        {faults.length === 0 && <p className="adm-mini">Žádné závady. Až rezidenti něco nahlásí, objeví se tady.</p>}
+        <datalist id="adm-vendors">{A.vendors.map((v) => <option key={v.name} value={v.name}>{v.field}</option>)}</datalist>
       </div>
 
-      <div className="grid-2">
-        <div className="card" style={{ padding: 0 }}>
-          <div className="card-h" style={{ padding: '16px 18px 0' }}><h3>Revize a kontroly</h3><span className="adm-mini">zákonné termíny</span></div>
-          <div style={{ overflowX: 'auto' }}>
-            <table className="tbl">
-              <thead><tr><th>Typ</th><th>Další termín</th><th>Dodavatel</th><th>Stav</th></tr></thead>
-              <tbody>
-                {A.revize.map((r) => (
-                  <tr key={r.type}><td>{r.type}</td><td className="mono">{r.next}</td><td className="adm-mini">{r.provider}</td>
-                    <td>{r.status === 'Platná' ? <span className="pill pill-ok">Platná</span> : r.status === 'Blíží se' ? <span className="pill pill-warn">Blíží se</span> : <span className="pill pill-bad">Po termínu</span>}</td></tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-        <div className="card">
-          <div className="card-h"><h3>Dodavatelé</h3><button className="btn btn-ghost btn-sm" onClick={() => toast('Nový dodavatel')}><Icon name="plus" small /> Přidat</button></div>
-          {A.vendors.map((v) => (
-            <div className="doc-row" key={v.name}><span className="cf-ic"><Icon name="phone" small /></span><div style={{ flex: 1 }}><b style={{ fontWeight: 600, fontSize: 13.5 }}>{v.name}</b><span>{v.field} · {v.phone}</span></div><span className="pill pill-neutral">★ {v.rating}</span></div>
+      {isDemo && (
+        <div className="card" style={{ marginTop: 16 }}>
+          <div className="card-h"><h3>Revize a kontroly</h3><span className="pill pill-neutral">Ukázka, připravujeme</span></div>
+          {A.revize.map((r) => (
+            <div className="doc-row" key={r.type}><span className="cf-ic"><Icon name="sprava" small /></span><div style={{ flex: 1 }}><b>{r.type}</b><span>{r.provider} · další {r.next}</span></div><span className={'pill ' + (r.status === 'Platná' ? 'pill-ok' : r.status === 'Blíží se' ? 'pill-warn' : 'pill-bad')}>{r.status}</span></div>
           ))}
         </div>
-      </div>
+      )}
     </div>
   )
 }
 
-/* ---------------- Schůze ---------------- */
-function Meetings({ toast }: { toast: Toast }) {
-  const m = M.meetings[0]
-  const p = M.poll
-  const yesShare = Math.round((p.yes / (p.yes + p.no)) * 100)
+/* ---------------- Schůze a hlasování ---------------- */
+function MeetingsAdmin({ toast, bid }: { toast: Toast; bid: string }) {
+  const [meetings, setMeetings] = useState<{ id: string; date: string; place: string; agenda: string[]; going?: number; rsvp: boolean }[]>([])
+  const [vote, setVote] = useState<VoteData | null>(null)
+  const [mDate, setMDate] = useState(''); const [mPlace, setMPlace] = useState(''); const [mAgenda, setMAgenda] = useState('')
+  const [q, setQ] = useState(''); const [quorum, setQuorum] = useState(50)
+  const [busy, setBusy] = useState(false)
+
+  const reload = async () => {
+    const [ms, v] = await Promise.all([api.getMeetings(bid), api.getVote(bid)])
+    setMeetings(ms); setVote(v)
+  }
+  useEffect(() => { reload().catch((e: any) => toast('Načtení selhalo: ' + (e.message || e))) }, [bid])
+
+  async function createMeeting() {
+    if (!mDate || !mPlace.trim() || busy) { if (!mDate || !mPlace.trim()) toast('Vyplňte termín a místo'); return }
+    setBusy(true)
+    try {
+      await api.createMeeting(bid, new Date(mDate).toISOString(), mPlace.trim(), mAgenda.split('\n').map((a) => a.trim()).filter(Boolean))
+      setMDate(''); setMPlace(''); setMAgenda(''); await reload(); toast('Schůze vytvořena, členové dostali notifikaci')
+    } catch (e: any) { toast(e.message || 'Vytvoření selhalo') } finally { setBusy(false) }
+  }
+  async function createPoll() {
+    if (!q.trim() || busy) { if (!q.trim()) toast('Zadejte otázku'); return }
+    setBusy(true)
+    try { await api.createPoll(bid, q.trim(), quorum); setQ(''); await reload(); toast('Hlasování vypsáno, členové dostali notifikaci') }
+    catch (e: any) { toast(e.message || 'Vypsání selhalo') } finally { setBusy(false) }
+  }
+  async function close() {
+    if (!vote?.pollId) return
+    try { await api.closePoll(vote.pollId); await reload(); toast('Hlasování uzavřeno') }
+    catch (e: any) { toast(e.message || 'Uzavření selhalo') }
+  }
+
+  const voted = vote ? Object.keys(vote.ballots).length + Object.keys(vote.proxies).length : 0
+
   return (
     <div className="grid-2">
-      <div className="card">
-        <div className="card-h"><h3>Schůze vlastníků</h3><button className="btn btn-primary btn-sm" onClick={() => toast('Formulář nové schůze')}><Icon name="plus" small /> Naplánovat</button></div>
-        <div className="doc-row"><span className="cf-ic"><Icon name="schuze" small /></span><div style={{ flex: 1 }}><b style={{ fontWeight: 600 }}>{m.date}</b><span>{m.place}</span></div><span className="pill pill-warn">Plánováno</span></div>
-        <div style={{ marginTop: 12 }}><div className="adm-mini" style={{ marginBottom: 6 }}>Program</div>
-          {m.agenda.map((a, i) => <div key={i} style={{ fontSize: 14, padding: '5px 0', borderTop: i ? '1px solid var(--line)' : 'none' }}>{i + 1}. {a}</div>)}
+      <div style={{ display: 'grid', gap: 16 }}>
+        <div className="card">
+          <div className="card-h"><h3>Nová schůze</h3></div>
+          <div className="field"><label>Termín</label><input className="input" type="datetime-local" value={mDate} onChange={(e) => setMDate(e.target.value)} /></div>
+          <div className="field"><label>Místo</label><input className="input" placeholder="Např. Společenská místnost" value={mPlace} onChange={(e) => setMPlace(e.target.value)} /></div>
+          <div className="field"><label>Program (bod na řádek)</label><textarea className="input" rows={3} value={mAgenda} onChange={(e) => setMAgenda(e.target.value)} /></div>
+          <button className="btn btn-primary btn-sm" onClick={createMeeting} disabled={busy}><Icon name="plus" small /> Vytvořit a oznámit</button>
         </div>
-        <div style={{ marginTop: 14, display: 'flex', gap: 20 }}>
-          <div><div className="adm-mini">Účast</div><div style={{ fontWeight: 700, fontSize: 15 }}>18 z 40 jednotek</div></div>
-          <div><div className="adm-mini">Kvórum podílů</div><div style={{ fontWeight: 700, fontSize: 15 }}>62 %, splněno</div></div>
+        <div className="card">
+          <div className="card-h"><h3>Naplánované schůze</h3></div>
+          {meetings.map((m) => (
+            <div className="doc-row" key={m.id}><span className="cf-ic"><Icon name="schuze" small /></span><div style={{ flex: 1 }}><b>{m.date}</b><span>{m.place}{typeof m.going === 'number' ? ` · ${m.going} přijde` : ''}</span></div></div>
+          ))}
+          {meetings.length === 0 && <p className="adm-mini">Žádná schůze v plánu.</p>}
         </div>
       </div>
-      <div className="card">
-        <div className="card-h"><h3>Hlasování per rollam</h3><button className="btn btn-ghost btn-sm" onClick={() => toast('Nové hlasování')}><Icon name="plus" small /> Nové</button></div>
-        <p style={{ fontSize: 14, fontWeight: 600 }}>{p.q}</p>
-        <div style={{ margin: '12px 0' }}>
-          <div className="bar"><span style={{ width: `${yesShare}%` }} /></div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6 }} className="adm-mini"><span>Pro {p.yes} · {yesShare} % podílů</span><span>Proti {p.no}</span></div>
+
+      <div style={{ display: 'grid', gap: 16, alignSelf: 'start' }}>
+        <div className="card">
+          <div className="card-h"><h3>Hlasování per rollam</h3>{vote?.pollId && (vote.open ? <span className="pill pill-ok">Běží</span> : <span className="pill pill-neutral">Uzavřeno</span>)}</div>
+          {vote?.pollId ? (
+            <>
+              <p style={{ fontSize: 14, marginBottom: 8 }}>{vote.q}</p>
+              <p className="adm-mini">Kvórum {vote.quorum} % · hlasovalo nebo zmocnilo {voted} z {vote.roster.length} jednotek</p>
+              {vote.open && <button className="btn btn-soft btn-sm" style={{ marginTop: 10 }} onClick={close}>Uzavřít hlasování</button>}
+            </>
+          ) : <p className="adm-mini">Žádné hlasování neběží.</p>}
         </div>
-        <div className="adm-mini">Uzávěrka za 6 dní. Rozhoduje podíl na společných částech, ne počet hlasů.</div>
-        <div className="doc-row" style={{ marginTop: 12 }}><span className="cf-ic"><Icon name="doc" small /></span><div style={{ flex: 1 }}><b style={{ fontWeight: 600, fontSize: 13.5 }}>Zápis 11/2025</b><span>schválené usnesení</span></div><button className="btn btn-ghost btn-sm" onClick={() => toast('Otevírám zápis')}>Otevřít</button></div>
+        <div className="card">
+          <div className="card-h"><h3>Vypsat nové hlasování</h3></div>
+          <div className="field"><label>Otázka</label><textarea className="input" rows={2} placeholder="Souhlasíte s ...?" value={q} onChange={(e) => setQ(e.target.value)} /></div>
+          <div className="field"><label>Kvórum (% podílů)</label><input className="input" type="number" min={1} max={100} value={quorum} onChange={(e) => setQuorum(Number(e.target.value) || 50)} /></div>
+          <button className="btn btn-primary btn-sm" onClick={createPoll} disabled={busy}><Icon name="send" small /> Vypsat a oznámit</button>
+          <p className="adm-mini" style={{ marginTop: 10 }}>Nové hlasování nahradí předchozí jako aktivní. Hlasuje se podíly jednotek, spravujete je v záložce Jednotky.</p>
+        </div>
       </div>
     </div>
   )
 }
 
-/* ---------------- Nástěnka (announce + moderation) ---------------- */
-function Board({ toast, user }: { toast: Toast; user: { role: Role; buildingId: string } }) {
+/* ---------------- Nástěnka ---------------- */
+function Board({ toast, user }: { toast: Toast; user: { role: Role; buildingId: string; name: string; handle: string } }) {
   const [title, setTitle] = useState('')
   const [body, setBody] = useState('')
-  const [target, setTarget] = useState('Všichni')
+  const [posts, setPosts] = useState<FeedPost[]>([])
+  const [busy, setBusy] = useState(false)
+
+  const reload = () => feed.list(user.buildingId).then(setPosts).catch(() => {})
+  useEffect(() => { reload() }, [user.buildingId])
+
   async function publish() {
-    if (!title.trim()) { toast('Zadejte nadpis'); return }
-    const text = body.trim() ? `${title}\n\n${body}` : title
-    await feed.createPost({ buildingId: user.buildingId, author: { name: 'Výbor SVJ', handle: 'vybor', role: user.role }, kind: 'ozn', body: text })
-    setTitle(''); setBody(''); toast(`Oznámení publikováno, cíl: ${target}`)
+    if (!title.trim() || busy) { if (!title.trim()) toast('Zadejte nadpis'); return }
+    setBusy(true)
+    try {
+      const text = body.trim() ? `${title.trim()}\n\n${body.trim()}` : title.trim()
+      await feed.createPost({ buildingId: user.buildingId, author: { name: user.name, handle: user.handle, role: user.role }, kind: 'ozn', body: text })
+      setTitle(''); setBody(''); await reload(); toast('Oznámení publikováno, členové dostali notifikaci')
+    } catch (e: any) { toast(e.message || 'Publikování selhalo') } finally { setBusy(false) }
   }
+  async function remove(p: FeedPost) {
+    if (!window.confirm('Smazat tento příspěvek z nástěnky?')) return
+    try { await feed.deletePost(p.id); await reload(); toast('Příspěvek smazán') }
+    catch (e: any) { toast(e.message || 'Smazání selhalo') }
+  }
+
   return (
     <div className="grid-2">
       <div className="card">
         <div className="card-h"><h3>Nové oznámení</h3></div>
         <div className="field"><label>Nadpis</label><input className="input" placeholder="Např. Odstávka výtahu" value={title} onChange={(e) => setTitle(e.target.value)} /></div>
         <div className="field"><label>Text</label><textarea className="input" placeholder="Detaily oznámení..." value={body} onChange={(e) => setBody(e.target.value)} /></div>
-        <div className="field"><label>Komu</label>
-          <select className="input" value={target} onChange={(e) => setTarget(e.target.value)}><option>Všichni</option><option>Jen vlastníci</option><option>Jen nájemníci</option></select>
-        </div>
-        <button className="btn btn-primary btn-sm" onClick={publish}><Icon name="send" small /> Publikovat na nástěnku</button>
+        <button className="btn btn-primary btn-sm" onClick={publish} disabled={busy}><Icon name="send" small /> Publikovat na nástěnku</button>
+        <p className="adm-mini" style={{ marginTop: 10 }}>Oznámení se objeví na nástěnce a všem členům přijde notifikace.</p>
       </div>
       <div className="card">
         <div className="card-h"><h3>Moderace příspěvků</h3><span className="adm-mini">poslední</span></div>
-        {M.feed.slice(0, 5).map((p) => (
+        {posts.slice(0, 8).map((p) => (
           <div className="doc-row" key={p.id}>
             <span className="cf-ic"><Icon name={p.kind === 'ozn' ? 'nastenka' : 'msg'} small /></span>
             <div style={{ flex: 1, minWidth: 0 }}><b style={{ fontWeight: 600, fontSize: 13.5 }}>{p.authorName}</b><span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' }}>{p.body}</span></div>
-            <button className="btn btn-ghost btn-sm" onClick={() => toast('Příspěvek skryt')}>Skrýt</button>
+            <button className="btn btn-ghost btn-sm" onClick={() => remove(p)}>Smazat</button>
           </div>
         ))}
+        {posts.length === 0 && <p className="adm-mini">Na nástěnce zatím nic není.</p>}
       </div>
     </div>
   )
@@ -499,116 +619,110 @@ function Board({ toast, user }: { toast: Toast; user: { role: Role; buildingId: 
 
 /* ---------------- Dokumenty ---------------- */
 const DOC_ROLES: { k: Role; l: string }[] = [{ k: 'rezident', l: 'Rezidenti' }, { k: 'vybor', l: 'Výbor' }, { k: 'developer', l: 'Developer' }, { k: 'investor', l: 'Investor' }]
-function Documents({ toast }: { toast: Toast }) {
+
+function Documents({ toast, bid, role }: { toast: Toast; bid: string; role: Role }) {
   const [docs, setDocs] = useState<DocItem[]>([])
-  const [q, setQ] = useState(''); const [busy, setBusy] = useState(false)
-  const fileRef = useRef<HTMLInputElement>(null)
-  useEffect(() => { api.getDocuments().then(setDocs) }, [])
+  const [busy, setBusy] = useState(false)
+  const [cat, setCat] = useState('Ostatní')
+  const [vis, setVis] = useState<Role[]>(['rezident', 'vybor', 'developer', 'investor'])
+
+  const reload = () => api.getDocuments(bid, role).then(setDocs).catch((e: any) => toast('Načtení selhalo: ' + (e.message || e)))
+  useEffect(() => { reload() }, [bid])
+
   async function upload(files: FileList | null) {
-    if (!files || !files.length) return; setBusy(true); const f = files[0]; const st = await uploadFile(f, 'docs')
-    await api.uploadDocument({ name: f.name, kind: (f.name.split('.').pop() || 'PDF').toUpperCase(), date: 'dnes', cat: 'Ostatní', vis: ['vybor'], url: st.url })
-    setBusy(false); setDocs(await api.getDocuments()); toast('Dokument nahrán')
+    if (!files || !files.length || busy) return
+    setBusy(true)
+    try { await api.uploadDocument(bid, files[0], { cat, vis }); await reload(); toast('Dokument nahrán') }
+    catch (e: any) { toast(e.message || 'Nahrání selhalo') } finally { setBusy(false) }
   }
-  async function toggleVis(d: DocItem, role: Role) {
-    const cur = d.vis || []; const next = cur.includes(role) ? cur.filter((r) => r !== role) : [...cur, role]
-    await api.setDocVisibility(d.id!, next as any); setDocs(await api.getDocuments())
+  async function toggleVis(d: DocItem, r: Role) {
+    const cur = d.vis || []
+    const next = cur.includes(r) ? cur.filter((x) => x !== r) : [...cur, r]
+    if (!next.includes('vybor')) next.push('vybor')
+    try { await api.setDocVisibility(d.id!, next); await reload() }
+    catch (e: any) { toast(e.message || 'Uložení selhalo') }
   }
-  const shown = docs.filter((d) => d.name.toLowerCase().includes(q.toLowerCase()))
+  async function del(d: DocItem) {
+    if (!window.confirm(`Smazat dokument ${d.name}?`)) return
+    try { await api.deleteDocument(d); await reload(); toast('Dokument smazán') }
+    catch (e: any) { toast(e.message || 'Smazání selhalo') }
+  }
+  async function open(d: DocItem) {
+    try { const url = await api.openDocument(d); if (url) window.open(url, '_blank'); else toast('Dokument je ukázkový') }
+    catch (e: any) { toast(e.message || 'Otevření selhalo') }
+  }
+
   return (
-    <div>
-      <div className="adm-bar">
-        <input className="input" placeholder="Hledat dokument" value={q} onChange={(e) => setQ(e.target.value)} />
-        <button className="btn btn-primary btn-sm" onClick={() => fileRef.current?.click()}>{busy ? <span className="spin" style={{ width: 16, height: 16, margin: 0 }} /> : <><Icon name="plus" small /> Nahrát dokument</>}</button>
-        <input ref={fileRef} className="file-in" type="file" onChange={(e) => upload(e.target.files)} />
+    <div className="card">
+      <div className="card-h" style={{ flexWrap: 'wrap', gap: 10 }}>
+        <h3>Dokumenty domu</h3>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <select className="input" style={{ width: 'auto', padding: '6px 10px', fontSize: 13 }} value={cat} onChange={(e) => setCat(e.target.value)}>
+            {['Stanovy a právní', 'Zápisy', 'Vyúčtování', 'Revize', 'Smlouvy', 'Schůze', 'Ostatní'].map((c) => <option key={c}>{c}</option>)}
+          </select>
+          <label className="btn btn-soft btn-sm" style={{ cursor: 'pointer' }}>
+            {busy ? <span className="spin" style={{ width: 16, height: 16, margin: 0 }} /> : <><Icon name="plus" small /> Nahrát</>}
+            <input className="file-in" type="file" onChange={(e) => upload(e.target.files)} />
+          </label>
+        </div>
       </div>
-      <div className="card">
-        <div className="card-h"><h3>Dokumenty a viditelnost</h3><span className="adm-mini">{shown.length}</span></div>
-        {shown.map((d) => (
-          <div className="doc-row" key={d.id} style={{ alignItems: 'flex-start' }}>
-            <span className="cf-ic"><Icon name="doc" small /></span>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <b style={{ fontWeight: 600, fontSize: 13.5 }}>{d.name}</b><span>{d.cat ? d.cat + ' · ' : ''}{d.kind} · {d.date}</span>
-              <div className="vis-chips">{DOC_ROLES.map((r) => <span key={r.k} className={'vis-chip' + ((d.vis || []).includes(r.k) ? ' on' : '')} onClick={() => toggleVis(d, r.k)}>{r.l}</span>)}</div>
-            </div>
-            <button className="btn btn-ghost btn-sm" onClick={() => d.url ? window.open(d.url, '_blank') : toast('Ukázkový dokument')}>Otevřít</button>
+      <p className="adm-mini" style={{ marginBottom: 10 }}>Dokumenty se ukládají do zabezpečeného úložiště, otevírají se podepsaným odkazem a viditelnost řídíte po rolích.</p>
+      {docs.map((d) => (
+        <div className="doc-row" key={d.id || d.name} style={{ flexWrap: 'wrap' }}>
+          <span className="cf-ic"><Icon name="doc" small /></span>
+          <div style={{ flex: 1, minWidth: 180 }}><b>{d.name}</b><span>{d.cat ? d.cat + ' · ' : ''}{d.kind} · {d.date}</span></div>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+            {DOC_ROLES.map((r) => (
+              <button key={r.k} className={'pill ' + ((d.vis || []).includes(r.k) ? 'pill-ok' : 'pill-neutral')} style={{ cursor: 'pointer', border: 0 }} onClick={() => toggleVis(d, r.k)}>{r.l}</button>
+            ))}
           </div>
-        ))}
-      </div>
-      <p className="adm-mini" style={{ marginTop: 10 }}>Klepnutím na roli nastavíte, kdo dokument uvidí. {storageConfigured ? 'Soubory se ukládají do úložiště.' : 'V demu se soubory drží v prohlížeči, po napojení úložiště se ukládají trvale.'}</p>
+          <button className="btn btn-ghost btn-sm" onClick={() => open(d)}>Otevřít</button>
+          <button className="btn btn-ghost btn-sm" onClick={() => del(d)}>Smazat</button>
+        </div>
+      ))}
+      {docs.length === 0 && <p className="adm-mini">Žádné dokumenty. Nahrajte stanovy, zápisy nebo vyúčtování.</p>}
     </div>
   )
 }
 
-/* ---------------- Nastavení ---------------- */
-function Settings({ toast }: { toast: Toast }) {
-  const [integ, setInteg] = useState(A.integrations)
-  const [notif, setNotif] = useState({ ...prefs })
-  const [payAcc, setPayAcc] = useState(M.payAccount)
-  const _a = parseAccount(payAcc); const iban = czIban(_a.prefix, _a.account, _a.bank)
-  function toggle(id: string) { setInteg((s) => s.map((i) => i.id === id ? { ...i, on: !i.on, tag: i.on ? 'Nepřipojeno' : 'Připojeno' } : i)); toast('Nastavení integrace uloženo') }
+/* ---------------- Nastavení domu ---------------- */
+function BuildingSettingsTab({ toast, bid, isDemo, buildingName }: { toast: Toast; bid: string; isDemo: boolean; buildingName: string }) {
+  const [account, setAccount] = useState('')
+  const [recipient, setRecipient] = useState('')
+  const [busy, setBusy] = useState(false)
+
+  useEffect(() => {
+    api.getBuildingSettings(bid).then((s) => { setAccount(s.account); setRecipient(s.recipient) }).catch(() => {})
+  }, [bid])
+
+  async function save() {
+    if (busy) return
+    setBusy(true)
+    try { await api.saveBuildingSettings(bid, { account: account.trim(), recipient: recipient.trim() }); toast('Nastavení plateb uloženo') }
+    catch (e: any) { toast(e.message || 'Uložení selhalo') } finally { setBusy(false) }
+  }
+
+  const integrations = [
+    { id: 'fio', name: 'Fio banka', desc: 'Automatické párování plateb podle VS', tag: 'Připravujeme' },
+    { id: 'stripe', name: 'Platby kartou', desc: 'Strhávání nájmu kartou a Apple Pay', tag: 'Připravujeme' },
+    { id: 'email', name: 'E-mailové notifikace', desc: 'Upomínky a oznámení i mimo aplikaci', tag: 'Připravujeme' },
+  ]
 
   return (
     <div className="grid-2">
-      <div className="col">
-        <div className="card">
-          <div className="card-h"><h3>Profil domu</h3></div>
-          <div className="field"><label>Název</label><input className="input" defaultValue={A.profile.name} /></div>
-          <div className="field"><label>Adresa</label><input className="input" defaultValue={A.profile.address} /></div>
-          <div className="grid-2" style={{ gap: 12 }}>
-            <div className="field"><label>IČO SVJ</label><input className="input mono" defaultValue={A.profile.ico} /></div>
-            <div className="field"><label>Bankovní účet</label><input className="input mono" defaultValue={A.profile.account} /></div>
-          </div>
-          <div className="grid-2" style={{ gap: 12 }}>
-            <div className="field"><label>Kontaktní e-mail</label><input className="input" defaultValue={A.profile.contactEmail} /></div>
-            <div className="field"><label>Telefon</label><input className="input" defaultValue={A.profile.contactPhone} /></div>
-          </div>
-          <button className="btn btn-primary btn-sm" onClick={() => toast('Profil domu uložen')}>Uložit změny</button>
-        </div>
-        <div className="card">
-          <div className="card-h"><h3>Notifikace</h3></div>
-          {([['email', 'E-mailem'], ['sms', 'SMS'], ['push', 'Push do aplikace']] as const).map(([k, l]) => (
-            <div className="contact-row" key={k}><div style={{ flex: 1 }}><b style={{ fontWeight: 600, fontSize: 14 }}>{l}</b></div><button className={'toggle' + ((notif as any)[k] ? ' on' : '')} onClick={() => setNotif((n) => { const v = !(n as any)[k]; setPref(k as any, v); return { ...n, [k]: v } })} /></div>
-          ))}
-          <p className="adm-mini" style={{ marginTop: 8 }}>Vypnutý kanál se neodesílá. Upomínky i oznámení respektují toto nastavení.</p>
-        </div>
-        <div className="card">
-          <div className="card-h"><h3>Doručování</h3><span className={'pill ' + (notifyConfigured ? 'pill-ok' : 'pill-neutral')}>{notifyConfigured ? 'Napojeno' : 'Demo režim'}</span></div>
-          {[['E-mail (SendGrid)', 'email'], ['SMS (Twilio)', 'sms'], ['Push (web push)', 'push']].map(([l, k]) => (
-            <div className="contact-row" key={k as string}><span className="cf-ic"><Icon name={k === 'sms' ? 'msg' : k === 'push' ? 'bell' : 'doc'} small /></span><div style={{ flex: 1 }}><b style={{ fontWeight: 600, fontSize: 13.5 }}>{l as string}</b></div><span className={'pill ' + (notifyConfigured ? 'pill-ok' : 'pill-neutral')}>{notifyConfigured ? 'Aktivní' : 'Připraveno'}</span></div>
-          ))}
-          <p className="adm-mini" style={{ marginTop: 8 }}>Zadejte VITE_NOTIFY_API_URL pro reálné odesílání e-mailů, SMS a push.</p>
-        </div>
+      <div className="card">
+        <div className="card-h"><h3>Platby domu</h3></div>
+        <div className="field"><label>Bankovní účet (číslo / kód banky)</label><input className="input mono" placeholder="123456789/0100" value={account} onChange={(e) => setAccount(e.target.value)} /></div>
+        <div className="field"><label>Název příjemce</label><input className="input" placeholder={buildingName} value={recipient} onChange={(e) => setRecipient(e.target.value)} /></div>
+        <button className="btn btn-primary btn-sm" onClick={save} disabled={busy || isDemo}>Uložit</button>
+        <p className="adm-mini" style={{ marginTop: 10 }}>Na tento účet míří QR platby rezidentů. Dokud účet nevyplníte, aplikace QR platby nenabízí a rezidenti platí převodem s ručním potvrzením.</p>
       </div>
-      <div className="col">
-        <div className="card">
-          <div className="card-h"><h3>Integrace</h3></div>
-          {integ.map((i) => (
-            <div className="contact-row" key={i.id}>
-              <span className="cf-ic"><Icon name={i.id === 'fio' || i.id === 'gocardless' ? 'bank' : i.id === 'tasker' ? 'sluzby' : 'check'} small /></span>
-              <div style={{ flex: 1, minWidth: 0 }}><b style={{ fontWeight: 600, fontSize: 14 }}>{i.name}</b><br /><span className="adm-mini">{i.desc}</span></div>
-              <button className={i.on ? 'btn btn-ghost btn-sm' : 'btn btn-soft btn-sm'} onClick={() => toggle(i.id)}>{i.on ? 'Odpojit' : 'Připojit'}</button>
-            </div>
-          ))}
-        </div>
-        <div className="card">
-          <div className="card-h"><h3>Platby a QR</h3></div>
-          <div className="field"><label>Účet pro QR platby</label><input className="input mono" value={payAcc} onChange={(e) => setPayAcc(e.target.value)} /></div>
-          <div className="qr-line"><span>IBAN</span><b className="mono" style={{ fontSize: 11 }}>{formatIban(iban)}</b></div>
-          <p className="adm-mini" style={{ marginTop: 10 }}>Nájem, zálohy, fond oprav a kauce se hradí QR platbou nebo trvalým příkazem na tento účet, párováno podle VS. Služby Tasker se platí přes Tasker API. Platba kartou přes Stripe se připravuje.</p>
-          <button className="btn btn-primary btn-sm" style={{ marginTop: 12 }} onClick={() => toast('Účet pro platby uložen')}>Uložit</button>
-        </div>
-        <div className="card">
-          <div className="card-h"><h3>Předplatné Tasker Living</h3></div>
-          <div className="qr-line"><span>Jednotek v domě</span><b>{A.units.length}</b></div>
-          <div className="qr-line"><span>Cena za jednotku</span><b>399 Kč / měsíc</b></div>
-          <div className="qr-line"><span>Celkem</span><b>{(A.units.length * 399).toLocaleString('cs-CZ')} Kč / měsíc</b></div>
-          <p className="adm-mini" style={{ marginTop: 10 }}>Účtováno měsíčně podle počtu jednotek, bez DPH. Vše v ceně, bez modulů a příplatků.</p>
-        </div>
-        <div className="card" style={{ borderColor: 'var(--bad-bg)' }}>
-          <div className="card-h"><h3>Nebezpečná zóna</h3></div>
-          <p className="adm-mini" style={{ marginBottom: 12 }}>Archivace odpojí dům od aplikace. Data zůstanou uložena podle nastavení retence GDPR.</p>
-          <button className="btn btn-ghost btn-sm" style={{ color: 'var(--bad)', borderColor: 'var(--bad-bg)' }} onClick={() => toast('Vyžaduje potvrzení')}>Archivovat dům</button>
-        </div>
+      <div className="card">
+        <div className="card-h"><h3>Integrace</h3></div>
+        {integrations.map((i) => (
+          <div className="doc-row" key={i.id}><span className="cf-ic"><Icon name="bank" small /></span><div style={{ flex: 1 }}><b>{i.name}</b><span>{i.desc}</span></div><span className="pill pill-neutral">{i.tag}</span></div>
+        ))}
+        <p className="adm-mini" style={{ marginTop: 10 }}>Integrace zapneme postupně. Ozvěte se, kterou potřebujete nejdřív.</p>
       </div>
     </div>
   )

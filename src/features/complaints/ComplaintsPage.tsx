@@ -12,23 +12,36 @@ const czCount = (n: number) => (n === 1 ? 'stížnost' : n < 5 ? 'stížnosti' :
 export default function ComplaintsPage() {
   const { user } = useSession(); const role = user?.role
   const toast = useToast()
+  const bid = user?.buildingId || ''
   const [log, setLog] = useState<Record<string, ComplaintItem[]>>({})
   const [detail, setDetail] = useState<string | null>(null)
   const [unit, setUnit] = useState('')
   const [type, setType] = useState(TYPES[0])
   const [note, setNote] = useState('')
+  const [busy, setBusy] = useState(false)
   const showLog = can(role!, 'complaint_log')
   const showForm = can(role!, 'file_complaint')
 
-  useEffect(() => { if (showLog) api.getComplaints().then(setLog) }, [showLog])
+  useEffect(() => { if (showLog && bid) api.getComplaints(bid).then(setLog).catch((e) => console.error(e)) }, [showLog, bid])
 
   async function file() {
     if (!unit.trim()) { toast('Zadejte číslo bytu'); return }
+    if (busy) return
+    setBusy(true)
     const u = unit.trim().toUpperCase()
-    await api.fileComplaint(u, type, note)
-    toast(`Stížnost zaznamenána k bytu ${u}`)
-    setUnit(''); setNote('')
-    if (showLog) api.getComplaints().then(setLog)
+    try {
+      await api.fileComplaint(bid, u, type, note.trim())
+      toast(`Stížnost zaznamenána k bytu ${u}`)
+      setUnit(''); setNote('')
+      if (showLog) setLog(await api.getComplaints(bid))
+    } catch (e: any) { toast(e.message || 'Odeslání selhalo') } finally { setBusy(false) }
+  }
+
+  async function warn(u: string) {
+    try {
+      const n = await api.warnUnit(bid, u)
+      toast(n > 0 ? `Upozornění odesláno bytu ${u}` : `Byt ${u} zatím nemá v aplikaci žádného člena`)
+    } catch (e: any) { toast(e.message || 'Upozornění selhalo') }
   }
 
   const rows = Object.entries(log).sort((a, b) => b[1].length - a[1].length)
@@ -54,7 +67,7 @@ export default function ComplaintsPage() {
             <div className="field"><label>Typ</label><select className="input" value={type} onChange={(e) => setType(e.target.value)}>{TYPES.map((t) => <option key={t}>{t}</option>)}</select></div>
           </div>
           <div className="field"><label>Popis</label><textarea className="input" placeholder="Co se děje?" value={note} onChange={(e) => setNote(e.target.value)} /></div>
-          <button className="btn btn-primary btn-sm" onClick={file}><Icon name="send" small /> Odeslat stížnost</button>
+          <button className="btn btn-primary btn-sm" onClick={file} disabled={busy}><Icon name="send" small /> Odeslat stížnost</button>
         </div>
       )}
 
@@ -68,7 +81,7 @@ export default function ComplaintsPage() {
               <div className="row-metrics">
                 <span className={'pill ' + (items.length >= 3 ? 'pill-bad' : items.length === 2 ? 'pill-warn' : 'pill-neutral')}>{items.length}×</span>
                 <button className="btn btn-ghost btn-sm" onClick={() => setDetail(u)}>Historie</button>
-                <button className="btn btn-soft btn-sm" onClick={() => toast(`Upozornění odesláno bytu ${u}`)}>Upozornit</button>
+                <button className="btn btn-soft btn-sm" onClick={() => warn(u)}>Upozornit</button>
               </div>
             </div>
           ))}

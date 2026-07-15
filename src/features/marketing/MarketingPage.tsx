@@ -1,11 +1,36 @@
-import { useNavigate } from 'react-router-dom'
+import { useState } from 'react'
+import { useNavigate, Link } from 'react-router-dom'
 import { Icon } from '../../components/Icon'
+
+const CONTACT_EMAIL = 'info@tasker.cz'
 
 // Marketing homepage. Static and SEO friendly in production. In app it doubles
 // as the public front door before login.
 export default function MarketingPage() {
   const nav = useNavigate()
   const go = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
+  const [cName, setCName] = useState(''); const [cEmail, setCEmail] = useState(''); const [cPhone, setCPhone] = useState('')
+  const [cSize, setCSize] = useState('do 20 jednotek'); const [cMsg, setCMsg] = useState('')
+  const [cState, setCState] = useState<'idle' | 'busy' | 'done' | 'err'>('idle')
+
+  async function sendContact() {
+    if (cState === 'busy') return
+    if (!cName.trim() || !cEmail.trim()) { setCState('err'); return }
+    setCState('busy')
+    try {
+      const res = await fetch('https://formsubmit.co/ajax/' + CONTACT_EMAIL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({
+          _subject: 'Tasker Living: poptávka z webu',
+          Jmeno: cName.trim(), Email: cEmail.trim(), Telefon: cPhone.trim(),
+          Velikost: cSize, Zprava: cMsg.trim(),
+        }),
+      })
+      if (!res.ok) throw new Error('send failed')
+      setCState('done')
+    } catch { setCState('err') }
+  }
 
   const board = [
     { icon: 'water', t: 'Odstávka vody', s: 'Čtvrtek 8 až 12', tag: 'DŮM' },
@@ -36,7 +61,7 @@ export default function MarketingPage() {
     { h: 'Výbor má přehled', p: 'Kompletní správa domu, financí a revizí v reálném čase.' },
   ]
   const faqs = [
-    { q: 'Splňuje aplikace zákonnou povinnost internetových stránek SVJ?', a: 'Ano. Výbor má vlastní zabezpečený prostor pro oznámení, dokumenty, zápisy a hlasování, což pokrývá povinnost zpřístupnit informace vlastníkům.' },
+    { q: 'Pokrývá aplikace povinnost internetových stránek SVJ?', a: 'Aplikace dává výboru zabezpečený prostor pro oznámení, dokumenty, zápisy a hlasování, tedy způsob, jak zpřístupnit informace vlastníkům podle stanov. Konkrétní požadavky vašich stanov s vámi rádi projdeme.' },
     { q: 'Jak funguje párování plateb?', a: 'Aplikace se napojí na bankovní účet přes Fio a příchozí platby automaticky spáruje s jednotkou podle variabilního symbolu. Nespárované platby označí k ručnímu přiřazení.' },
     { q: 'Jsou naše data v bezpečí?', a: 'Data jsou uložena v Evropské unii a chráněná přístupovými právy na úrovni jednotlivých rolí. Každý vidí jen to, co má.' },
     { q: 'Musí se registrovat všichni rezidenti?', a: 'Ne. Aplikace funguje i pro samotný výbor. Rezidenti se připojují postupně přístupovým kódem ke své jednotce.' },
@@ -98,7 +123,7 @@ export default function MarketingPage() {
           <span className="trust-chip"><Icon name="check" small /> Součást rodiny Tasker</span>
           <span className="trust-chip"><Icon name="check" small /> Pilotní provoz: Rezidence Vista Park</span>
           <span className="trust-chip"><Icon name="check" small /> Data uložena v EU</span>
-          <span className="trust-chip"><Icon name="check" small /> Splňuje povinnost webu SVJ</span>
+          <span className="trust-chip"><Icon name="check" small /> Pokrývá povinnost webu SVJ</span>
         </div>
       </div>
 
@@ -164,7 +189,7 @@ export default function MarketingPage() {
           <div className="stats-band">
             <div className="stat-big"><div className="n"><em>4</em></div><div className="lbl">role v jedné aplikaci</div></div>
             <div className="stat-big"><div className="n"><em>9</em></div><div className="lbl">modulů správy domu</div></div>
-            <div className="stat-big"><div className="n"><em>100%</em></div><div className="lbl">v souladu s povinností webu SVJ</div></div>
+            <div className="stat-big"><div className="n"><em>SVJ</em></div><div className="lbl">pokrývá povinnost webu společenství</div></div>
             <div className="stat-big"><div className="n"><em>EU</em></div><div className="lbl">data uložena v Evropě</div></div>
           </div>
         </section>
@@ -186,7 +211,7 @@ export default function MarketingPage() {
                 <li><Icon name="check" small /> QR platby i automatické platby</li>
                 <li><Icon name="check" small /> Schůze, hlasování a dokumenty</li>
                 <li><Icon name="check" small /> Služby Tasker s ověřenými pracovníky</li>
-                <li><Icon name="check" small /> Splňuje zákonnou povinnost webu SVJ</li>
+                <li><Icon name="check" small /> Pokrývá povinnost webu SVJ</li>
               </ul>
               <button className="btn btn-primary" onClick={() => nav('/prihlaseni')}>Vyzkoušet demo</button>
             </div>
@@ -200,7 +225,7 @@ export default function MarketingPage() {
                 <li><Icon name="check" small /> Integrace na míru</li>
                 <li><Icon name="check" small /> Dedikovaný manažer</li>
               </ul>
-              <button className="btn btn-ghost" onClick={() => go('faq')}>Domluvit ukázku</button>
+              <button className="btn btn-ghost" onClick={() => go('kontakt')}>Domluvit ukázku</button>
             </div>
           </div>
           <p className="plans-note">Ceny jsou bez DPH.</p>
@@ -231,7 +256,48 @@ export default function MarketingPage() {
             <p>Vyzkoušejte si aplikaci v demu, nebo si domluvte ukázku pro váš dům a my se postaráme o zbytek.</p>
             <div className="cta-row">
               <button className="btn btn-gold" onClick={() => nav('/prihlaseni')}>Vyzkoušet demo</button>
-              <button className="btn btn-ghost" onClick={() => go('faq')}>Domluvit ukázku</button>
+              <button className="btn btn-ghost" onClick={() => go('kontakt')}>Domluvit ukázku</button>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      {/* contact */}
+      <div className="wrap" id="kontakt">
+        <section className="band">
+          <div className="kicker">Kontakt</div>
+          <h2>Domluvte si ukázku pro váš dům</h2>
+          <p className="sub">Napište nám pár údajů a ozveme se do druhého pracovního dne. Ukázku uděláme online nebo přímo u vás.</p>
+          <div className="grid-2" style={{ marginTop: 26, alignItems: 'start' }}>
+            <div className="card">
+              {cState === 'done' ? (
+                <div className="empty"><span className="cf-ic"><Icon name="check" /></span><p><b>Děkujeme.</b> Vaše zpráva je u nás, ozveme se co nejdřív.</p></div>
+              ) : (
+                <>
+                  <div className="grid-2">
+                    <div className="field"><label>Jméno a příjmení</label><input className="input" value={cName} onChange={(e) => setCName(e.target.value)} placeholder="Jan Novák" /></div>
+                    <div className="field"><label>E-mail</label><input className="input" type="email" value={cEmail} onChange={(e) => setCEmail(e.target.value)} placeholder="vas@email.cz" /></div>
+                  </div>
+                  <div className="grid-2">
+                    <div className="field"><label>Telefon</label><input className="input" value={cPhone} onChange={(e) => setCPhone(e.target.value)} placeholder="+420 ..." /></div>
+                    <div className="field"><label>Velikost domu</label>
+                      <select className="input" value={cSize} onChange={(e) => setCSize(e.target.value)}>
+                        <option>do 20 jednotek</option><option>20 až 50 jednotek</option><option>50 a více jednotek</option><option>více domů / portfolio</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div className="field"><label>Zpráva</label><textarea className="input" rows={3} value={cMsg} onChange={(e) => setCMsg(e.target.value)} placeholder="Krátce o vašem domě a co potřebujete..." /></div>
+                  {cState === 'err' && <p style={{ color: 'var(--bad)', fontSize: 13, marginBottom: 10 }}>Vyplňte prosím jméno a e-mail. Pokud odeslání selhalo, napište nám přímo na {CONTACT_EMAIL}.</p>}
+                  <button className="btn btn-primary" onClick={sendContact} disabled={cState === 'busy'}>{cState === 'busy' ? 'Odesílám...' : 'Odeslat poptávku'}</button>
+                  <p className="plans-note" style={{ marginTop: 10 }}>Odesláním souhlasíte se zpracováním údajů podle <Link to="/ochrana-udaju">zásad ochrany údajů</Link>.</p>
+                </>
+              )}
+            </div>
+            <div className="card">
+              <div className="card-h"><h3>Přímý kontakt</h3></div>
+              <div className="doc-row"><span className="cf-ic"><Icon name="msg" small /></span><div><b>E-mail</b><span><a href={'mailto:' + CONTACT_EMAIL}>{CONTACT_EMAIL}</a></span></div></div>
+              <div className="doc-row"><span className="cf-ic"><Icon name="nastenka" small /></span><div><b>Pilotní provoz</b><span>Rezidence Vista Park, Praha 5</span></div></div>
+              <div className="doc-row"><span className="cf-ic"><Icon name="check" small /></span><div><b>Součást Tasker</b><span><a href="https://tasker.cz" target="_blank" rel="noreferrer">tasker.cz</a></span></div></div>
             </div>
           </div>
         </section>
@@ -246,8 +312,8 @@ export default function MarketingPage() {
               <p className="foot-blurb">Celý dům v jedné aplikaci. Nástěnka, správa, platby a ověřené služby Tasker pro rezidenty i výbor SVJ.</p>
             </div>
             <div className="foot-col"><h5>Produkt</h5><a onClick={() => go('funkce')}>Funkce</a><a onClick={() => go('prokoho')}>Pro koho</a><a onClick={() => go('cenik')}>Ceník</a><a onClick={() => nav('/prihlaseni')}>Přihlásit se</a></div>
-            <div className="foot-col"><h5>Společnost</h5><a>O Tasker</a><a>Kontakt</a><a>Kariéra</a></div>
-            <div className="foot-col"><h5>Právní</h5><a>Ochrana údajů</a><a>Podmínky</a><a>Cookies</a></div>
+            <div className="foot-col"><h5>Společnost</h5><a href="https://tasker.cz" target="_blank" rel="noreferrer">O Tasker</a><a onClick={() => go('kontakt')}>Kontakt</a><a href={'mailto:' + CONTACT_EMAIL}>Napište nám</a></div>
+            <div className="foot-col"><h5>Právní</h5><Link to="/ochrana-udaju">Ochrana údajů</Link><Link to="/podminky">Podmínky</Link><Link to="/cookies">Cookies</Link></div>
           </div>
           <div className="foot-bar"><span>© 2026 Tasker Living. Součást rodiny Tasker.</span><span>tasker.cz</span></div>
         </div>

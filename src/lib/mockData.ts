@@ -31,9 +31,9 @@ export const feed: FeedPost[] = [
 
 const PHOTO = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%23e2e8f0'/><stop offset='1' stop-color='%23cbd5e1'/></linearGradient></defs><rect width='120' height='120' fill='url(%23g)'/><circle cx='60' cy='50' r='16' fill='none' stroke='%2394a3b8' stroke-width='5'/><rect x='40' y='72' width='40' height='8' rx='4' fill='%2394a3b8'/></svg>"
 export const faults: Fault[] = [
-  { id: 1, cat: 'Osvětlení', loc: 'Chodba, 3. patro', desc: 'Nesvítí světlo u výtahu, čidlo nereaguje.', status: 'V řešení', date: 'před 2 dny', by: 'A-304', vendor: 'ElektroRevize Praha', photos: [PHOTO], timeline: [ { status: 'Nahlášeno', at: 'před 2 dny' }, { status: 'Přiřazen dodavatel', at: 'včera', note: 'ElektroRevize Praha' }, { status: 'V řešení', at: 'včera', note: 'Objednán náhradní senzor' } ] },
-  { id: 2, cat: 'Výtah', loc: 'Vchod C', desc: 'Občas nedojede do přízemí, zasekne se mezi patry.', status: 'Nahlášeno', date: 'včera', by: 'C-118', photos: [], timeline: [ { status: 'Nahlášeno', at: 'včera' } ] },
-  { id: 3, cat: 'Voda', loc: 'Garáž -1', desc: 'Kapající kohout u stání 12.', status: 'Vyřešeno', date: 'před týdnem', by: 'B-204', vendor: 'Instalatér Novák', photos: [], timeline: [ { status: 'Nahlášeno', at: 'před týdnem' }, { status: 'Přiřazen dodavatel', at: 'před 6 dny', note: 'Instalatér Novák' }, { status: 'V řešení', at: 'před 6 dny' }, { status: 'Vyřešeno', at: 'před 5 dny', note: 'Vyměněno těsnění a hlavice' } ] },
+  { id: '1', cat: 'Osvětlení', loc: 'Chodba, 3. patro', desc: 'Nesvítí světlo u výtahu, čidlo nereaguje.', status: 'V řešení', date: 'před 2 dny', by: 'A-304', vendor: 'ElektroRevize Praha', photos: [PHOTO], timeline: [ { status: 'Nahlášeno', at: 'před 2 dny' }, { status: 'Přiřazen dodavatel', at: 'včera', note: 'ElektroRevize Praha' }, { status: 'V řešení', at: 'včera', note: 'Objednán náhradní senzor' } ] },
+  { id: '2', cat: 'Výtah', loc: 'Vchod C', desc: 'Občas nedojede do přízemí, zasekne se mezi patry.', status: 'Nahlášeno', date: 'včera', by: 'C-118', photos: [], timeline: [ { status: 'Nahlášeno', at: 'včera' } ] },
+  { id: '3', cat: 'Voda', loc: 'Garáž -1', desc: 'Kapající kohout u stání 12.', status: 'Vyřešeno', date: 'před týdnem', by: 'B-204', vendor: 'Instalatér Novák', photos: [], timeline: [ { status: 'Nahlášeno', at: 'před týdnem' }, { status: 'Přiřazen dodavatel', at: 'před 6 dny', note: 'Instalatér Novák' }, { status: 'V řešení', at: 'před 6 dny' }, { status: 'Vyřešeno', at: 'před 5 dny', note: 'Vyměněno těsnění a hlavice' } ] },
 ]
 
 export const units: Unit[] = [
@@ -54,10 +54,10 @@ export const services: Service[] = [
 ]
 
 export const bookings: Booking[] = [
-  { id: 1, name: 'Úklid domácnosti', date: 'dokončeno 3. 3.', status: 'done', worker: 'Marek H.', rating: '4.9' },
+  { id: '1', name: 'Úklid domácnosti', date: 'dokončeno 3. 3.', status: 'done', worker: 'Marek H.', rating: '4.9' },
 ]
 export const meetings: Meeting[] = [
-  { id: 1, date: '24. dubna 2026, 18:00', place: 'Společenská místnost', agenda: ['Roční vyúčtování za 2025', 'Stav fondu oprav', 'Rekonstrukce střechy'], rsvp: false },
+  { id: '1', date: '24. dubna 2026, 18:00', place: 'Společenská místnost', agenda: ['Roční vyúčtování za 2025', 'Stav fondu oprav', 'Rekonstrukce střechy'], rsvp: false },
 ]
 export const documents: DocItem[] = [
   { id: 'd1', name: 'Zápis ze schůze 11/2025', kind: 'PDF', date: '18. 11. 2025', cat: 'Zápisy', vis: ['rezident', 'vybor', 'developer', 'investor'] },

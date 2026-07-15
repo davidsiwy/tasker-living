@@ -3,46 +3,42 @@
 The app runs in two modes.
 
 - No backend: works out of the box in demo mode with mock data. Just `npm install && npm run dev`, pick a role, explore.
-- Real backend: real login and a live feed backed by Supabase. About 10 minutes to turn on.
+- Real backend: everything live on Supabase.
 
 ## Turn on the real backend
 
-1. Create a free project at supabase.com. Pick an EU region (Frankfurt) for Czech data.
+1. Create a project at supabase.com, EU region (Frankfurt) for Czech data.
 
-2. Open the SQL editor, paste the whole of `supabase/schema.sql`, run it once. This creates the tables, security rules, realtime, the storage bucket for photos, and seeds one building with access codes.
+2. SQL editor: run `supabase/schema.sql` once, then every file in
+   `supabase/migrations/` in filename order. This creates all tables, row level
+   security, triggers, realtime and the storage buckets.
 
-3. Turn off email confirmation for now so registration logs you straight in. Authentication, Sign In / Providers, Email, switch Confirm email off. You can turn it back on for production.
+3. Deploy the Edge Function: `supabase functions deploy admin-users`
+   (source in `supabase/functions/admin-users/`).
 
-4. Copy your keys into the app. Duplicate `.env.example` to `.env` and fill in:
+4. Auth settings in the dashboard:
+   - Enable leaked password protection (Auth, Passwords).
+   - Add your site URL to the redirect allowlist (Auth, URL Configuration)
+     so password reset e-mails come back to the app.
+   - Decide on e-mail confirmation. On for production.
 
-   ```
-   VITE_SUPABASE_URL=https://YOURPROJECT.supabase.co
-   VITE_SUPABASE_ANON_KEY=your anon public key
-   ```
+5. Copy keys: duplicate `.env.example` to `.env`, fill in
+   `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` (Project settings, API).
+   The anon key is public by design, row level security protects the data.
 
-   Both are in Project settings, API. The anon key is safe in the browser, row level security protects the data.
+6. Create the first building and access codes from the operator console
+   (`/operator`), or insert them in SQL. Add yourself to `platform_admins`
+   to unlock the console:
+   `insert into platform_admins (user_id) values ('<your auth uid>');`
 
-5. Restart the dev server (`npm run dev`). The login screen now asks for email and password instead of a role picker.
+Access codes are never committed to this repository. Generate them in the app
+(Správa, tab Lidé) and hand them to residents privately.
 
-6. Register. Click Registrovat, enter your name, email, password, and one of the seeded access codes:
+## What is real
 
-   | Code | Joins as | Can do |
-   | --- | --- | --- |
-   | `TL-VP-VYBOR` | Výbor SVJ | everything, including announcements |
-   | `TL-VP-B204` | Rezident, unit B-204 | resident view |
-   | `TL-VP-DEV` | Developer | portfolio and handover |
-   | `TL-VP-INV` | Investor | payments and lease ends |
-
-   Start with `TL-VP-VYBOR`. You are in, and the feed is live. Post something, like it, reply, attach a photo. Open a second browser and register with `TL-VP-B204` to watch posts and likes update in real time between the two.
-
-## What is real vs mock right now
-
-Real, backed by Supabase: login and onboarding by access code, the whole Nástěnka feed (posts, likes, threaded replies, image upload to storage, realtime), and announcements from Správa.
-
-Still mock, in memory: závady, nájmy, služby, schůze, kontakty, stížnosti. They read only from `src/lib/api.ts`. Wiring them to Supabase is the same pattern as the feed: add the tables to `schema.sql`, then replace those functions in `api.ts`. The screens do not change.
-
-## Where the seams are
-
-- `src/lib/supabase.ts` is the client and the demo/real switch.
-- `src/lib/api.ts` has the `feed` object (real) and the `api` object (mock). One file to grow.
-- `src/state/session.tsx` holds auth: sign in, register and redeem code, sign out, and loading the membership that carries role, building and unit.
+Auth with access codes, password reset, the whole feed, faults with photos and
+timelines, units and payment charges with QR to the building account, meetings
+with RSVP, share weighted polls with proxies, documents in a private bucket with
+signed URLs and per role visibility, complaints kept on the unit, direct
+messages with realtime delivery, service bookings, and in-app notifications
+driven by database triggers. Demo mode keeps a mock fallback for all of it.

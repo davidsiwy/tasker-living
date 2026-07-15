@@ -1,22 +1,67 @@
-// Direct messages between neighbours. In-memory for the demo session; becomes
-// real once wired to Supabase (a `messages` table keyed by the two units).
-export interface DM { id: string; from: 'me' | 'them'; text: string; at: string }
-const store: Record<string, DM[]> = {}
-const rid = () => 'd' + Math.random().toString(36).slice(2, 8)
-const now = () => new Date().toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' })
+// Direct messages between neighbours. Real via the messages table with realtime
+// delivery when Supabase is configured, in-memory in the public demo.
+import { supabase, isSupabaseConfigured } from './supabase'
 
-export function thread(unit: string, name?: string): DM[] {
-  if (!store[unit]) store[unit] = [{ id: rid(), from: 'them', text: `Dobrý den, tady ${name || 'soused'}. Klidně napište.`, at: now() }]
-  return store[unit].slice()
-}
-export function sendDM(unit: string, text: string): DM[] {
-  const t = store[unit] || (store[unit] = [])
-  t.push({ id: rid(), from: 'me', text, at: now() })
-  return t.slice()
-}
+export interface DM { id: string; from: 'me' | 'them'; text: string; at: string }
+const rid = () => 'd' + Math.random().toString(36).slice(2, 8)
+const fmt = (iso?: string) => new Date(iso || Date.now()).toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' })
+
+// ---- demo store ----
+const store: Record<string, DM[]> = {}
 const REPLIES = ['Díky za zprávu, ozvu se.', 'Jasně, dám vědět.', 'Super, díky!', 'Rozumím, mrknu na to.', 'OK, uvidíme se.']
-export function replyDM(unit: string): DM[] {
-  const t = store[unit]; if (!t) return []
-  t.push({ id: rid(), from: 'them', text: REPLIES[Math.floor(Math.random() * REPLIES.length)], at: now() })
-  return t.slice()
+
+export const dm = {
+  configured: isSupabaseConfigured,
+
+  async thread(otherUserId: string, otherName?: string): Promise<DM[]> {
+    if (!isSupabaseConfigured) {
+      if (!store[otherUserId]) store[otherUserId] = [{ id: rid(), from: 'them', text: `Dobrý den, tady ${otherName || 'soused'}. Klidně napište.`, at: fmt() }]
+      return store[otherUserId].slice()
+    }
+    const sb = supabase!
+    const { data: auth } = await sb.auth.getUser(); const me = auth.user?.id
+    const { data, error } = await sb.from('messages')
+      .select('id, sender_id, body, created_at')
+      .or(`and(sender_id.eq.${me},recipient_id.eq.${otherUserId}),and(sender_id.eq.${otherUserId},recipient_id.eq.${me})`)
+      .order('created_at', { ascending: true }).limit(200)
+    if (error) throw error
+    return (data || []).map((m: any) => ({ id: m.id, from: m.sender_id === me ? 'me' : 'them', text: m.body, at: fmt(m.created_at) }))
+  },
+
+  async send(buildingId: string, otherUserId: string, text: string): Promise<DM> {
+    if (!isSupabaseConfigured) {
+      const t = store[otherUserId] || (store[otherUserId] = [])
+      const msg: DM = { id: rid(), from: 'me', text, at: fmt() }
+      t.push(msg)
+      setTimeout(() => { t.push({ id: rid(), from: 'them', text: REPLIES[Math.floor(Math.random() * REPLIES.length)], at: fmt() }) }, 800)
+      return msg
+    }
+    const sb = supabase!
+    const { data: auth } = await sb.auth.getUser()
+    const { data, error } = await sb.from('messages')
+      .insert({ building_id: buildingId, sender_id: auth.user?.id, recipient_id: otherUserId, body: text })
+      .select('id, created_at').single()
+    if (error) throw error
+    return { id: (data as any).id, from: 'me', text, at: fmt((data as any).created_at) }
+  },
+
+  // live delivery of incoming messages from one neighbour
+  subscribe(myId: string, otherUserId: string, onMsg: (m: DM) => void): () => void {
+    if (!isSupabaseConfigured) {
+      const iv = setInterval(() => {
+        const t = store[otherUserId] || []
+        const last = t[t.length - 1]
+        if (last && last.from === 'them') { onMsg(last); }
+      }, 900)
+      return () => clearInterval(iv)
+    }
+    const sb = supabase!
+    const ch = sb.channel('dm-' + myId + '-' + otherUserId)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `recipient_id=eq.${myId}` }, (payload: any) => {
+        const m = payload.new
+        if (m.sender_id === otherUserId) onMsg({ id: m.id, from: 'them', text: m.body, at: fmt(m.created_at) })
+      })
+      .subscribe()
+    return () => { sb.removeChannel(ch) }
+  },
 }

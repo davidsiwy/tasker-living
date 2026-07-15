@@ -21,27 +21,44 @@ export default function FaultsPage() {
   const [cat, setCat] = useState(CATS[0]); const [loc, setLoc] = useState(''); const [desc, setDesc] = useState('')
   const [photos, setPhotos] = useState<string[]>([]); const [busy, setBusy] = useState(false)
   const [note, setNote] = useState('')
+  const [vendorText, setVendorText] = useState('')
   const fileRef = useRef<HTMLInputElement>(null)
   const manage = can(role!, 'manage_faults')
+  const bid = user?.buildingId || ''
 
-  useEffect(() => { api.getFaults().then(setFaults) }, [])
-  const refresh = async () => { const list = await api.getFaults(); setFaults(list); setDetail((d) => d ? list.find((f) => f.id === d.id) || null : null) }
+  const refresh = async () => {
+    if (!bid) return
+    const list = await api.getFaults(bid)
+    setFaults(list)
+    setDetail((d) => d ? list.find((f) => f.id === d.id) || null : null)
+  }
+  useEffect(() => { refresh().catch((e) => console.error(e)) }, [bid])
 
   async function pickPhotos(files: FileList | null) {
     if (!files || !files.length) return
     setBusy(true)
-    for (const f of Array.from(files)) { const s = await uploadFile(f, 'faults'); setPhotos((p) => [...p, s.url]) }
-    setBusy(false)
+    try { for (const f of Array.from(files)) { const s = await uploadFile(f, 'faults'); setPhotos((p) => [...p, s.url]) } }
+    finally { setBusy(false) }
   }
   async function submit() {
     if (!loc.trim() || !desc.trim()) { toast('Vyplňte místo a popis'); return }
-    const by = role === 'rezident' ? unit : 'Správa'
-    const f = await api.reportFault({ cat, loc, desc, by })
-    for (const url of photos) await api.addFaultPhoto(f.id, url)
-    setOpen(false); setLoc(''); setDesc(''); setPhotos([]); await refresh(); toast('Závada nahlášena')
+    if (busy) return
+    setBusy(true)
+    try {
+      const by = role === 'rezident' && unit ? unit : 'Správa'
+      await api.reportFault({ buildingId: bid, cat, loc: loc.trim(), desc: desc.trim(), by, photos })
+      setOpen(false); setLoc(''); setDesc(''); setPhotos([]); await refresh(); toast('Závada nahlášena')
+    } catch (e: any) { toast(e.message || 'Nahlášení selhalo') } finally { setBusy(false) }
   }
-  async function advance(id: number, status: FaultStatus) { await api.advanceFault(id, status, note.trim() || undefined); setNote(''); await refresh(); toast('Stav aktualizován') }
-  async function assign(id: number, vendor: string) { if (!vendor) return; await api.assignVendor(id, vendor); await refresh(); toast('Dodavatel přiřazen') }
+  async function advance(id: string, status: FaultStatus) {
+    try { await api.advanceFault(id, status, note.trim() || undefined); setNote(''); await refresh(); toast('Stav aktualizován') }
+    catch (e: any) { toast(e.message || 'Aktualizace selhala') }
+  }
+  async function assign(id: string, vendor: string) {
+    if (!vendor.trim()) return
+    try { await api.assignVendor(id, vendor.trim()); setVendorText(''); await refresh(); toast('Dodavatel přiřazen') }
+    catch (e: any) { toast(e.message || 'Přiřazení selhalo') }
+  }
 
   return (
     <div>
@@ -64,9 +81,9 @@ export default function FaultsPage() {
             <div className="row-metrics"><span className={'pill ' + pillOf(f.status)}>{f.status}</span><Icon name="chevron" small /></div>
           </button>
         ))}
+        {faults.length === 0 && <div className="empty"><span className="cf-ic"><Icon name="check" /></span><p>Žádné závady. Když na něco narazíte, nahlaste to tlačítkem nahoře.</p></div>}
       </div>
 
-      {/* report modal */}
       {open && (
         <div className="overlay" onClick={(e) => { if (e.target === e.currentTarget) setOpen(false) }}>
           <div className="modal">
@@ -83,12 +100,11 @@ export default function FaultsPage() {
                 <input ref={fileRef} className="file-in" type="file" accept="image/*" multiple onChange={(e) => pickPhotos(e.target.files)} />
               </div>
             </div>
-            <div className="modal-f"><button className="btn btn-ghost" onClick={() => setOpen(false)}>Zrušit</button><button className="btn btn-primary" onClick={submit}>Odeslat</button></div>
+            <div className="modal-f"><button className="btn btn-ghost" onClick={() => setOpen(false)}>Zrušit</button><button className="btn btn-primary" onClick={submit} disabled={busy}>Odeslat</button></div>
           </div>
         </div>
       )}
 
-      {/* detail modal */}
       {detail && (
         <div className="overlay" onClick={(e) => { if (e.target === e.currentTarget) setDetail(null) }}>
           <div className="modal">
@@ -117,9 +133,11 @@ export default function FaultsPage() {
                 <div className="card" style={{ marginTop: 12, background: 'var(--paper)' }}>
                   <div className="card-h"><h3 style={{ fontSize: 14 }}>Správa závady</h3></div>
                   <div className="field"><label>Přiřadit dodavatele</label>
-                    <select className="input" value={detail.vendor || ''} onChange={(e) => assign(detail.id, e.target.value)}>
-                      <option value="">Vyberte dodavatele</option>{A.vendors.map((v) => <option key={v.name} value={v.name}>{v.name} · {v.field}</option>)}
-                    </select>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <input className="input" list="vendor-list" placeholder="Jméno nebo firma" value={vendorText} onChange={(e) => setVendorText(e.target.value)} />
+                      <button className="btn btn-soft btn-sm" onClick={() => assign(detail.id, vendorText)}>Přiřadit</button>
+                    </div>
+                    <datalist id="vendor-list">{A.vendors.map((v) => <option key={v.name} value={v.name}>{v.field}</option>)}</datalist>
                   </div>
                   <div className="field"><label>Poznámka k aktualizaci</label><input className="input" placeholder="Např. Objednán díl" value={note} onChange={(e) => setNote(e.target.value)} /></div>
                   <div className="cta-row">{STEPS.filter((s) => s !== detail.status).map((s) => <button key={s} className="btn btn-soft btn-sm" onClick={() => advance(detail.id, s)}>{s}</button>)}</div>
