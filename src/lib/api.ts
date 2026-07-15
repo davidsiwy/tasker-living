@@ -137,7 +137,7 @@ function demoCharges(): Charge[] {
   if (!db.demoCharges) {
     db.demoCharges = M.units.filter((u) => u.tenant !== 'Volné').map((u) => ({
       id: 'ch-' + u.id, unitId: u.id, unitLabel: u.id, label: 'Nájem', amount: u.rent, vs: u.vs,
-      period: currentPeriod(), due: '15. ' + new Date().getMonth() + 1 + '.', status: u.paid ? 'paid' as ChargeStatus : 'unpaid' as ChargeStatus,
+      period: currentPeriod(), due: '15. ' + (new Date().getMonth() + 1) + '.', status: u.paid ? 'paid' as ChargeStatus : 'unpaid' as ChargeStatus,
     }))
   }
   return db.demoCharges
