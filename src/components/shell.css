@@ -286,3 +286,49 @@
 .sh .p-soon b{font-weight:800}
 @media(max-width:1080px){ .sh .p-kpis{grid-template-columns:1fr}.sh .p-grid{grid-template-columns:1fr} }
 @media(max-width:860px){ .sh .p-row .s-badge{width:auto;min-width:92px}.sh .p-row .what{display:none} }
+
+/* =========================================================================
+   Schůze a hlasování (handoff 4c) — usnesení, hlasy po bytech, plné moci
+   ========================================================================= */
+.sh .v-grid{display:grid;grid-template-columns:1.5fr 1fr;gap:14px;align-items:start}
+.sh .v-head{padding:16px 18px;border-bottom:1px solid var(--s-line)}
+.sh .v-h{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.sh .v-h b{font-size:14.5px;font-weight:800;min-width:0}
+.sh .v-head p{font-size:12.5px;color:var(--s-ink-2);line-height:1.55;margin:6px 0 0}
+.sh .v-bar{display:flex;height:9px;border-radius:999px;overflow:hidden;background:var(--s-chip);margin-top:12px}
+.sh .v-bar>i{display:block;transform-origin:left;animation:s-growX 1s ease-out var(--d,0s) both}
+.sh .v-legend{display:flex;gap:14px;margin-top:8px;font-size:11.5px;color:var(--s-ink-2);flex-wrap:wrap;align-items:center}
+.sh .v-legend b{font-weight:700;color:var(--s-green-ink)}
+.sh .v-ends{margin-left:auto;font-family:var(--s-mono);color:var(--s-warn);font-weight:600;font-size:10.5px}
+.sh .v-row{display:flex;align-items:center;gap:12px;padding:10px 18px;font-size:12.5px;border-top:1px solid var(--s-line-soft)}
+.sh .v-row:first-of-type{border-top:none}
+.sh .v-row b.u{font-family:var(--s-mono);font-weight:600;width:52px;flex:none}
+.sh .v-row .who{flex:1;color:var(--s-ink-2);min-width:0}
+.sh .v-row .sh-p{font-family:var(--s-mono);color:var(--s-muted);width:64px;flex:none}
+.sh .v-tag{font-size:9.5px;font-weight:800;letter-spacing:.06em;padding:3px 10px;border-radius:999px;
+  width:96px;text-align:center;flex:none}
+.sh .v-tag.pro{background:var(--s-green-050);color:var(--s-green-ink)}
+.sh .v-tag.proti{background:var(--s-warn-bg);color:var(--s-warn)}
+.sh .v-tag.zdr{background:var(--s-chip);color:var(--s-ink-2)}
+.sh .v-tag.non{background:var(--s-chip);color:var(--s-muted)}
+.sh .v-me{display:flex;gap:10px;margin:12px 18px 0;flex-wrap:wrap}
+.sh .v-me .s-btn{flex:1;min-width:120px}
+.sh .v-mine{margin:10px 18px 16px;font-size:11.5px;color:var(--s-muted)}
+.sh .v-proxy{display:flex;gap:8px;align-items:center;margin:10px 18px 16px;flex-wrap:wrap;font-size:12px;color:var(--s-muted)}
+.sh .v-proxy select{padding:7px 10px;border:1px solid var(--s-line-2);border-radius:9px;font-family:inherit;font-size:12.5px;background:#fff}
+.sh .v-ok{background:var(--s-green-050);border:1px solid #CDEFD0;border-radius:14px;padding:14px 16px;
+  font-size:12px;color:#12661A;line-height:1.5}
+.sh .v-ok b{font-weight:800}
+.sh .v-mtg{display:flex;align-items:center;gap:10px}
+.sh .v-mtg .ic{width:38px;height:38px;border-radius:10px;background:var(--s-purple-050);color:var(--s-purple);
+  display:flex;align-items:center;justify-content:center;flex:none;font-weight:800;font-size:11px}
+.sh .v-mtg b{font-size:13.5px;font-weight:800;display:block}
+.sh .v-mtg span{font-size:11.5px;color:var(--s-muted)}
+.sh .v-ag{display:grid;gap:7px;margin-top:12px;font-size:12px;color:var(--s-ink-2)}
+.sh .v-ag span{display:flex;gap:8px;align-items:flex-start}
+.sh .v-arch{display:grid;gap:9px;margin-top:10px;font-size:12px}
+.sh .v-arch div{display:flex;justify-content:space-between;gap:8px}
+.sh .v-arch .g{color:var(--s-green-ink);font-weight:700;flex:none}
+.sh .v-arch .w{color:var(--s-warn);font-weight:700;flex:none}
+@media(max-width:1080px){ .sh .v-grid{grid-template-columns:1fr} }
+@media(max-width:860px){ .sh .v-row .sh-p{display:none}.sh .v-tag{width:auto;min-width:76px} }

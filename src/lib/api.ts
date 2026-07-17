@@ -427,6 +427,14 @@ export const api = {
     if (error) throw error
   },
 
+  // Připomene nehlasujícím vlastníkům; vrací počet oslovených členů.
+  async remindPoll(pollId: string): Promise<number> {
+    if (!isSupabaseConfigured) { await wait(120); return 1 }
+    const { data, error } = await supabase!.rpc('remind_poll', { p_poll: pollId })
+    if (error) throw error
+    return data as number
+  },
+
   async closePoll(pollId: string): Promise<void> {
     if (!isSupabaseConfigured) { await wait(); return }
     const { error } = await supabase!.from('polls').update({ open: false }).eq('id', pollId)
