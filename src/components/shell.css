@@ -332,3 +332,54 @@
 .sh .v-arch .w{color:var(--s-warn);font-weight:700;flex:none}
 @media(max-width:1080px){ .sh .v-grid{grid-template-columns:1fr} }
 @media(max-width:860px){ .sh .v-row .sh-p{display:none}.sh .v-tag{width:auto;min-width:76px} }
+
+/* =========================================================================
+   Závady (handoff 4d kanban + 6c detail) — každá závada má odpovědného a termín
+   ========================================================================= */
+.sh .f-kan{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;align-items:start;margin-top:18px}
+.sh .f-col{background:var(--s-chip);border:1px solid var(--s-line);border-radius:14px;padding:12px}
+.sh .f-ch{display:flex;align-items:center;gap:8px;padding:2px 4px 10px}
+.sh .f-ch b{font-size:12.5px;font-weight:800}
+.sh .f-ch .n{font-family:var(--s-mono);font-size:10px;font-weight:600;background:#fff;border:1px solid var(--s-line-2);
+  border-radius:999px;padding:1px 7px;color:var(--s-ink-2)}
+.sh .f-ch i{width:7px;height:7px;border-radius:50%;flex:none}
+.sh .f-ch i.n1{background:var(--s-muted)}
+.sh .f-ch i.n2{background:var(--s-warn)}
+.sh .f-ch i.n3{background:var(--s-green)}
+.sh .f-card{display:block;width:100%;text-align:left;background:#fff;border:1px solid var(--s-line);border-radius:12px;
+  padding:12px 13px;margin-top:9px;cursor:pointer;font-family:inherit;transition:box-shadow .16s ease,transform .12s ease}
+.sh .f-card:first-of-type{margin-top:0}
+.sh .f-card:hover{box-shadow:0 12px 26px -14px rgba(18,22,29,.24);transform:translateY(-1px)}
+.sh .f-card .t{display:flex;align-items:center;gap:8px}
+.sh .f-card b{font-size:12.5px;font-weight:800;flex:1;min-width:0}
+.sh .f-card .cat{font-family:var(--s-mono);font-size:9px;font-weight:600;color:var(--s-ink-2);background:var(--s-chip);
+  border-radius:999px;padding:2px 8px;flex:none;text-transform:uppercase}
+.sh .f-card p{font-size:12px;color:var(--s-ink-2);line-height:1.45;margin:6px 0 0}
+.sh .f-b{display:flex;align-items:center;gap:9px;margin-top:9px}
+.sh .f-b img{width:34px;height:34px;border-radius:8px;object-fit:cover;border:1px solid var(--s-line);flex:none}
+.sh .f-b .m{font-size:10.5px;color:var(--s-muted);flex:1;min-width:0;line-height:1.35}
+.sh .f-b .m b{font-weight:700;color:var(--s-ink-2);font-size:10.5px;display:block}
+.sh .f-none{font-size:11.5px;color:var(--s-muted);padding:14px 4px;text-align:center}
+
+/* 6c detail */
+.sh .f-photos{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.sh .f-photos img{width:88px;height:88px;object-fit:cover;border-radius:10px;border:1px solid var(--s-line)}
+.sh .f-tl{margin-top:14px;padding-left:6px}
+.sh .f-step{position:relative;padding:0 0 14px 20px;border-left:2px solid var(--s-line-2)}
+.sh .f-step:last-child{border-left-color:transparent;padding-bottom:0}
+.sh .f-step::before{content:"";position:absolute;left:-6px;top:2px;width:10px;height:10px;border-radius:50%;
+  background:var(--s-line-2);border:2px solid #fff}
+.sh .f-step.done::before{background:var(--s-green)}
+.sh .f-step.cur::before{background:var(--s-warn)}
+.sh .f-step b{font-size:12.5px;font-weight:700;display:block}
+.sh .f-step span{font-size:11px;color:var(--s-muted)}
+.sh .f-step .note{font-size:11.5px;color:var(--s-ink-2);margin-top:3px}
+.sh .f-vend{display:flex;align-items:center;gap:10px;margin-top:12px;padding:11px 13px;border:1px solid var(--s-line);border-radius:11px}
+.sh .f-vend .ic{width:32px;height:32px;border-radius:9px;background:var(--s-green-050);color:var(--s-green-ink);
+  display:flex;align-items:center;justify-content:center;flex:none}
+.sh .f-vend b{font-size:12.5px;font-weight:700;display:block}
+.sh .f-vend span{font-size:11px;color:var(--s-muted)}
+.sh .f-manage{margin-top:14px;padding-top:14px;border-top:1px solid var(--s-line)}
+.sh .f-manage .row{display:flex;gap:8px;align-items:flex-end}
+.sh .f-manage .row .a-f{flex:1;margin-top:0}
+@media(max-width:1080px){ .sh .f-kan{grid-template-columns:1fr} }

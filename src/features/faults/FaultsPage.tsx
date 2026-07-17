@@ -1,38 +1,53 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { api } from '../../lib/api'
 import type { Fault, FaultStatus } from '../../lib/types'
 import { can } from '../../lib/types'
 import * as A from '../../lib/adminData'
 import { useSession } from '../../state/session'
 import { useToast } from '../../components/Toast'
-import { Icon } from '../../components/Icon'
+import { SIcon } from '../../components/AppShell'
 import { uploadFile } from '../../lib/storage'
 
 const CATS = ['Osvětlení', 'Výtah', 'Voda', 'Topení', 'Dveře a zámky', 'Úklid', 'Jiné']
-const STEPS: FaultStatus[] = ['Nahlášeno', 'V řešení', 'Vyřešeno']
-const pillOf = (s: FaultStatus) => s === 'Vyřešeno' ? 'pill-ok' : s === 'V řešení' ? 'pill-warn' : 'pill-neutral'
+const COLS: { s: FaultStatus; dot: string }[] = [
+  { s: 'Nahlášeno', dot: 'n1' }, { s: 'V řešení', dot: 'n2' }, { s: 'Vyřešeno', dot: 'n3' },
+]
+const badge = (s: FaultStatus) => (s === 'Vyřešeno' ? 'ok' : s === 'V řešení' ? 'warn' : 'neutral')
 
+// Závady (handoff 4d): kanban, protože výbor potřebuje vidět, co visí a na kom.
+// Detail (6c) je modal s fotkou, průběhem a přiřazením — ohlašovatel vidí každý krok.
 export default function FaultsPage() {
-  const { user } = useSession(); const role = user?.role; const unit = user?.unit ?? ''
+  const { user } = useSession()
   const toast = useToast()
+  const role = user?.role
+  const bid = user?.buildingId || ''
+  const unit = user?.unit ?? ''
+  const manage = role ? can(role, 'manage_faults') : false
+
   const [faults, setFaults] = useState<Fault[]>([])
   const [open, setOpen] = useState(false)
   const [detail, setDetail] = useState<Fault | null>(null)
-  const [cat, setCat] = useState(CATS[0]); const [loc, setLoc] = useState(''); const [desc, setDesc] = useState('')
-  const [photos, setPhotos] = useState<string[]>([]); const [busy, setBusy] = useState(false)
+  const [cat, setCat] = useState(CATS[0])
+  const [loc, setLoc] = useState(''); const [desc, setDesc] = useState('')
+  const [photos, setPhotos] = useState<string[]>([])
+  const [busy, setBusy] = useState(false)
   const [note, setNote] = useState('')
   const [vendorText, setVendorText] = useState('')
   const fileRef = useRef<HTMLInputElement>(null)
-  const manage = can(role!, 'manage_faults')
-  const bid = user?.buildingId || ''
 
   const refresh = async () => {
     if (!bid) return
     const list = await api.getFaults(bid)
     setFaults(list)
-    setDetail((d) => d ? list.find((f) => f.id === d.id) || null : null)
+    setDetail((d) => (d ? list.find((f) => f.id === d.id) || null : null))
   }
-  useEffect(() => { refresh().catch((e) => console.error(e)) }, [bid])
+  useEffect(() => { refresh().catch(console.error) }, [bid])
+
+  const cols = useMemo(
+    () => COLS.map((c) => ({ ...c, items: faults.filter((f) => f.status === c.s) })),
+    [faults],
+  )
+  const unassigned = faults.filter((f) => f.status !== 'Vyřešeno' && !f.vendor).length
 
   async function pickPhotos(files: FileList | null) {
     if (!files || !files.length) return
@@ -47,107 +62,181 @@ export default function FaultsPage() {
     try {
       const by = role === 'rezident' && unit ? unit : 'Správa'
       await api.reportFault({ buildingId: bid, cat, loc: loc.trim(), desc: desc.trim(), by, photos })
-      setOpen(false); setLoc(''); setDesc(''); setPhotos([]); await refresh(); toast('Závada nahlášena')
+      setOpen(false); setLoc(''); setDesc(''); setPhotos([]); await refresh()
+      toast('Nahlášeno. Výbor to uvidí hned a vy uvidíte každý krok.')
     } catch (e: any) { toast(e.message || 'Nahlášení selhalo') } finally { setBusy(false) }
   }
   async function advance(id: string, status: FaultStatus) {
-    try { await api.advanceFault(id, status, note.trim() || undefined); setNote(''); await refresh(); toast('Stav aktualizován') }
+    try { await api.advanceFault(id, status, note.trim() || undefined); setNote(''); await refresh(); toast('Stav aktualizován, ohlašovatel dostal notifikaci') }
     catch (e: any) { toast(e.message || 'Aktualizace selhala') }
   }
-  async function assign(id: string, vendor: string) {
-    if (!vendor.trim()) return
-    try { await api.assignVendor(id, vendor.trim()); setVendorText(''); await refresh(); toast('Dodavatel přiřazen') }
+  async function assign(id: string) {
+    if (!vendorText.trim()) { toast('Vyberte dodavatele'); return }
+    try { await api.assignVendor(id, vendorText.trim()); setVendorText(''); await refresh(); toast('Dodavatel přiřazen') }
     catch (e: any) { toast(e.message || 'Přiřazení selhalo') }
   }
 
+  if (!user) return null
+
   return (
-    <div>
-      <div className="view-head">
-        <div><h1>Závady</h1><div className="desc">Nahlášení, fotky a sledování průběhu oprav</div></div>
-        <button className="btn btn-primary btn-sm" onClick={() => setOpen(true)}><Icon name="plus" small /> Nahlásit závadu</button>
+    <>
+      <div className="d-hi">
+        <div>
+          <h2>Závady</h2>
+          <p>
+            {manage
+              ? unassigned > 0
+                ? `${unassigned} ${unassigned === 1 ? 'závada čeká' : 'závad čeká'} na přiřazení dodavatele.`
+                : 'Každá otevřená závada má odpovědného a termín.'
+              : 'Vyfoťte a odešlete. Pak jen sledujete, co se s tím děje.'}
+          </p>
+        </div>
+        <button className="s-btn s-primary" onClick={() => setOpen(true)}>Nahlásit závadu</button>
       </div>
 
-      <div style={{ display: 'grid', gap: 12 }}>
-        {faults.map((f) => (
-          <button className="row-card" key={f.id} onClick={() => setDetail(f)} style={{ textAlign: 'left', cursor: 'pointer', width: '100%', background: 'var(--surface)', border: '1px solid var(--line)' }}>
-            <div className="lead-col"><b>{f.cat}</b><span>{f.loc}</span></div>
-            <div style={{ flex: 1, minWidth: 160, fontSize: 14, color: 'var(--ink-2)' }}>{f.desc}
-              <div style={{ fontSize: 12, color: 'var(--ink-3)', marginTop: 4 }}>
-                <span className="mono">{f.by} · {f.date}</span>
-                {f.photos && f.photos.length > 0 && <span style={{ marginLeft: 8 }}><Icon name="doc" small /> {f.photos.length}</span>}
-                {f.vendor && <span style={{ marginLeft: 8 }}>· {f.vendor}</span>}
-              </div>
+      <div className="f-kan">
+        {cols.map((c) => (
+          <div className="f-col an" key={c.s}>
+            <div className="f-ch">
+              <i className={c.dot} />
+              <b>{c.s}</b>
+              <span className="n">{c.items.length}</span>
             </div>
-            <div className="row-metrics"><span className={'pill ' + pillOf(f.status)}>{f.status}</span><Icon name="chevron" small /></div>
-          </button>
+            {c.items.length === 0 && (
+              <div className="f-none">
+                {c.s === 'Vyřešeno' ? 'Zatím nic vyřešeného.' : c.s === 'Nahlášeno' ? 'Nic nového.' : 'Nic se zrovna neřeší.'}
+              </div>
+            )}
+            {c.items.map((f) => (
+              <button className="f-card" key={f.id} onClick={() => setDetail(f)}>
+                <div className="t">
+                  <b>{f.desc}</b>
+                  <span className="cat">{f.cat}</span>
+                </div>
+                <p>{f.loc}</p>
+                <div className="f-b">
+                  {f.photos && f.photos[0] && <img src={f.photos[0]} alt="" />}
+                  <div className="m">
+                    <b>{f.by}</b>
+                    {f.date}{f.vendor ? ` · ${f.vendor}` : f.status !== 'Vyřešeno' ? ' · nepřiřazeno' : ''}
+                  </div>
+                </div>
+              </button>
+            ))}
+          </div>
         ))}
-        {faults.length === 0 && <div className="empty"><span className="cf-ic"><Icon name="check" /></span><p>Žádné závady. Když na něco narazíte, nahlaste to tlačítkem nahoře.</p></div>}
       </div>
 
+      {faults.length === 0 && (
+        <div className="d-empty" style={{ background: '#fff', border: '1px solid var(--s-line)', borderRadius: 14, marginTop: 14 }}>
+          Žádné závady. Když na něco narazíte, vyfoťte to tlačítkem nahoře.
+        </div>
+      )}
+
+      {/* nahlásit */}
       {open && (
         <div className="overlay" onClick={(e) => { if (e.target === e.currentTarget) setOpen(false) }}>
           <div className="modal">
-            <div className="modal-h"><h3>Nahlásit závadu</h3><button className="btn btn-ghost btn-icon" onClick={() => setOpen(false)}><Icon name="x" small /></button></div>
+            <div className="modal-h"><h3>Nahlásit závadu</h3><button className="s-btn s-ghost sm" onClick={() => setOpen(false)}>Zrušit</button></div>
             <div className="modal-b">
-              <div className="field"><label>Kategorie</label><select className="input" value={cat} onChange={(e) => setCat(e.target.value)}>{CATS.map((c) => <option key={c}>{c}</option>)}</select></div>
-              <div className="field"><label>Místo</label><input className="input" placeholder="Např. Chodba, 3. patro" value={loc} onChange={(e) => setLoc(e.target.value)} /></div>
-              <div className="field"><label>Popis</label><textarea className="input" placeholder="Co je špatně?" value={desc} onChange={(e) => setDesc(e.target.value)} /></div>
-              <div className="field"><label>Fotky</label>
-                <div className="thumbs">
-                  {photos.map((p, i) => <img key={i} className="thumb" src={p} alt="" />)}
-                  <div className="thumb-add" onClick={() => fileRef.current?.click()}>{busy ? <span className="spin" style={{ width: 20, height: 20, margin: 0 }} /> : <Icon name="plus" />}</div>
+              <div className="a-f">
+                <label>Kategorie</label>
+                <div className="a-chips">
+                  {CATS.map((c) => (
+                    <button key={c} className={'a-chip' + (cat === c ? ' on' : '')} onClick={() => setCat(c)}>{c}</button>
+                  ))}
                 </div>
-                <input ref={fileRef} className="file-in" type="file" accept="image/*" multiple onChange={(e) => pickPhotos(e.target.files)} />
+              </div>
+              <div className="a-f"><label htmlFor="f-l">Kde to je</label><input id="f-l" value={loc} onChange={(e) => setLoc(e.target.value)} placeholder="Sklep, vchod B" /></div>
+              <div className="a-f"><label htmlFor="f-d">Co je špatně</label><textarea id="f-d" rows={2} value={desc} onChange={(e) => setDesc(e.target.value)} placeholder="Kape ventil u vodoměru" /></div>
+              <div className="a-f">
+                <label>Fotky</label>
+                <div className="f-photos">
+                  {photos.map((p, i) => <img key={i} src={p} alt="" />)}
+                  <button className="s-btn s-ghost sm" onClick={() => fileRef.current?.click()} disabled={busy}>
+                    {busy ? 'Nahrávám…' : 'Přidat fotku'}
+                  </button>
+                </div>
+                <input ref={fileRef} type="file" accept="image/*" multiple style={{ display: 'none' }}
+                  onChange={(e) => pickPhotos(e.target.files)} />
               </div>
             </div>
-            <div className="modal-f"><button className="btn btn-ghost" onClick={() => setOpen(false)}>Zrušit</button><button className="btn btn-primary" onClick={submit} disabled={busy}>Odeslat</button></div>
+            <div className="modal-f">
+              <button className="s-btn s-ghost" onClick={() => setOpen(false)}>Zrušit</button>
+              <button className="s-btn s-primary" onClick={submit} disabled={busy}>Odeslat</button>
+            </div>
           </div>
         </div>
       )}
 
+      {/* 6c detail */}
       {detail && (
         <div className="overlay" onClick={(e) => { if (e.target === e.currentTarget) setDetail(null) }}>
           <div className="modal">
-            <div className="modal-h"><h3>{detail.cat}</h3><button className="btn btn-ghost btn-icon" onClick={() => setDetail(null)}><Icon name="x" small /></button></div>
+            <div className="modal-h"><h3>{detail.desc}</h3><button className="s-btn s-ghost sm" onClick={() => setDetail(null)}>Zavřít</button></div>
             <div className="modal-b">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-                <div><b>{detail.loc}</b><div style={{ fontSize: 12.5, color: 'var(--ink-3)' }} className="mono">{detail.by} · {detail.date}</div></div>
-                <span className={'pill ' + pillOf(detail.status)}>{detail.status}</span>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+                <div>
+                  <b style={{ fontSize: 13.5, fontWeight: 800 }}>{detail.loc}</b>
+                  <div className="s-mono" style={{ fontSize: 11, color: 'var(--s-muted)', marginTop: 2 }}>
+                    {detail.cat} · nahlásil {detail.by} · {detail.date}
+                  </div>
+                </div>
+                <span className={'s-badge ' + badge(detail.status)}>{detail.status}</span>
               </div>
-              <p style={{ fontSize: 14, color: 'var(--ink-2)', marginBottom: 12 }}>{detail.desc}</p>
 
-              {detail.photos && detail.photos.length > 0 && <div className="thumbs">{detail.photos.map((p, i) => <img key={i} className="thumb" src={p} alt="" />)}</div>}
+              {detail.photos && detail.photos.length > 0 && (
+                <div className="f-photos">{detail.photos.map((p, i) => <img key={i} src={p} alt="" />)}</div>
+              )}
 
-              <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--ink-3)', textTransform: 'uppercase', letterSpacing: '.04em', margin: '14px 0 2px' }}>Průběh</div>
-              <div className="tl">
+              <div className="f-vend">
+                <span className="ic"><SIcon n="wrench" s={15} /></span>
+                <div style={{ flex: 1 }}>
+                  <b>{detail.vendor || 'Dodavatel zatím nepřiřazen'}</b>
+                  <span>{detail.vendor ? 'ohlašovatel vidí průběh' : 'závada čeká na výbor'}</span>
+                </div>
+              </div>
+
+              <div className="f-tl">
                 {(detail.timeline || [{ status: detail.status, at: detail.date }]).map((e, i, arr) => (
-                  <div className={'tl-item ' + (i === arr.length - 1 ? 'cur' : 'done')} key={i}>
-                    <span className="tl-dot" /><div className="tl-s">{e.status}</div><div className="tl-m">{e.at}</div>{e.note && <div className="tl-n">{e.note}</div>}
+                  <div className={'f-step ' + (i === arr.length - 1 ? 'cur' : 'done')} key={i}>
+                    <b>{e.status}</b>
+                    <span>{e.at}</span>
+                    {e.note && <div className="note">{e.note}</div>}
                   </div>
                 ))}
               </div>
 
-              <div className="doc-row" style={{ marginTop: 10 }}><span className="cf-ic"><Icon name="sluzby" small /></span><div><b>Dodavatel</b><span>{detail.vendor || 'zatím nepřiřazen'}</span></div></div>
-
               {manage && (
-                <div className="card" style={{ marginTop: 12, background: 'var(--paper)' }}>
-                  <div className="card-h"><h3 style={{ fontSize: 14 }}>Správa závady</h3></div>
-                  <div className="field"><label>Přiřadit dodavatele</label>
-                    <div style={{ display: 'flex', gap: 8 }}>
-                      <input className="input" list="vendor-list" placeholder="Jméno nebo firma" value={vendorText} onChange={(e) => setVendorText(e.target.value)} />
-                      <button className="btn btn-soft btn-sm" onClick={() => assign(detail.id, vendorText)}>Přiřadit</button>
+                <div className="f-manage">
+                  <div className="row">
+                    <div className="a-f">
+                      <label htmlFor="f-v">Přiřadit dodavatele</label>
+                      <input id="f-v" list="vendor-list" value={vendorText} onChange={(e) => setVendorText(e.target.value)} placeholder="Instalatér Kraus" />
+                      <datalist id="vendor-list">
+                        {A.vendors.map((v) => <option key={v.name} value={v.name}>{v.field}</option>)}
+                      </datalist>
                     </div>
-                    <datalist id="vendor-list">{A.vendors.map((v) => <option key={v.name} value={v.name}>{v.field}</option>)}</datalist>
+                    <button className="s-btn s-dark" onClick={() => assign(detail.id)}>Přiřadit</button>
                   </div>
-                  <div className="field"><label>Poznámka k aktualizaci</label><input className="input" placeholder="Např. Objednán díl" value={note} onChange={(e) => setNote(e.target.value)} /></div>
-                  <div className="cta-row">{STEPS.filter((s) => s !== detail.status).map((s) => <button key={s} className="btn btn-soft btn-sm" onClick={() => advance(detail.id, s)}>{s}</button>)}</div>
+                  <div className="a-f">
+                    <label htmlFor="f-n">Poznámka k aktualizaci</label>
+                    <input id="f-n" value={note} onChange={(e) => setNote(e.target.value)} placeholder="Objednán díl, výměna ve čtvrtek" />
+                  </div>
+                  <div className="a-acts">
+                    {COLS.map((c) => c.s).filter((s) => s !== detail.status).map((s) => (
+                      <button key={s} className="s-btn s-ghost sm" onClick={() => advance(detail.id, s)}>Posunout na „{s}"</button>
+                    ))}
+                  </div>
+                  <p className="a-note" style={{ marginTop: 8 }}>
+                    Každá změna stavu pošle ohlašovateli notifikaci — nikdo nevolá výboru v neděli večer.
+                  </p>
                 </div>
               )}
             </div>
-            <div className="modal-f"><button className="btn btn-ghost" onClick={() => setDetail(null)}>Zavřít</button></div>
           </div>
         </div>
       )}
-    </div>
+    </>
   )
 }
