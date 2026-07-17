@@ -15,6 +15,7 @@ import MeetingsPage from './features/meetings/MeetingsPage'
 import ContactsPage from './features/contacts/ContactsPage'
 import ComplaintsPage from './features/complaints/ComplaintsPage'
 import AdminPage from './features/admin/AdminPage'
+import DashboardPage from './features/dashboard/DashboardPage'
 import SettingsPage from './features/settings/SettingsPage'
 
 const OperatorShell = lazy(() => import('./features/platform/OperatorShell'))
@@ -87,7 +88,8 @@ export default function App() {
             <Route path="operatori" element={<OperatorsPage />} />
           </Route>
           <Route path="/app" element={<RequireAuth><AppShell /></RequireAuth>}>
-            <Route index element={<Navigate to="nastenka" replace />} />
+            <Route index element={<Navigate to="prehled" replace />} />
+            <Route path="prehled" element={<DashboardPage />} />
             <Route path="nastenka" element={<FeedPage />} />
             <Route path="zavady" element={<FaultsPage />} />
             <Route path="najmy" element={<RentPage />} />
