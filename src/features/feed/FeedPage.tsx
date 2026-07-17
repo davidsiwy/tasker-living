@@ -1,140 +1,256 @@
-import { useEffect, useRef, useState } from 'react'
-import { feed } from '../../lib/api'
-import type { FeedPost, FeedComment, FeedType, Role } from '../../lib/types'
-import { feedLabels, can } from '../../lib/types'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { feed, api } from '../../lib/api'
+import type { FeedPost, FeedType, Role, ReadRow } from '../../lib/types'
+import { can, audienceLabel } from '../../lib/types'
 import { useSession } from '../../state/session'
 import { useToast } from '../../components/Toast'
-import { Icon } from '../../components/Icon'
 
-function timeAgo(iso: string) {
-  const s = (Date.now() - new Date(iso).getTime()) / 1000
+const when = (iso: string) => {
+  const d = new Date(iso)
+  const s = (Date.now() - d.getTime()) / 1000
   if (s < 60) return 'teď'
-  if (s < 3600) return Math.floor(s / 60) + ' min'
-  if (s < 86400) return Math.floor(s / 3600) + ' h'
-  if (s < 604800) return Math.floor(s / 86400) + ' d'
-  return new Date(iso).toLocaleDateString('cs-CZ')
+  if (s < 3600) return 'před ' + Math.floor(s / 60) + ' min'
+  if (s < 86400) return 'dnes ' + d.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' })
+  return d.toLocaleDateString('cs-CZ', { weekday: 'short', day: 'numeric', month: 'numeric' })
 }
-const inits = (n: string) => n.split(' ').filter(Boolean).map((w) => w[0]).slice(0, 2).join('').toUpperCase()
+const AUD = ['all', 'entrance:A', 'entrance:B', 'garages', 'owners']
+const STATE: Record<string, { l: string; c: string }> = {
+  read: { l: 'Přečteno', c: 'ok' },
+  delivered: { l: 'Doručeno', c: 'neutral' },
+  unconnected: { l: 'Dopis ve schránce', c: 'warn' },
+}
 
+// Oznámení (handoff 4a): napsat jednou, doručit všem, vidět kdo si přečetl.
+// Čtenost po bytech (7e) se rozbaluje pod oznámením, ne na vlastní stránce.
 export default function FeedPage() {
   const { user } = useSession()
   const toast = useToast()
+  const canPost = user ? can(user.role as Role, 'post_announcement') : false
+
   const [posts, setPosts] = useState<FeedPost[]>([])
-  const [text, setText] = useState('')
-  const [kind, setKind] = useState<FeedType>('kom')
+  const [units, setUnits] = useState(0)
+  const [title, setTitle] = useState('')
+  const [body, setBody] = useState('')
+  const [aud, setAud] = useState('all')
+  const [push, setPush] = useState(true)
+  const [kind, setKind] = useState<FeedType>('ozn')
   const [file, setFile] = useState<File | null>(null)
   const [preview, setPreview] = useState('')
-  const [open, setOpen] = useState<Record<string, boolean>>({})
-  const [comments, setComments] = useState<Record<string, FeedComment[]>>({})
-  const [reply, setReply] = useState<Record<string, string>>({})
   const [busy, setBusy] = useState(false)
+  const [openId, setOpenId] = useState<string | null>(null)
+  const [rows, setRows] = useState<Record<string, ReadRow[]>>({})
   const fileRef = useRef<HTMLInputElement>(null)
 
-  const canAnnounce = user ? can(user.role as Role, 'post_announcement') : false
-  const allowed: FeedType[] = canAnnounce ? ['kom', 'ozn', 'udal'] : ['kom', 'udal']
-
-  async function load() { if (!user) return; try { setPosts(await feed.list(user.buildingId)) } catch (e) { console.error(e) } }
+  async function load() {
+    if (!user) return
+    try { setPosts(await feed.list(user.buildingId)) } catch (e) { console.error(e) }
+  }
   useEffect(() => { load() }, [user?.buildingId])
 
-  // live updates
   useEffect(() => {
     if (!user) return
-    const unsub = feed.subscribe(user.buildingId, async () => {
-      await load()
-      for (const id of Object.keys(open)) if (open[id]) { const cs = await feed.getComments(id); setComments((c) => ({ ...c, [id]: cs })) }
-    })
-    return unsub
+    api.getNeighbors(user.buildingId).then((n) => setUnits(n.length)).catch(() => setUnits(0))
   }, [user?.buildingId])
 
-  function pickFile(f?: File | null) { if (!f) return; setFile(f); setPreview(URL.createObjectURL(f)) }
+  useEffect(() => {
+    if (!user) return
+    return feed.subscribe(user.buildingId, load)
+  }, [user?.buildingId])
 
-  async function publish() {
-    if (!user || (!text.trim() && !file) || busy) return
+  // soused si přečtením zapíše přečtení — z toho výbor vidí čtenost po bytech
+  useEffect(() => {
+    if (!user || canPost || !posts.length) return
+    for (const p of posts.slice(0, 10)) feed.markRead(p.id, user.unitId).catch(() => {})
+  }, [posts.length, canPost, user?.unitId])
+
+  const targetCount = useMemo(() => {
+    if (!units) return 0
+    if (aud === 'all') return units
+    if (aud === 'owners') return Math.round(units * 0.85)
+    return Math.max(1, Math.round(units / 2))
+  }, [aud, units])
+
+  async function toggleStats(p: FeedPost) {
+    const willOpen = openId !== p.id
+    setOpenId(willOpen ? p.id : null)
+    if (willOpen && !rows[p.id]) {
+      try {
+        const r = await feed.readStats(p.id)
+        setRows((s) => ({ ...s, [p.id]: r }))
+      } catch { toast('Čtenost se nepodařilo načíst') }
+    }
+  }
+
+  function pick(f?: File | null) { if (!f) return; setFile(f); setPreview(URL.createObjectURL(f)) }
+
+  async function send() {
+    if (!user || busy) return
+    if (!title.trim() && !body.trim()) { toast('Napište aspoň nadpis nebo text'); return }
     setBusy(true)
     try {
       let imageUrl: string | undefined
       if (file) imageUrl = await feed.uploadImage(file, user.buildingId)
-      await feed.createPost({ buildingId: user.buildingId, author: { name: user.name, handle: user.handle, role: user.role }, kind, body: text.trim(), imageUrl })
-      setText(''); setFile(null); setPreview(''); setKind('kom')
-      await load(); toast('Publikováno')
-    } catch (e: any) { toast(e.message || 'Nepodařilo se publikovat') } finally { setBusy(false) }
+      await feed.createPost({
+        buildingId: user.buildingId,
+        author: { name: user.name, handle: user.handle, role: user.role },
+        kind, title: title.trim() || undefined, body: body.trim(), audience: aud, push, imageUrl,
+      })
+      setTitle(''); setBody(''); setFile(null); setPreview(''); setAud('all'); setPush(true)
+      await load()
+      toast(push ? 'Odesláno, notifikace jsou na cestě' : 'Odesláno')
+    } catch (e: any) { toast(e.message || 'Nepodařilo se odeslat') } finally { setBusy(false) }
   }
 
-  async function like(p: FeedPost) {
-    setPosts((ps) => ps.map((x) => (x.id === p.id ? { ...x, liked: !x.liked, likes: x.likes + (x.liked ? -1 : 1) } : x)))
-    try { await feed.toggleLike(p) } catch (e) { console.error(e); load() }
-  }
-  async function toggleThread(p: FeedPost) {
-    const willOpen = !open[p.id]
-    setOpen((o) => ({ ...o, [p.id]: willOpen }))
-    if (willOpen && !comments[p.id]) { const cs = await feed.getComments(p.id); setComments((c) => ({ ...c, [p.id]: cs })) }
-  }
-  async function sendReply(p: FeedPost) {
-    const body = (reply[p.id] || '').trim(); if (!body || !user) return
-    const c = await feed.addComment(p.id, { name: user.name, handle: user.handle }, body)
-    setComments((cm) => ({ ...cm, [p.id]: [...(cm[p.id] || []), c] }))
-    setPosts((ps) => ps.map((x) => (x.id === p.id ? { ...x, commentCount: x.commentCount + 1 } : x)))
-    setReply((r) => ({ ...r, [p.id]: '' }))
-  }
+  if (!user) return null
 
   return (
-    <div>
-      <div className="view-head"><div><h1>Nástěnka</h1><div className="desc">Živý kanál domu, oznámení, události a sousedé</div></div></div>
+    <div className="a-grid">
+      {canPost ? (
+        <div className="a-comp an">
+          <b>Nové oznámení</b>
 
-      <div className="tw-compose">
-        <span className="tw-av">{user ? inits(user.name) : ''}</span>
-        <div className="tw-compose-main">
-          <textarea placeholder="Co je nového v domě?" value={text} onChange={(e) => setText(e.target.value)} />
-          {preview && <div className="tw-img-preview"><img src={preview} alt="" /><button onClick={() => { setFile(null); setPreview('') }}><Icon name="x" small /></button></div>}
-          <div className="tw-compose-foot">
-            <div className="tw-compose-tools">
-              <input ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => pickFile(e.target.files?.[0])} />
-              <button className="btn btn-ghost btn-icon" onClick={() => fileRef.current?.click()} title="Přidat fotku"><Icon name="doc" small /></button>
-              {canAnnounce && <div className="seg">{allowed.map((t) => <button key={t} className={kind === t ? 'on' : ''} onClick={() => setKind(t)}>{feedLabels[t]}</button>)}</div>}
+          <div className="a-f">
+            <label htmlFor="a-t">Nadpis</label>
+            <input id="a-t" value={title} onChange={(e) => setTitle(e.target.value)}
+              placeholder="Čištění garáží v pondělí 21. 7." />
+          </div>
+          <div className="a-f">
+            <label htmlFor="a-b">Text</label>
+            <textarea id="a-b" rows={3} value={body} onChange={(e) => setBody(e.target.value)}
+              placeholder="Prosíme o přeparkování vozidel z garáží do 8:00…" />
+          </div>
+
+          {preview && (
+            <div className="a-thumb">
+              <img src={preview} alt="" />
+              <button onClick={() => { setFile(null); setPreview('') }} aria-label="Odebrat fotku">×</button>
             </div>
-            <button className="btn btn-primary btn-sm" onClick={publish} disabled={busy}><Icon name="send" small /> Publikovat</button>
+          )}
+
+          <div className="a-f">
+            <label>Komu</label>
+            <div className="a-chips">
+              {AUD.map((a) => (
+                <button key={a} className={'a-chip' + (aud === a ? ' on' : '')} onClick={() => setAud(a)}>
+                  {audienceLabel(a)}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="a-f">
+            <label>Typ</label>
+            <div className="a-chips">
+              {(['ozn', 'udal', 'kom'] as FeedType[]).map((k) => (
+                <button key={k} className={'a-chip' + (kind === k ? ' on' : '')} onClick={() => setKind(k)}>
+                  {k === 'ozn' ? 'Oznámení' : k === 'udal' ? 'Událost' : 'Komunita'}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="a-push">
+            <div>
+              <b>Push notifikace</b>
+              <span>{push ? 'přijde hned na telefony' : 'jen v aplikaci a e-mailem'}</span>
+            </div>
+            <button className={'a-tog' + (push ? ' on' : '')} onClick={() => setPush((v) => !v)}
+              aria-pressed={push} aria-label="Push notifikace" />
+          </div>
+
+          <div className="a-send">
+            <input ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }}
+              onChange={(e) => pick(e.target.files?.[0])} />
+            <button className="s-btn s-primary" onClick={send} disabled={busy}>
+              {busy ? 'Odesílám…' : targetCount ? `Odeslat ${targetCount} bytům` : 'Odeslat'}
+            </button>
+            <button className="s-btn s-ghost sm" onClick={() => fileRef.current?.click()}>Přidat fotku</button>
           </div>
         </div>
-      </div>
+      ) : (
+        <div className="a-comp an">
+          <b>Oznámení domu</b>
+          <p style={{ fontSize: 12.5, color: 'var(--s-ink-2)', lineHeight: 1.55, marginTop: 8 }}>
+            Tady je všechno, co výbor pošle do domu. Nová oznámení vám přijdou jako notifikace do telefonu,
+            takže vám nic neuteče ani bez chození k nástěnce.
+          </p>
+        </div>
+      )}
 
-      {posts.map((p) => (
-        <article className="tw" key={p.id}>
-          <span className="tw-av">{inits(p.authorName)}</span>
-          <div className="tw-main">
-            <div className="tw-head">
-              <b>{p.authorName}</b>
-              <span className="tw-handle">@{p.handle}</span>
-              <span className="tw-dot">·</span>
-              <span className="tw-time">{timeAgo(p.createdAt)}</span>
-              {p.kind === 'ozn' && <span className="tw-badge">Oznámení</span>}
-              {p.kind === 'udal' && <span className="tw-badge alt">Událost</span>}
-              {p.kind === 'zav' && <span className="tw-badge warn">Závada</span>}
-            </div>
-            {p.body && <div className="tw-body">{p.body}</div>}
-            {p.imageUrl && <img className="tw-img" src={p.imageUrl} alt="" />}
-            <div className="tw-actions">
-              <button className="tw-act" onClick={() => toggleThread(p)}><Icon name="msg" small /> {p.commentCount}</button>
-              <button className={'tw-act' + (p.liked ? ' liked' : '')} onClick={() => like(p)}><Icon name="heart" small /> {p.likes}</button>
-            </div>
-            {open[p.id] && (
-              <div className="tw-thread">
-                {(comments[p.id] || []).map((c) => (
-                  <div className="tw-comment" key={c.id}>
-                    <span className="tw-av sm">{inits(c.authorName)}</span>
-                    <div><div className="c-meta"><b style={{ fontSize: 13.5 }}>{c.authorName}</b><span className="tw-handle">@{c.handle}</span><span className="tw-time">{timeAgo(c.createdAt)}</span></div><div className="c-body">{c.body}</div></div>
-                  </div>
-                ))}
-                <div className="tw-reply">
-                  <span className="tw-av sm">{user ? inits(user.name) : ''}</span>
-                  <input placeholder="Napsat odpověď..." value={reply[p.id] || ''} onChange={(e) => setReply((r) => ({ ...r, [p.id]: e.target.value }))} onKeyDown={(e) => { if (e.key === 'Enter') sendReply(p) }} />
-                  <button className="btn btn-ghost btn-icon" onClick={() => sendReply(p)}><Icon name="send" small /></button>
-                </div>
-              </div>
-            )}
+      <div className="a-list">
+        {posts.length === 0 && (
+          <div className="a-item" style={{ textAlign: 'center', padding: '34px 20px' }}>
+            <b style={{ display: 'block', fontSize: 15 }}>Zatím žádná oznámení</b>
+            <p style={{ fontSize: 12.5, color: 'var(--s-ink-2)', lineHeight: 1.55, margin: '6px auto 0', maxWidth: '30em' }}>
+              {canPost
+                ? 'Napište první — třeba přivítání sousedů v aplikaci. Stačí nadpis a dvě věty.'
+                : 'Až výbor něco pošle, objeví se to tady a přijde vám notifikace.'}
+            </p>
           </div>
-        </article>
-      ))}
-      {posts.length === 0 && <div className="empty"><span className="cf-ic"><Icon name="nastenka" /></span><p>Zatím žádné příspěvky. Napište první.</p></div>}
+        )}
+
+        {posts.map((p, i) => {
+          const reads = p.reads || 0
+          const pct = units ? Math.min(100, Math.round((reads / units) * 100)) : 0
+          const open = openId === p.id
+          return (
+            <div className={'a-item an' + (p.kind === 'ozn' ? ' ozn' : '')} key={p.id}
+              style={{ ['--d' as string]: `${Math.min(i, 6) * 0.05}s` }}>
+              <div className="a-h">
+                <b>{p.title || p.body.slice(0, 70) || 'Bez nadpisu'}</b>
+                <span className="a-aud">{audienceLabel(p.audience || 'all')}</span>
+              </div>
+              <span className="a-meta">
+                odesláno {when(p.createdAt)} · {p.push === false ? 'v aplikaci' : 'push + e-mail'} · {p.authorName}
+              </span>
+              {p.title && p.body && <div className="a-body">{p.body}</div>}
+              {p.imageUrl && <div className="a-thumb"><img src={p.imageUrl} alt="" /></div>}
+
+              {canPost && (
+                <>
+                  <div className="a-read">
+                    <span className="l">Přečteno</span>
+                    <div className="bar" style={{ flex: 1, marginTop: 0 }}>
+                      <i style={{ width: `${pct}%`, ['--d' as string]: '.15s' }} />
+                    </div>
+                    <b>{reads} / {units || '—'} bytů</b>
+                  </div>
+                  <div className="a-acts">
+                    <button className="s-btn s-ghost sm" onClick={() => toggleStats(p)}>
+                      {open ? 'Skrýt čtenost' : 'Čtenost po bytech'}
+                    </button>
+                    {units > reads && <span className="a-note">{units - reads} bytů zatím nečetlo</span>}
+                  </div>
+
+                  {open && (
+                    <div className="a-units">
+                      {(rows[p.id] || []).length === 0 && (
+                        <div className="a-unit" style={{ color: 'var(--s-muted)' }}>Načítám…</div>
+                      )}
+                      {(rows[p.id] || []).map((r) => (
+                        <div className="a-unit" key={r.unitId}>
+                          <b>{r.unitLabel}</b>
+                          <span style={{ flex: 1, color: 'var(--s-ink-2)' }}>
+                            {r.state === 'unconnected' ? '— nepřipojeno —' : r.readAt ? when(r.readAt) : 'doručeno'}
+                          </span>
+                          <span className={'s-badge ' + STATE[r.state].c}>{STATE[r.state].l}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          )
+        })}
+
+        {canPost && posts.length > 0 && (
+          <div className="a-note">
+            U každého oznámení vidíte doručení i přečtení po bytech — víte, koho obejít osobně.
+            Nepřipojeným bytům se tiskne dopis do schránky.
+          </div>
+        )}
+      </div>
     </div>
   )
 }

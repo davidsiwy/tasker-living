@@ -14,8 +14,19 @@ export const feedLabels: Record<FeedType, string> = {
 
 // Social feed, timeline style
 export interface FeedComment { id: string; authorName: string; handle: string; body: string; createdAt: string }
+export type Audience = 'all' | 'owners' | 'garages' | `entrance:${string}`
+export const audienceLabel = (a: string): string =>
+  a === 'all' ? 'Celý dům' : a === 'owners' ? 'Vlastníci' : a === 'garages' ? 'Garáže'
+  : a.startsWith('entrance:') ? 'Vchod ' + a.slice(9) : a
+
+export type ReadState = 'read' | 'delivered' | 'unconnected'
+export interface ReadRow { unitId: string; unitLabel: string; state: ReadState; readAt: string | null }
+
 export interface FeedPost {
   id: string
+  title?: string | null
+  audience?: string
+  push?: boolean
   authorName: string
   handle: string          // unit label like B-204, or role for the committee
   role: string
@@ -27,6 +38,7 @@ export interface FeedPost {
   liked: boolean
   commentCount: number
   comments: FeedComment[]
+  reads?: number
 }
 
 export type FaultStatus = 'Nahlášeno' | 'V řešení' | 'Vyřešeno'

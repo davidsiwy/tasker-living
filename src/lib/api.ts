@@ -4,7 +4,7 @@ import * as M from './mockData'
 import type {
   FeedPost, FeedComment, FeedType, Fault, FaultStatus, UnitFull, Charge, ChargeStatus,
   BuildingSettings, Service, Booking, Meeting, DocItem, VoteChoice, VoteData,
-  Neighbor, AppNotification, ComplaintItem, MyProfile, Role,
+  Neighbor, AppNotification, ComplaintItem, MyProfile, Role, ReadRow,
 } from './types'
 import { supabase, isSupabaseConfigured } from './supabase'
 
@@ -31,24 +31,26 @@ export const feed = {
     const { data: auth } = await sb.auth.getUser()
     const me = auth.user?.id
     const { data, error } = await sb.from('posts')
-      .select('id, author_name, handle, role, kind, body, image_url, created_at, post_likes(user_id), post_comments(id)')
+      .select('id, title, audience, push, author_name, handle, role, kind, body, image_url, created_at, post_likes(user_id), post_comments(id), post_reads(user_id)')
       .eq('building_id', buildingId)
       .order('created_at', { ascending: false })
       .limit(100)
     if (error) throw error
     return (data || []).map((p: any) => ({
-      id: p.id, authorName: p.author_name, handle: p.handle, role: p.role || '',
+      id: p.id, title: p.title, audience: p.audience || 'all', push: p.push !== false,
+      authorName: p.author_name, handle: p.handle, role: p.role || '',
       kind: p.kind, body: p.body, imageUrl: p.image_url, createdAt: p.created_at,
+      reads: (p.post_reads || []).length,
       likes: (p.post_likes || []).length,
       liked: (p.post_likes || []).some((l: any) => l.user_id === me),
       commentCount: (p.post_comments || []).length, comments: [],
     }))
   },
 
-  async createPost(input: { buildingId: string; author: Author; kind: FeedType; body: string; imageUrl?: string }): Promise<FeedPost> {
+  async createPost(input: { buildingId: string; author: Author; kind: FeedType; body: string; imageUrl?: string; title?: string; audience?: string; push?: boolean }): Promise<FeedPost> {
     if (!isSupabaseConfigured) {
       await wait()
-      const p: FeedPost = { id: rid(), authorName: input.author.name, handle: input.author.handle, role: input.author.role || '', kind: input.kind, body: input.body, imageUrl: input.imageUrl, createdAt: new Date().toISOString(), likes: 0, liked: false, commentCount: 0, comments: [] }
+      const p: FeedPost = { id: rid(), title: input.title || null, audience: input.audience || 'all', push: input.push !== false, authorName: input.author.name, handle: input.author.handle, role: input.author.role || '', kind: input.kind, body: input.body, imageUrl: input.imageUrl, createdAt: new Date().toISOString(), likes: 0, liked: false, commentCount: 0, comments: [] }
       mockFeed.unshift(p); return clone(p)
     }
     const sb = supabase!
@@ -56,9 +58,33 @@ export const feed = {
     const { data, error } = await sb.from('posts').insert({
       building_id: input.buildingId, author_id: auth.user?.id, author_name: input.author.name,
       handle: input.author.handle, role: input.author.role, kind: input.kind, body: input.body, image_url: input.imageUrl || null,
+      title: input.title || null, audience: input.audience || 'all', push: input.push !== false,
     }).select().single()
     if (error) throw error
-    return { id: data.id, authorName: data.author_name, handle: data.handle, role: data.role || '', kind: data.kind, body: data.body, imageUrl: data.image_url, createdAt: data.created_at, likes: 0, liked: false, commentCount: 0, comments: [] }
+    return { id: data.id, title: data.title, audience: data.audience, push: data.push, authorName: data.author_name, handle: data.handle, role: data.role || '', kind: data.kind, body: data.body, imageUrl: data.image_url, createdAt: data.created_at, likes: 0, liked: false, commentCount: 0, comments: [] }
+  },
+
+  // Soused si oznámení označí přečtené; výbor pak vidí, koho obejít osobně.
+  async markRead(postId: string, unitId?: string): Promise<void> {
+    if (!isSupabaseConfigured) return
+    const sb = supabase!
+    const { data: auth } = await sb.auth.getUser()
+    if (!auth.user) return
+    await sb.from('post_reads').upsert(
+      { post_id: postId, user_id: auth.user.id, unit_id: unitId || null },
+      { onConflict: 'post_id,user_id', ignoreDuplicates: true },
+    )
+  },
+
+  // Čtenost po bytech: přečteno / doručeno / nepřipojeno (tomu se tiskne dopis).
+  async readStats(postId: string): Promise<ReadRow[]> {
+    if (!isSupabaseConfigured) return []
+    const sb = supabase!
+    const { data, error } = await sb.rpc('post_read_stats', { p_post: postId })
+    if (error) throw error
+    return (data || []).map((r: any) => ({
+      unitId: r.unit_id, unitLabel: r.unit_label, state: r.state, readAt: r.read_at,
+    }))
   },
 
   async deletePost(id: string): Promise<void> {
