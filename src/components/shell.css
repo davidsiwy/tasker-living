@@ -255,3 +255,34 @@
 .sh .a-unit b{font-family:var(--s-mono);font-weight:600;width:52px;flex:none}
 .sh .a-unit .s-badge{width:118px;text-align:center}
 @media(max-width:1080px){ .sh .a-grid{grid-template-columns:1fr} }
+
+/* =========================================================================
+   Platby (handoff 4b) — KPI, filtry, tabulka, detail bytu s QR
+   ========================================================================= */
+.sh .p-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.sh .p-grid{display:grid;grid-template-columns:1.5fr 1fr;gap:14px;margin-top:14px;align-items:start}
+.sh .p-filters{display:flex;align-items:center;gap:8px;padding:13px 18px;border-bottom:1px solid var(--s-line);flex-wrap:wrap}
+.sh .p-per{margin-left:auto;font-family:var(--s-mono);font-size:11px;color:var(--s-muted);text-transform:uppercase}
+.sh .p-row{display:flex;align-items:center;gap:12px;padding:11px 18px;font-size:13px;border-top:1px solid var(--s-line-soft);
+  width:100%;background:none;border-left:none;border-right:none;border-bottom:none;font-family:inherit;text-align:left;cursor:pointer}
+.sh .p-row:first-of-type{border-top:none}
+.sh .p-row:hover{background:var(--s-chip)}
+.sh .p-row.due{background:var(--s-urgent)}
+.sh .p-row.due:hover{background:#FFF6E8}
+.sh .p-row.on{box-shadow:inset 3px 0 0 var(--s-green)}
+.sh .p-row b.u{font-family:var(--s-mono);font-weight:600;width:52px;flex:none}
+.sh .p-row .what{flex:1;color:var(--s-ink-2);min-width:0}
+.sh .p-row .amt{font-family:var(--s-mono);color:var(--s-ink-2)}
+.sh .p-row .s-badge{width:112px;text-align:center}
+.sh .p-det{display:flex;align-items:center;gap:12px;margin-top:12px}
+.sh .p-det b.a{font-size:17px;font-weight:800;display:block}
+.sh .p-det span{font-size:11px;color:var(--s-muted);display:block;margin-top:2px}
+.sh .p-det .acct{font-family:var(--s-mono);font-size:10px;color:var(--s-ink-2);display:block;margin-top:4px}
+.sh .p-hist{display:grid;gap:8px;margin-top:10px;font-size:12px;color:var(--s-ink-2)}
+.sh .p-hist div{display:flex;justify-content:space-between;gap:8px}
+.sh .p-hist .g{color:var(--s-green-ink);font-weight:700}
+.sh .p-soon{background:var(--s-purple-050);border:1px solid #E2D8F7;border-radius:14px;padding:14px 16px;
+  font-size:12px;color:#4A3390;line-height:1.5}
+.sh .p-soon b{font-weight:800}
+@media(max-width:1080px){ .sh .p-kpis{grid-template-columns:1fr}.sh .p-grid{grid-template-columns:1fr} }
+@media(max-width:860px){ .sh .p-row .s-badge{width:auto;min-width:92px}.sh .p-row .what{display:none} }
