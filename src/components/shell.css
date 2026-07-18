@@ -548,3 +548,32 @@
 .sh .ad-tab:hover{color:var(--s-ink)}
 .sh .ad-tab.on{color:var(--s-ink);font-weight:700;border-bottom-color:var(--s-green)}
 .sh .ad-wrap{margin-top:18px}
+
+/* =========================================================================
+   Správa — tabulky a přístupové kódy v .sh stylu
+   ========================================================================= */
+.sh .ad-hd{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:15px 18px;border-bottom:1px solid var(--s-line)}
+.sh .ad-hd b{font-size:14px;font-weight:800}
+.sh .ad-tbl{width:100%;border-collapse:collapse;font-size:12.5px}
+.sh .ad-tbl th{text-align:left;font-family:var(--s-mono);font-size:9.5px;font-weight:600;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--s-muted);padding:10px 16px;border-bottom:1px solid var(--s-line);background:var(--s-paper)}
+.sh .ad-tbl td{padding:11px 16px;border-top:1px solid var(--s-line-soft);vertical-align:middle}
+.sh .ad-tbl tbody tr:hover{background:var(--s-chip)}
+.sh .ad-tbl td.mono{font-family:var(--s-mono)}
+.sh .ad-tbl .sub{font-size:10.5px;color:var(--s-muted)}
+.sh .ad-tbl .rt{text-align:right;white-space:nowrap}
+.sh .ad-mini-sel{padding:5px 9px;border:1px solid var(--s-line-2);border-radius:8px;font-family:inherit;font-size:12px;background:#fff}
+.sh .ad-2{display:grid;grid-template-columns:1.4fr 1fr;gap:14px;align-items:start}
+.sh .ad-empty{padding:18px 16px;font-size:12px;color:var(--s-muted)}
+.sh .ad-code{display:flex;align-items:center;gap:12px;padding:12px 16px;border-top:1px solid var(--s-line-soft)}
+.sh .ad-code:first-of-type{border-top:none}
+.sh .ad-code .ic{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex:none}
+.sh .ad-code .ic.used{background:var(--s-green-050);color:var(--s-green-ink)}
+.sh .ad-code .ic.open{background:var(--s-warn-bg);color:var(--s-warn)}
+.sh .ad-code b{font-family:var(--s-mono);font-size:14px;font-weight:700;letter-spacing:.04em;display:block}
+.sh .ad-code span{font-size:11px;color:var(--s-muted)}
+.sh .ad-gen{display:flex;gap:8px;padding:14px 16px;border-bottom:1px solid var(--s-line);flex-wrap:wrap}
+.sh .ad-gen select{flex:1;min-width:100px;padding:9px 11px;border:1px solid var(--s-line-2);border-radius:10px;font-family:inherit;font-size:12.5px;background:#fff}
+.sh .ad-tot{padding:12px 18px;font-size:11.5px;color:var(--s-muted);border-top:1px solid var(--s-line);background:var(--s-paper)}
+.sh .ad-hint{display:flex;gap:9px;align-items:flex-start;padding:13px 16px;font-size:11.5px;color:var(--s-ink-2);line-height:1.5}
+@media(max-width:960px){ .sh .ad-2{grid-template-columns:1fr} }

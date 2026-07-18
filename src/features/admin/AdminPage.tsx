@@ -8,6 +8,7 @@ import * as A from '../../lib/adminData'
 import { useSession } from '../../state/session'
 import { useToast } from '../../components/Toast'
 import { Icon } from '../../components/Icon'
+import { SIcon } from '../../components/AppShell'
 
 const money = (n: number) => n.toLocaleString('cs-CZ') + ' Kč'
 type Toast = (m: string) => void
@@ -182,44 +183,46 @@ function Units({ toast, bid }: { toast: Toast; bid: string }) {
   const totalShare = units.reduce((s, u) => s + u.share, 0)
 
   return (
-    <div>
-      <div className="card" style={{ padding: 0 }}>
-        <div className="card-h" style={{ padding: '16px 18px 0' }}>
-          <h3>Jednotky domu</h3>
-          <button className="btn btn-soft btn-sm" onClick={() => setAdding(true)}><Icon name="plus" small /> Přidat</button>
+    <>
+      <div className="s-card" style={{ overflow: 'hidden' }}>
+        <div className="ad-hd">
+          <b>Jednotky domu</b>
+          <button className="s-btn s-primary sm" onClick={() => setAdding(true)}>Přidat jednotku</button>
         </div>
         <div style={{ overflowX: 'auto' }}>
-          <table className="tbl">
+          <table className="ad-tbl">
             <thead><tr><th>Jednotka</th><th>Patro</th><th>Nájemník / vlastník</th><th>Nájem</th><th>VS</th><th>Podíl %</th><th>Konec smlouvy</th><th></th></tr></thead>
             <tbody>
               {units.map((u) => (
                 <tr key={u.id}>
-                  <td className="mono">{u.label}</td>
+                  <td className="mono" style={{ fontWeight: 700 }}>{u.label}</td>
                   <td>{u.floor}</td>
-                  <td>{u.tenant || <span className="adm-mini">volné</span>}</td>
-                  <td>{u.rent ? money(u.rent) : ''}</td>
+                  <td>{u.tenant || <span className="sub">volné</span>}</td>
+                  <td className="mono">{u.rent ? money(u.rent) : ''}</td>
                   <td className="mono">{u.vs}</td>
-                  <td>{u.share || ''}</td>
+                  <td className="mono">{u.share || ''}</td>
                   <td>{u.leaseEnd}</td>
-                  <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
-                    <button className="btn btn-ghost btn-sm" onClick={() => setEdit({ ...u })}>Upravit</button>
-                    <button className="btn btn-ghost btn-sm" onClick={() => del(u)}>Smazat</button>
+                  <td className="rt">
+                    <button className="s-btn s-ghost sm" onClick={() => setEdit({ ...u })}>Upravit</button>{' '}
+                    <button className="s-btn s-ghost sm" onClick={() => del(u)}>Smazat</button>
                   </td>
                 </tr>
               ))}
-              {units.length === 0 && <tr><td colSpan={8} className="adm-mini" style={{ padding: 18 }}>Žádné jednotky. Přidejte první.</td></tr>}
+              {units.length === 0 && <tr><td colSpan={8} className="ad-empty">Zatím žádné jednotky. Přidejte první — od nich se odvíjí platby i hlasování.</td></tr>}
             </tbody>
           </table>
         </div>
-        {units.length > 0 && <p className="adm-mini" style={{ padding: '0 18px 14px' }}>Součet podílů: {totalShare.toFixed(1)} %. Podíly se používají pro hlasování vlastníků.</p>}
+        {units.length > 0 && <div className="ad-tot">Součet podílů: {totalShare.toFixed(1)} %. Podíly určují váhu hlasů vlastníků.</div>}
       </div>
 
       {adding && (
         <div className="overlay" onClick={(e) => { if (e.target === e.currentTarget) setAdding(false) }}>
           <div className="modal">
-            <div className="modal-h"><h3>Nová jednotka</h3><button className="btn btn-ghost btn-icon" onClick={() => setAdding(false)}><Icon name="x" small /></button></div>
-            <div className="modal-b"><div className="field"><label>Označení</label><input className="input mono" placeholder="Např. A-103" value={newLabel} onChange={(e) => setNewLabel(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') add() }} autoFocus /></div></div>
-            <div className="modal-f"><button className="btn btn-ghost" onClick={() => setAdding(false)}>Zrušit</button><button className="btn btn-primary" onClick={add} disabled={busy}>Přidat</button></div>
+            <div className="modal-h"><h3>Nová jednotka</h3><button className="s-btn s-ghost sm" onClick={() => setAdding(false)}>Zrušit</button></div>
+            <div className="modal-b">
+              <div className="a-f"><label>Označení</label><input className="s-mono" placeholder="Např. A-103" value={newLabel} onChange={(e) => setNewLabel(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') add() }} autoFocus /></div>
+            </div>
+            <div className="modal-f"><button className="s-btn s-ghost" onClick={() => setAdding(false)}>Zrušit</button><button className="s-btn s-primary" onClick={add} disabled={busy}>Přidat</button></div>
           </div>
         </div>
       )}
@@ -227,27 +230,27 @@ function Units({ toast, bid }: { toast: Toast; bid: string }) {
       {edit && (
         <div className="overlay" onClick={(e) => { if (e.target === e.currentTarget) setEdit(null) }}>
           <div className="modal">
-            <div className="modal-h"><h3>Jednotka {edit.label}</h3><button className="btn btn-ghost btn-icon" onClick={() => setEdit(null)}><Icon name="x" small /></button></div>
+            <div className="modal-h"><h3>Jednotka {edit.label}</h3><button className="s-btn s-ghost sm" onClick={() => setEdit(null)}>Zrušit</button></div>
             <div className="modal-b">
-              <div className="grid-2">
-                <div className="field"><label>Označení</label><input className="input mono" value={edit.label} onChange={(e) => setEdit({ ...edit, label: e.target.value })} /></div>
-                <div className="field"><label>Patro</label><input className="input" value={edit.floor} onChange={(e) => setEdit({ ...edit, floor: e.target.value })} /></div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                <div className="a-f"><label>Označení</label><input className="s-mono" value={edit.label} onChange={(e) => setEdit({ ...edit, label: e.target.value })} /></div>
+                <div className="a-f"><label>Patro</label><input value={edit.floor} onChange={(e) => setEdit({ ...edit, floor: e.target.value })} /></div>
               </div>
-              <div className="field"><label>Nájemník / vlastník</label><input className="input" placeholder="Prázdné = volné" value={edit.tenant} onChange={(e) => setEdit({ ...edit, tenant: e.target.value })} /></div>
-              <div className="grid-2">
-                <div className="field"><label>Nájem (Kč / měsíc)</label><input className="input" type="number" value={edit.rent || ''} onChange={(e) => setEdit({ ...edit, rent: Number(e.target.value) || 0 })} /></div>
-                <div className="field"><label>Variabilní symbol</label><input className="input mono" value={edit.vs} onChange={(e) => setEdit({ ...edit, vs: e.target.value })} /></div>
+              <div className="a-f"><label>Nájemník / vlastník</label><input placeholder="Prázdné = volné" value={edit.tenant} onChange={(e) => setEdit({ ...edit, tenant: e.target.value })} /></div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                <div className="a-f"><label>Nájem (Kč / měsíc)</label><input type="number" value={edit.rent || ''} onChange={(e) => setEdit({ ...edit, rent: Number(e.target.value) || 0 })} /></div>
+                <div className="a-f"><label>Variabilní symbol</label><input className="s-mono" value={edit.vs} onChange={(e) => setEdit({ ...edit, vs: e.target.value })} /></div>
               </div>
-              <div className="grid-2">
-                <div className="field"><label>Vlastnický podíl (%)</label><input className="input" type="number" step="0.1" value={edit.share || ''} onChange={(e) => setEdit({ ...edit, share: Number(e.target.value) || 0 })} /></div>
-                <div className="field"><label>Konec smlouvy</label><input className="input" placeholder="DD. MM. RRRR" value={edit.leaseEnd} onChange={(e) => setEdit({ ...edit, leaseEnd: e.target.value })} /></div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                <div className="a-f"><label>Vlastnický podíl (%)</label><input type="number" step="0.1" value={edit.share || ''} onChange={(e) => setEdit({ ...edit, share: Number(e.target.value) || 0 })} /></div>
+                <div className="a-f"><label>Konec smlouvy</label><input placeholder="DD. MM. RRRR" value={edit.leaseEnd} onChange={(e) => setEdit({ ...edit, leaseEnd: e.target.value })} /></div>
               </div>
             </div>
-            <div className="modal-f"><button className="btn btn-ghost" onClick={() => setEdit(null)}>Zrušit</button><button className="btn btn-primary" onClick={save} disabled={busy}>Uložit</button></div>
+            <div className="modal-f"><button className="s-btn s-ghost" onClick={() => setEdit(null)}>Zrušit</button><button className="s-btn s-primary" onClick={save} disabled={busy}>Uložit</button></div>
           </div>
         </div>
       )}
-    </div>
+    </>
   )
 }
 
@@ -291,29 +294,28 @@ function People({ toast }: { toast: Toast }) {
   }
 
   return (
-    <div className="grid-2">
-      <div className="card" style={{ padding: 0 }}>
-        <div className="card-h" style={{ padding: '16px 18px 0' }}><h3>Obyvatelé a členové</h3><span className="adm-mini">{members.length} osob</span></div>
+    <div className="ad-2">
+      <div className="s-card" style={{ overflow: 'hidden' }}>
+        <div className="ad-hd"><b>Obyvatelé a členové</b><span className="s-mono" style={{ fontSize: 11, color: 'var(--s-muted)' }}>{members.length} osob</span></div>
         <div style={{ overflowX: 'auto' }}>
-          <table className="tbl">
+          <table className="ad-tbl">
             <thead><tr><th>Jméno</th><th>Jednotka</th><th>Role</th><th></th></tr></thead>
             <tbody>
-              {loading && <tr><td colSpan={4} className="adm-mini" style={{ padding: 18 }}>Načítání...</td></tr>}
+              {loading && <tr><td colSpan={4} className="ad-empty">Načítání…</td></tr>}
               {!loading && members.length === 0 && (
-                <tr><td colSpan={4} className="adm-mini" style={{ padding: 18 }}>Zatím se nikdo neregistroval. Vygenerujte kód vpravo a pošlete ho.</td></tr>
+                <tr><td colSpan={4} className="ad-empty">Zatím se nikdo neregistroval. Vygenerujte kód vpravo a pošlete ho sousedům — tím dům ožije.</td></tr>
               )}
               {members.map((m) => (
                 <tr key={m.membershipId}>
-                  <td><b style={{ fontWeight: 600 }}>{m.name}</b><br /><span className="adm-mini">{m.email || 'bez e-mailu'} · od {m.since}</span></td>
-                  <td className="mono">{m.unit || <span className="adm-mini">bez jednotky</span>}</td>
+                  <td><b style={{ fontWeight: 700 }}>{m.name}</b><div className="sub">{m.email || 'bez e-mailu'} · od {m.since}</div></td>
+                  <td className="mono">{m.unit || <span className="sub">—</span>}</td>
                   <td>
-                    <select className="input" style={{ padding: '4px 8px', fontSize: 12.5, width: 'auto' }} value={m.role}
-                      onChange={(e) => changeRole(m, e.target.value as Role)} disabled={m.userId === user?.userId}>
+                    <select className="ad-mini-sel" value={m.role} onChange={(e) => changeRole(m, e.target.value as Role)} disabled={m.userId === user?.userId}>
                       {(Object.keys(roleNames) as Role[]).map((r) => <option key={r} value={r}>{roleNames[r]}</option>)}
                     </select>
                   </td>
-                  <td style={{ textAlign: 'right' }}>
-                    {m.userId !== user?.userId && <button className="btn btn-ghost btn-sm" onClick={() => remove(m)}>Odebrat</button>}
+                  <td className="rt">
+                    {m.userId !== user?.userId && <button className="s-btn s-ghost sm" onClick={() => remove(m)}>Odebrat</button>}
                   </td>
                 </tr>
               ))}
@@ -322,32 +324,35 @@ function People({ toast }: { toast: Toast }) {
         </div>
       </div>
 
-      <div className="card">
-        <div className="card-h"><h3>Přístupové kódy</h3></div>
-        <div style={{ display: 'flex', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
-          <select className="input" style={{ flex: 1, minWidth: 110 }} value={newRole} onChange={(e) => setNewRole(e.target.value as Role)}>
+      <div className="s-card" style={{ overflow: 'hidden' }}>
+        <div className="ad-hd"><b>Přístupové kódy</b></div>
+        <div className="ad-gen">
+          <select value={newRole} onChange={(e) => setNewRole(e.target.value as Role)}>
             {(Object.keys(roleNames) as Role[]).map((r) => <option key={r} value={r}>{roleNames[r]}</option>)}
           </select>
           {newRole === 'rezident' && (
-            <select className="input" style={{ flex: 1, minWidth: 110 }} value={newUnit} onChange={(e) => setNewUnit(e.target.value)}>
+            <select value={newUnit} onChange={(e) => setNewUnit(e.target.value)}>
               <option value="">bez jednotky</option>
               {units.map((u) => <option key={u.id} value={u.id}>{u.label}</option>)}
             </select>
           )}
-          <button className="btn btn-soft btn-sm" onClick={gen} disabled={busy}><Icon name="plus" small /> Vygenerovat</button>
+          <button className="s-btn s-primary sm" onClick={gen} disabled={busy}>Vygenerovat</button>
         </div>
-        {!loading && codes.length === 0 && <p className="adm-mini">Žádné kódy. Vygenerujte první nahoře.</p>}
+        {!loading && codes.length === 0 && <div className="ad-empty">Žádné kódy. Vygenerujte první nahoře.</div>}
         {codes.map((c) => (
-          <div className="doc-row" key={c.code}>
-            <span className="cf-ic"><Icon name={c.used ? 'check' : 'clock'} small /></span>
+          <div className="ad-code" key={c.code}>
+            <span className={'ic ' + (c.used ? 'used' : 'open')}><SIcon n={c.used ? 'vote' : 'people'} s={15} /></span>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <b className="mono" style={{ fontSize: 13.5 }}>{c.code}</b>
+              <b>{c.code}</b>
               <span>{roleNames[c.role]}{c.unit ? ' · ' + c.unit : ''} · {c.created}</span>
             </div>
-            {c.used ? <span className="pill pill-neutral">Použit</span> : <button className="btn btn-ghost btn-sm" onClick={() => del(c.code)}>Smazat</button>}
+            {c.used ? <span className="s-badge ok">Použit</span> : <button className="s-btn s-ghost sm" onClick={() => del(c.code)}>Smazat</button>}
           </div>
         ))}
-        <p className="adm-mini" style={{ marginTop: 12 }}>Kód pošlete rezidentovi, při registraci ho připojí k domu se správnou rolí a jednotkou. Nepoužité kódy lze smazat, použité zůstávají v historii.</p>
+        <div className="ad-hint">
+          <SIcon n="shield" s={15} />
+          <span>Kód pošlete sousedovi, při registraci ho připojí ke svému bytu se správnou rolí. Nepoužité smažete, použité zůstávají v historii.</span>
+        </div>
       </div>
     </div>
   )
@@ -716,20 +721,35 @@ function BuildingSettingsTab({ toast, bid, isDemo, buildingName }: { toast: Toas
   ]
 
   return (
-    <div className="grid-2">
-      <div className="card">
-        <div className="card-h"><h3>Platby domu</h3></div>
-        <div className="field"><label>Bankovní účet (číslo / kód banky)</label><input className="input mono" placeholder="123456789/0100" value={account} onChange={(e) => setAccount(e.target.value)} /></div>
-        <div className="field"><label>Název příjemce</label><input className="input" placeholder={buildingName} value={recipient} onChange={(e) => setRecipient(e.target.value)} /></div>
-        <button className="btn btn-primary btn-sm" onClick={save} disabled={busy || isDemo}>Uložit</button>
-        <p className="adm-mini" style={{ marginTop: 10 }}>Na tento účet míří QR platby rezidentů. Dokud účet nevyplníte, aplikace QR platby nenabízí a rezidenti platí převodem s ručním potvrzením.</p>
+    <div className="ad-2">
+      <div className="s-card" style={{ padding: '18px 20px' }}>
+        <b style={{ fontSize: 14, fontWeight: 800 }}>Účet domu pro platby</b>
+        <div className="a-f" style={{ marginTop: 12 }}>
+          <label htmlFor="bs-a">Bankovní účet (číslo / kód banky)</label>
+          <input id="bs-a" className="s-mono" placeholder="123456789/0100" value={account} onChange={(e) => setAccount(e.target.value)} />
+        </div>
+        <div className="a-f">
+          <label htmlFor="bs-r">Název příjemce</label>
+          <input id="bs-r" placeholder={buildingName} value={recipient} onChange={(e) => setRecipient(e.target.value)} />
+        </div>
+        <button className="s-btn s-primary sm" onClick={save} disabled={busy || isDemo}>Uložit</button>
+        <p className="a-note" style={{ marginTop: 10 }}>
+          Na tento účet míří QR platby rezidentů. Dokud ho nevyplníte, aplikace QR nenabízí a sousedé platí převodem s ručním potvrzením.
+        </p>
       </div>
-      <div className="card">
-        <div className="card-h"><h3>Integrace</h3></div>
+      <div className="s-card" style={{ overflow: 'hidden' }}>
+        <div className="ad-hd"><b>Integrace</b><span className="s-mono" style={{ fontSize: 10, color: 'var(--s-muted)' }}>ROADMAP</span></div>
         {integrations.map((i) => (
-          <div className="doc-row" key={i.id}><span className="cf-ic"><Icon name="bank" small /></span><div style={{ flex: 1 }}><b>{i.name}</b><span>{i.desc}</span></div><span className="pill pill-neutral">{i.tag}</span></div>
+          <div className="ad-code" key={i.id}>
+            <span className="ic open"><SIcon n="card" s={15} /></span>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <b style={{ fontFamily: 'inherit', fontSize: 13, fontWeight: 700, letterSpacing: 0 }}>{i.name}</b>
+              <span>{i.desc}</span>
+            </div>
+            <span className="s-badge purple">{i.tag}</span>
+          </div>
         ))}
-        <p className="adm-mini" style={{ marginTop: 10 }}>Integrace zapneme postupně. Ozvěte se, kterou potřebujete nejdřív.</p>
+        <p className="a-note" style={{ padding: '4px 16px 14px' }}>Integrace zapneme postupně. Ozvěte se, kterou potřebujete nejdřív.</p>
       </div>
     </div>
   )
