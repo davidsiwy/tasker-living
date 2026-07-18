@@ -4,6 +4,7 @@ import { useSession } from '../../state/session'
 import { api, currentPeriod, periodLabel } from '../../lib/api'
 import type { Charge, Fault, VoteData, Neighbor } from '../../lib/types'
 import { SIcon } from '../../components/AppShell'
+import ResidentHome from './ResidentHome'
 import { useToast } from '../../components/Toast'
 
 const money = (n: number) => n.toLocaleString('cs-CZ') + ' Kč'
@@ -79,6 +80,7 @@ export default function DashboardPage() {
   }, [vote])
 
   if (!user) return null
+  if (user.role === 'rezident' || user.role === 'investor') return <ResidentHome />
 
   async function remindAll() {
     if (busy || !m.overdue.length) return

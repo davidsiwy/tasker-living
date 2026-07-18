@@ -76,7 +76,8 @@ export default function AppShell() {
   if (!user) return null
 
   const isAdmin = can(user.role as Role, 'admin')
-  const items = MANAGE.filter((i) => i.id !== 'sprava' || isAdmin)
+  const items = MANAGE.filter((i) => (i.cap ? i.cap.includes(user.role as Role) : true) && (i.id !== 'sprava' || isAdmin))
+    .map((i) => (i.id === 'prehled' && (user.role === 'rezident' || user.role === 'investor') ? { ...i, label: 'Domů' } : i))
   const countFor = (id: string) =>
     id === 'zavady' && faults > 0 ? faults : id === 'stiznosti' && manage && complaints > 0 ? complaints : 0
 
@@ -135,7 +136,7 @@ export default function AppShell() {
         <header className="s-top">
           <button className="s-burger" onClick={() => setOpen(true)} aria-label="Menu"><SIcon n="menu" s={18} /></button>
           <div style={{ minWidth: 0 }}>
-            <h1>{TITLES[section] || 'Přehled'}</h1>
+            <h1>{section === 'prehled' && (user.role === 'rezident' || user.role === 'investor') ? 'Domů' : (TITLES[section] || 'Přehled')}</h1>
             <span className="s-crumb">{today}</span>
           </div>
           <div className="s-search">

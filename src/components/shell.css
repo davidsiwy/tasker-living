@@ -577,3 +577,38 @@
 .sh .ad-tot{padding:12px 18px;font-size:11.5px;color:var(--s-muted);border-top:1px solid var(--s-line);background:var(--s-paper)}
 .sh .ad-hint{display:flex;gap:9px;align-items:flex-start;padding:13px 16px;font-size:11.5px;color:var(--s-ink-2);line-height:1.5}
 @media(max-width:960px){ .sh .ad-2{grid-template-columns:1fr} }
+
+/* =========================================================================
+   Portál rezidenta (handoff 9b) — kapesní domovská obrazovka, ne konzole
+   ========================================================================= */
+.sh .r-hi h2{font-size:22px;font-weight:800;letter-spacing:-.02em;margin:0}
+.sh .r-hi p{font-size:13.5px;color:var(--s-ink-2);margin:3px 0 0}
+.sh .r-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:18px;align-items:start}
+.sh .r-pay{background:var(--s-ink);color:#fff;border-radius:16px;padding:20px 22px;grid-row:span 2}
+.sh .r-pay .k{font-family:var(--s-mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--s-dark-green)}
+.sh .r-pay b.a{font-size:30px;font-weight:800;letter-spacing:-.02em;display:block;margin-top:4px}
+.sh .r-pay .due{font-size:12px;color:var(--s-dark-txt);margin-top:2px}
+.sh .r-qr{background:#fff;border-radius:12px;padding:12px;margin-top:14px;display:flex;justify-content:center}
+.sh .r-pay .s-btn{width:100%;margin-top:12px}
+.sh .r-pay .foot{font-size:11px;color:var(--s-dark-txt);text-align:center;margin-top:9px;line-height:1.45}
+.sh .r-pay.ok{background:var(--s-green-050);color:var(--s-green-txt)}
+.sh .r-pay.ok .k{color:var(--s-green-ink)}
+.sh .r-pay.ok b.a{color:var(--s-green-ink)}
+.sh .r-tile{background:#fff;border:1px solid var(--s-line);border-radius:14px;padding:16px 18px;text-align:left;
+  cursor:pointer;font-family:inherit;transition:box-shadow .16s ease,transform .12s ease,border-color .16s ease;display:block;width:100%}
+.sh .r-tile:hover{box-shadow:0 14px 30px -18px rgba(18,22,29,.22);transform:translateY(-1px);border-color:#CDEFD0}
+.sh .r-tile .th{display:flex;align-items:center;gap:9px}
+.sh .r-tile .ic{width:34px;height:34px;border-radius:10px;background:var(--s-green-050);color:var(--s-green-ink);
+  display:flex;align-items:center;justify-content:center;flex:none}
+.sh .r-tile b{font-size:13.5px;font-weight:800}
+.sh .r-tile .n{margin-left:auto;font-family:var(--s-mono);font-size:10px;font-weight:700;background:var(--s-warn-bg);
+  color:var(--s-warn);border-radius:999px;padding:2px 8px}
+.sh .r-tile p{font-size:12px;color:var(--s-ink-2);line-height:1.45;margin:8px 0 0}
+.sh .r-latest{background:#fff;border:1px solid var(--s-line);border-radius:14px;padding:16px 18px}
+.sh .r-latest .h{display:flex;align-items:center;gap:8px}
+.sh .r-latest .h b{font-size:13.5px;font-weight:800}
+.sh .r-post{padding:11px 0;border-top:1px solid var(--s-line-soft)}
+.sh .r-post:first-of-type{border-top:none}
+.sh .r-post b{font-size:12.5px;font-weight:700;display:block}
+.sh .r-post span{font-size:11px;color:var(--s-muted)}
+@media(max-width:860px){ .sh .r-grid{grid-template-columns:1fr}.sh .r-pay{grid-row:auto} }
