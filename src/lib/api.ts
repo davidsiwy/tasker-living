@@ -4,7 +4,7 @@ import * as M from './mockData'
 import type {
   FeedPost, FeedComment, FeedType, Fault, FaultStatus, UnitFull, Charge, ChargeStatus,
   BuildingSettings, Service, Booking, Meeting, DocItem, VoteChoice, VoteData,
-  Neighbor, AppNotification, ComplaintItem, MyProfile, Role, ReadRow,
+  Neighbor, AppNotification, ComplaintItem, MyProfile, Role, ReadRow, CalEvent,
 } from './types'
 import { supabase, isSupabaseConfigured } from './supabase'
 
@@ -336,6 +336,36 @@ export const api = {
   },
 
   // ------- meetings -------
+  // Kalendář domu (handoff 7g): sjednocuje schůze, splatnosti, události a služby.
+  // Vrací syrová ISO data, aby šla vykreslit do měsíce, ne předformátované řetězce.
+  async getCalendar(buildingId: string): Promise<CalEvent[]> {
+    if (!isSupabaseConfigured) {
+      await wait()
+      const now = new Date(); const y = now.getFullYear(); const mo = now.getMonth()
+      const iso = (d: number, h = 9, mi = 0) => new Date(y, mo, d, h, mi).toISOString()
+      const day = now.getDate()
+      return [
+        { id: 'c1', kind: 'platba', title: 'Splatnost nájmu a záloh', sub: 'byt B-204 · 24 500 Kč', at: iso(15, 23, 59), route: '/app/najmy' },
+        { id: 'c2', kind: 'schuze', title: 'Shromáždění vlastníků', sub: 'sušárna, vchod B', at: iso(Math.min(day + 5, 27), 18), route: '/app/schuze' },
+        { id: 'c3', kind: 'odstavka', title: 'Odstávka vody', sub: 'vchody A a B, 8:00–12:00', at: iso(Math.min(day + 2, 27), 8), route: '/app/nastenka' },
+        { id: 'c4', kind: 'sluzba', title: 'Úklid společných prostor', sub: 'Tasker · Marek P.', at: iso(Math.min(day + 3, 27), 14), route: '/app/sluzby' },
+        { id: 'c5', kind: 'udalost', title: 'Sousedské setkání na dvoře', sub: 'komunitní, dobrovolné', at: iso(Math.min(day + 9, 28), 17), route: '/app/nastenka' },
+      ]
+    }
+    const sb = supabase!
+    const out: CalEvent[] = []
+    const { data: ms } = await sb.from('meetings').select('id, starts_at, place')
+      .eq('building_id', buildingId).gte('starts_at', new Date(Date.now() - 864e5).toISOString()).order('starts_at').limit(20)
+    for (const m of ms || []) out.push({ id: 'm' + m.id, kind: 'schuze', title: 'Shromáždění vlastníků', sub: m.place, at: m.starts_at, route: '/app/schuze' })
+    const period = currentPeriod()
+    const { data: auth } = await sb.auth.getUser()
+    const { data: chs } = await sb.from('charges').select('id, label, amount, due_date, unit_id')
+      .eq('building_id', buildingId).eq('period', period).eq('status', 'unpaid').limit(30)
+    for (const c of chs || []) if (c.due_date) out.push({ id: 'p' + c.id, kind: 'platba', title: 'Splatnost: ' + c.label, sub: (c.amount || 0).toLocaleString('cs-CZ') + ' Kč', at: c.due_date, route: '/app/najmy' })
+    void auth
+    return out.sort((a, z) => a.at.localeCompare(z.at))
+  },
+
   async getMeetings(buildingId: string): Promise<Meeting[]> {
     if (!isSupabaseConfigured) { await wait(); return clone(db.meetings) }
     const sb = supabase!

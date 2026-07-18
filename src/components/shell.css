@@ -612,3 +612,51 @@
 .sh .r-post b{font-size:12.5px;font-weight:700;display:block}
 .sh .r-post span{font-size:11px;color:var(--s-muted)}
 @media(max-width:860px){ .sh .r-grid{grid-template-columns:1fr}.sh .r-pay{grid-row:auto} }
+
+/* =========================================================================
+   Kalendář domu (handoff 7g) — měsíc vlevo, agenda vpravo
+   ========================================================================= */
+.sh .cal-grid{display:grid;grid-template-columns:1.35fr 1fr;gap:14px;align-items:start;margin-top:18px}
+.sh .cal-card{background:#fff;border:1px solid var(--s-line);border-radius:16px;padding:18px}
+.sh .cal-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px}
+.sh .cal-top b{font-size:15px;font-weight:800;text-transform:capitalize}
+.sh .cal-nav{display:flex;gap:6px}
+.sh .cal-nav button{width:32px;height:32px;border-radius:9px;border:1px solid var(--s-line-2);background:#fff;
+  color:var(--s-ink-2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px}
+.sh .cal-nav button:hover{background:var(--s-chip)}
+.sh .cal-dow{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:4px}
+.sh .cal-dow span{text-align:center;font-family:var(--s-mono);font-size:9.5px;font-weight:600;color:var(--s-muted);text-transform:uppercase;padding:4px 0}
+.sh .cal-days{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.sh .cal-day{aspect-ratio:1;border-radius:10px;border:1px solid transparent;background:var(--s-paper);padding:6px;
+  display:flex;flex-direction:column;gap:3px;cursor:pointer;font-family:inherit;text-align:left;transition:border-color .12s ease,background .12s ease}
+.sh .cal-day:hover{border-color:var(--s-line-2)}
+.sh .cal-day.pad{background:transparent;cursor:default}
+.sh .cal-day.today{background:var(--s-green-050);border-color:#CDEFD0}
+.sh .cal-day.sel{border-color:var(--s-green);box-shadow:0 0 0 2px rgba(6,196,10,.16)}
+.sh .cal-day .dn{font-size:12px;font-weight:700;color:var(--s-ink)}
+.sh .cal-day.today .dn{color:var(--s-green-ink)}
+.sh .cal-dots{display:flex;gap:3px;flex-wrap:wrap;margin-top:auto}
+.sh .cal-dots i{width:6px;height:6px;border-radius:50%;flex:none}
+.sh .k-schuze{background:var(--s-purple)}
+.sh .k-platba{background:var(--s-warn)}
+.sh .k-udalost{background:var(--s-green)}
+.sh .k-sluzba{background:var(--s-ink)}
+.sh .k-odstavka{background:#C0392B}
+.sh .cal-legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:14px;font-size:11px;color:var(--s-ink-2)}
+.sh .cal-legend span{display:inline-flex;align-items:center;gap:6px}
+.sh .cal-legend i{width:8px;height:8px;border-radius:50%;flex:none}
+.sh .ag-h{font-size:14px;font-weight:800;margin-bottom:4px}
+.sh .ag-sub{font-size:12px;color:var(--s-muted);margin-bottom:12px}
+.sh .ag-day{font-family:var(--s-mono);font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--s-muted);margin:14px 0 8px}
+.sh .ag-day:first-child{margin-top:0}
+.sh .ag-ev{display:flex;gap:12px;align-items:flex-start;background:#fff;border:1px solid var(--s-line);border-radius:12px;
+  padding:12px 14px;margin-bottom:8px;width:100%;text-align:left;cursor:pointer;font-family:inherit;transition:box-shadow .16s ease,transform .12s ease}
+.sh .ag-ev:hover{box-shadow:0 12px 26px -16px rgba(18,22,29,.22);transform:translateY(-1px)}
+.sh .ag-ev .tm{font-family:var(--s-mono);font-size:11px;font-weight:600;color:var(--s-ink-2);width:44px;flex:none;padding-top:1px}
+.sh .ag-ev .bd{flex:1;min-width:0}
+.sh .ag-ev .bd b{font-size:13px;font-weight:700;display:block}
+.sh .ag-ev .bd span{font-size:11.5px;color:var(--s-muted)}
+.sh .ag-ev .kd{width:9px;height:9px;border-radius:50%;flex:none;margin-top:4px}
+.sh .ag-empty{padding:26px 14px;text-align:center;color:var(--s-muted);font-size:12.5px}
+@media(max-width:960px){ .sh .cal-grid{grid-template-columns:1fr} }

@@ -58,6 +58,8 @@ export interface Service { id: string; name: string; from: number; icon: string;
 export interface Booking { id: string; name: string; date: string; status: 'new' | 'assigned' | 'done' | 'cancelled'; worker?: string; rating?: string }
 export interface ComplaintItem { type: string; date: string; note: string }
 export interface Meeting { id: string; date: string; place: string; agenda: string[]; rsvp: boolean; going?: number }
+export type CalKind = 'schuze' | 'platba' | 'udalost' | 'sluzba' | 'odstavka'
+export interface CalEvent { id: string; kind: CalKind; title: string; sub?: string; at: string; route: string }
 export interface DocItem { id?: string; name: string; kind: string; date: string; cat?: string; vis?: Role[]; url?: string; path?: string }
 export interface Poll { q: string; yes: number; no: number; voted: boolean }
 export type VoteChoice = 'ano' | 'ne' | 'zdrzel'
