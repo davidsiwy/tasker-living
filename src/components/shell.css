@@ -432,3 +432,76 @@
 .sh .dc-vis{font-family:var(--s-mono);font-size:9px;font-weight:600;color:var(--s-ink-2);background:var(--s-chip);
   border-radius:999px;padding:2px 8px;text-transform:uppercase}
 @media(max-width:860px){ .sh .dc-grid{grid-template-columns:1fr}.sh .dc-cats{display:flex;gap:6px;overflow-x:auto;padding:6px}.sh .dc-cat{white-space:nowrap} }
+
+/* =========================================================================
+   Sousedé (handoff 4f) — adresář domu, viditelnost dobrovolná, 1:1 zprávy
+   ========================================================================= */
+.sh .n-me{display:flex;align-items:center;gap:13px;background:#fff;border:1px solid var(--s-line);border-radius:14px;
+  padding:15px 18px;margin-top:18px}
+.sh .n-me .ic{width:40px;height:40px;border-radius:11px;background:var(--s-green-050);color:var(--s-green-ink);
+  display:flex;align-items:center;justify-content:center;flex:none}
+.sh .n-me b{font-size:13.5px;font-weight:800;display:block}
+.sh .n-me span{font-size:12px;color:var(--s-muted)}
+.sh .n-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;margin-top:14px}
+.sh .n-card{background:#fff;border:1px solid var(--s-line);border-radius:14px;padding:16px;display:flex;gap:12px;align-items:center;
+  transition:box-shadow .18s ease,transform .12s ease}
+.sh .n-card:hover{box-shadow:0 14px 30px -18px rgba(18,22,29,.24);transform:translateY(-1px)}
+.sh .n-ava{width:44px;height:44px;border-radius:50%;background:var(--s-ink);color:#fff;display:flex;align-items:center;
+  justify-content:center;font-weight:800;font-size:14px;flex:none}
+.sh .n-card b{font-size:14px;font-weight:800;display:block;min-width:0}
+.sh .n-card .u{font-family:var(--s-mono);font-size:11.5px;color:var(--s-muted)}
+.sh .n-act{display:flex;gap:6px;margin-left:auto;flex:none}
+.sh .n-ib{width:34px;height:34px;border-radius:9px;border:1px solid var(--s-line-2);background:#fff;color:var(--s-ink-2);
+  display:flex;align-items:center;justify-content:center;cursor:pointer}
+.sh .n-ib:hover{background:var(--s-chip);color:var(--s-ink)}
+.sh .n-hidden{font-family:var(--s-mono);font-size:9px;color:var(--s-muted);text-transform:uppercase}
+
+/* 1:1 chat */
+.sh .ch-scroll{max-height:340px;overflow-y:auto;display:flex;flex-direction:column;gap:7px;padding:4px 2px}
+.sh .ch-b{max-width:78%;padding:9px 13px;border-radius:14px;font-size:13px;line-height:1.4;position:relative}
+.sh .ch-b.me{align-self:flex-end;background:var(--s-ink);color:#fff;border-bottom-right-radius:5px}
+.sh .ch-b.them{align-self:flex-start;background:var(--s-chip);color:var(--s-ink);border-bottom-left-radius:5px}
+.sh .ch-b .bt{display:block;font-size:9.5px;opacity:.6;margin-top:3px}
+.sh .ch-in{display:flex;gap:8px;margin-top:12px}
+.sh .ch-in input{flex:1;padding:11px 14px;border:1px solid var(--s-line-2);border-radius:11px;font-family:inherit;font-size:13.5px}
+.sh .ch-in input:focus{outline:none;border-color:var(--s-green);box-shadow:0 0 0 3px rgba(6,196,10,.14)}
+
+/* =========================================================================
+   Služby Tasker (handoff 4g) — objednávka ověřeného pracovníka z aplikace
+   ========================================================================= */
+.sh .sv-hero{background:var(--s-ink);color:#fff;border-radius:16px;padding:22px 24px;margin-top:18px;
+  display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.sh .sv-hero .t{flex:1;min-width:220px}
+.sh .sv-hero .k{color:var(--s-dark-green);font-family:var(--s-mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase}
+.sh .sv-hero h3{font-size:20px;font-weight:800;letter-spacing:-.02em;margin:6px 0 0}
+.sh .sv-hero p{font-size:13px;color:var(--s-dark-txt);line-height:1.5;margin:8px 0 0;max-width:40em}
+.sh .sv-hero .n{text-align:center;flex:none}
+.sh .sv-hero .n b{font-size:30px;font-weight:800;color:var(--s-dark-green);display:block;letter-spacing:-.02em}
+.sh .sv-hero .n span{font-size:11px;color:var(--s-dark-txt)}
+.sh .sv-cats{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-top:14px}
+.sh .sv-cat{background:#fff;border:1px solid var(--s-line);border-radius:14px;padding:18px;text-align:left;cursor:pointer;
+  font-family:inherit;transition:box-shadow .18s ease,transform .12s ease,border-color .18s ease}
+.sh .sv-cat:hover{box-shadow:0 16px 34px -20px rgba(18,22,29,.24);transform:translateY(-2px);border-color:#CDEFD0}
+.sh .sv-cat.on{border-color:var(--s-green);box-shadow:0 0 0 2px rgba(6,196,10,.15)}
+.sh .sv-cat .ic{width:42px;height:42px;border-radius:11px;background:var(--s-green-050);color:var(--s-green-ink);
+  display:flex;align-items:center;justify-content:center}
+.sh .sv-cat b{font-size:14.5px;font-weight:800;display:block;margin-top:12px}
+.sh .sv-cat span{font-size:12px;color:var(--s-ink-2);line-height:1.45;display:block;margin-top:4px}
+.sh .sv-cat .from{font-family:var(--s-mono);font-size:11px;color:var(--s-muted);margin-top:10px;display:block}
+.sh .sv-book{background:#fff;border:1px solid var(--s-line);border-radius:16px;padding:20px 22px;margin-top:14px}
+.sh .sv-book>b{font-size:15px;font-weight:800}
+.sh .sv-worker{display:flex;align-items:center;gap:13px;margin-top:14px;padding:14px;border:1px solid var(--s-line);border-radius:12px}
+.sh .sv-worker .ava{width:46px;height:46px;border-radius:50%;background:var(--s-green-050);color:var(--s-green-ink);
+  display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;flex:none}
+.sh .sv-worker b{font-size:14.5px;font-weight:800;display:block}
+.sh .sv-worker span{font-size:12px;color:var(--s-muted)}
+.sh .sv-slots{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+.sh .sv-slot{flex:1;min-width:82px;text-align:center;font-size:12.5px;font-weight:600;padding:11px;border-radius:11px;
+  border:1px solid var(--s-line-2);color:var(--s-ink-2);cursor:pointer;background:#fff;font-family:inherit}
+.sh .sv-slot.on{border:2px solid var(--s-green);background:var(--s-green-050);color:var(--s-green-ink);font-weight:700}
+.sh .sv-list{display:grid;gap:10px;margin-top:14px}
+.sh .sv-bk{display:flex;align-items:center;gap:12px;background:#fff;border:1px solid var(--s-line);border-radius:12px;padding:13px 16px}
+.sh .sv-bk .ic{width:36px;height:36px;border-radius:10px;background:var(--s-chip);color:var(--s-ink-2);display:flex;align-items:center;justify-content:center;flex:none}
+.sh .sv-bk b{font-size:13px;font-weight:700;display:block}
+.sh .sv-bk span{font-size:11.5px;color:var(--s-muted)}
+@media(max-width:860px){ .sh .sv-hero{padding:18px}.sh .sv-slot{min-width:0} }
