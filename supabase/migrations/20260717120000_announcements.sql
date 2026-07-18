@@ -50,18 +50,18 @@ as $$
     u.id,
     u.label,
     case
-      when r.user_id is not null then 'read'
-      when m.user_id is not null then 'delivered'
+      when bool_or(r.user_id is not null) then 'read'
+      when bool_or(m.user_id is not null) then 'delivered'
       else 'unconnected'
     end as state,
-    r.read_at
+    max(r.read_at)
   from public.posts p
   join public.units u on u.building_id = p.building_id
   left join public.memberships m on m.unit_id = u.id and m.building_id = p.building_id
   left join public.post_reads r on r.post_id = p.id and r.unit_id = u.id
   where p.id = p_post
     and public.is_member_of(p.building_id)
-  group by u.id, u.label, r.user_id, m.user_id, r.read_at
+  group by u.id, u.label
   order by u.label;
 $$;
 

@@ -31,7 +31,7 @@ export const feed = {
     const { data: auth } = await sb.auth.getUser()
     const me = auth.user?.id
     const { data, error } = await sb.from('posts')
-      .select('id, title, audience, push, author_name, handle, role, kind, body, image_url, created_at, post_likes(user_id), post_comments(id), post_reads(user_id)')
+      .select('id, title, audience, push, author_name, handle, role, kind, body, image_url, created_at, post_likes(user_id), post_comments(id), post_reads(unit_id)')
       .eq('building_id', buildingId)
       .order('created_at', { ascending: false })
       .limit(100)
@@ -40,7 +40,7 @@ export const feed = {
       id: p.id, title: p.title, audience: p.audience || 'all', push: p.push !== false,
       authorName: p.author_name, handle: p.handle, role: p.role || '',
       kind: p.kind, body: p.body, imageUrl: p.image_url, createdAt: p.created_at,
-      reads: (p.post_reads || []).length,
+      reads: new Set((p.post_reads || []).map((r: any) => r.unit_id).filter(Boolean)).size,
       likes: (p.post_likes || []).length,
       liked: (p.post_likes || []).some((l: any) => l.user_id === me),
       commentCount: (p.post_comments || []).length, comments: [],
@@ -153,11 +153,14 @@ const db = {
   voteBallots: { 'A-101': 'ano', 'B-205': 'ano', 'C-302': 'ne', 'D-410': 'ano' } as Record<string, VoteChoice>,
   voteProxies: {} as Record<string, string>,
   demoCharges: null as Charge[] | null,
+  units: null as UnitFull[] | null,
+  poll: { id: 'demo', q: M.voteQuestion, quorum: M.voteQuorum, open: true },
   myProfile: { email: 'demo@tasker.cz', phone: '+420 604 111 222', shareContact: true } as MyProfile,
 }
 
 function demoUnits(): UnitFull[] {
-  return M.units.map((u) => ({ id: u.id, label: u.id, floor: u.floor, tenant: u.tenant === 'Volné' ? '' : u.tenant, rent: u.rent, vs: u.vs, leaseEnd: u.end, share: 2.5 }))
+  if (!db.units) db.units = M.units.map((u) => ({ id: u.id, label: u.id, floor: u.floor, tenant: u.tenant === 'Volné' ? '' : u.tenant, rent: u.rent, vs: u.vs, leaseEnd: u.end, share: 2.5 }))
+  return db.units
 }
 function demoCharges(): Charge[] {
   if (!db.demoCharges) {
@@ -243,7 +246,16 @@ export const api = {
   },
 
   async saveUnit(id: string, patch: { label?: string; floor?: string; tenant?: string; rent?: number; vs?: string; leaseEnd?: string; share?: number }): Promise<void> {
-    if (!isSupabaseConfigured) { await wait(80); return }
+    if (!isSupabaseConfigured) {
+      await wait(80)
+      const u = demoUnits().find((x) => x.id === id)
+      if (u) {
+        Object.assign(u, Object.fromEntries(Object.entries(patch).filter(([, v]) => v !== undefined)))
+        const m = /^([0-9]{4})-([0-9]{2})-([0-9]{2})$/.exec(u.leaseEnd)
+        if (m) u.leaseEnd = `${+m[3]}. ${+m[2]}. ${m[1]}`
+      }
+      return
+    }
     const upd: any = {}
     if (patch.label !== undefined) upd.label = patch.label
     if (patch.floor !== undefined) upd.floor = patch.floor || null
@@ -257,13 +269,13 @@ export const api = {
   },
 
   async addUnit(buildingId: string, label: string): Promise<void> {
-    if (!isSupabaseConfigured) { await wait(80); return }
+    if (!isSupabaseConfigured) { await wait(80); demoUnits().push({ id: label, label, floor: '', tenant: '', rent: 0, vs: '', leaseEnd: '', share: 0 }); return }
     const { error } = await supabase!.from('units').insert({ building_id: buildingId, label })
     if (error) throw error
   },
 
   async deleteUnit(id: string): Promise<void> {
-    if (!isSupabaseConfigured) { await wait(80); return }
+    if (!isSupabaseConfigured) { await wait(80); db.units = demoUnits().filter((x) => x.id !== id); return }
     const { error } = await supabase!.from('units').delete().eq('id', id)
     if (error) throw error
   },
@@ -402,7 +414,7 @@ export const api = {
     if (!isSupabaseConfigured) {
       await wait()
       return {
-        pollId: 'demo', q: M.voteQuestion, quorum: M.voteQuorum, open: true,
+        pollId: db.poll.id, q: db.poll.q, quorum: db.poll.quorum, open: db.poll.open,
         roster: M.voteRoster.map((r) => ({ unitId: r.unit, unit: r.unit, owner: r.owner, shares: r.shares })),
         ballots: { ...db.voteBallots }, proxies: { ...db.voteProxies },
       }
@@ -450,7 +462,7 @@ export const api = {
   },
 
   async createPoll(buildingId: string, question: string, quorum: number): Promise<void> {
-    if (!isSupabaseConfigured) { await wait(); return }
+    if (!isSupabaseConfigured) { await wait(); db.poll = { id: 'demo-' + Date.now(), q: question, quorum, open: true }; db.voteBallots = {}; db.voteProxies = {}; return }
     const sb = supabase!
     const { data: auth } = await sb.auth.getUser()
     const { error } = await sb.from('polls').insert({ building_id: buildingId, question, quorum, created_by: auth.user?.id })
@@ -466,7 +478,7 @@ export const api = {
   },
 
   async closePoll(pollId: string): Promise<void> {
-    if (!isSupabaseConfigured) { await wait(); return }
+    if (!isSupabaseConfigured) { await wait(); db.poll.open = false; return }
     const { error } = await supabase!.from('polls').update({ open: false }).eq('id', pollId)
     if (error) throw error
   },

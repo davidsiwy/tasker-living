@@ -35,7 +35,7 @@ const initialsOf = (name: string) => name.split(' ').filter(Boolean).map((w) => 
 // demo identities, used only when Supabase is not configured
 const DEMO: Record<Role, SessionUser> = {
   rezident: { userId: 'demo', name: 'Jana Nováková', handle: 'B-204', initials: 'JN', role: 'rezident', buildingId: 'demo', buildingName: M.buildingName, unit: 'B-204', unitId: 'B-204' },
-  vybor: { userId: 'demo', name: 'Výbor SVJ', handle: 'vybor', initials: 'VS', role: 'vybor', buildingId: 'demo', buildingName: M.buildingName, unit: '', unitId: '' },
+  vybor: { userId: 'demo', name: 'Petr Hlaváček', handle: 'vybor', initials: 'PH', role: 'vybor', buildingId: 'demo', buildingName: M.buildingName, unit: '', unitId: '' },
   developer: { userId: 'demo', name: 'Gallery Point', handle: 'developer', initials: 'GP', role: 'developer', buildingId: 'demo', buildingName: M.buildingName, unit: '', unitId: '' },
   investor: { userId: 'demo', name: 'Investor', handle: 'investor', initials: 'IN', role: 'investor', buildingId: 'demo', buildingName: M.buildingName, unit: '', unitId: '' },
 }

@@ -92,9 +92,9 @@ export default function ContactsPage() {
             </div>
             <div className="n-act">
               {n.shares && n.phone
-                ? <button className="n-ib" onClick={() => call(n)} aria-label="Volat"><SIcon n="card" s={15} /></button>
+                ? <button className="n-ib" onClick={() => call(n)} aria-label="Volat"><SIcon n="phone" s={15} /></button>
                 : <span className="n-hidden">skryto</span>}
-              <button className="n-ib" onClick={() => openChat(n)} aria-label="Napsat"><SIcon n="bell" s={15} /></button>
+              <button className="n-ib" onClick={() => openChat(n)} aria-label="Napsat"><SIcon n="chat" s={15} /></button>
             </div>
           </div>
         ))}

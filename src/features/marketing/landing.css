@@ -409,6 +409,10 @@
   .lp2 .l-sticky.show{transform:none}
   .lp2 .l-sticky .l-btn{flex:1;font-size:14px;padding:12px}
 }
+@media(max-width:480px){
+  .lp2 .l-row .l-what{display:none}
+  .lp2 .l-row b{width:46px}
+}
 @media(max-width:420px){
   .lp2 .l-proof .l-pgrid{grid-template-columns:1fr}
   .lp2 .l-slots span{min-width:0}

@@ -132,7 +132,11 @@ export default function ResidentHome() {
         </div>
       </div>
 
-      {canPay && <PayModal item={modal} account={settings.account} recipient={settings.recipient || user.buildingName} onClose={() => setModal(null)} />}
+      {canPay && (
+        <PayModal item={modal} account={settings.account} recipient={settings.recipient || user.buildingName}
+          onClose={() => setModal(null)}
+          onPaid={async (id) => { try { await api.setChargeStatus(id, 'awaiting'); setCharges((s) => s.map((c) => c.id === id ? { ...c, status: 'awaiting' } : c)) } catch { /* necháme na stránce Platby */ } setModal(null) }} />
+      )}
     </>
   )
 }

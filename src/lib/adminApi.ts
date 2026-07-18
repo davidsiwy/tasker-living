@@ -2,6 +2,7 @@
 // configured, otherwise mapped mock data so demo mode keeps working. The People
 // tab reads only from here, same seam pattern as api.ts.
 import { supabase, isSupabaseConfigured } from './supabase'
+import { api } from './api'
 import * as A from './adminData'
 import type { Role } from './types'
 
