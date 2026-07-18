@@ -16,6 +16,7 @@ import ContactsPage from './features/contacts/ContactsPage'
 import ComplaintsPage from './features/complaints/ComplaintsPage'
 import AdminPage from './features/admin/AdminPage'
 import DashboardPage from './features/dashboard/DashboardPage'
+import DocumentsPage from './features/documents/DocumentsPage'
 import SettingsPage from './features/settings/SettingsPage'
 
 const OperatorShell = lazy(() => import('./features/platform/OperatorShell'))
@@ -97,6 +98,7 @@ export default function App() {
             <Route path="schuze" element={<MeetingsPage />} />
             <Route path="kontakty" element={<ContactsPage />} />
             <Route path="stiznosti" element={<ComplaintsPage />} />
+            <Route path="dokumenty" element={<DocumentsPage />} />
             <Route path="sprava" element={<AdminPage />} />
             <Route path="nastaveni" element={<SettingsPage />} />
           </Route>
