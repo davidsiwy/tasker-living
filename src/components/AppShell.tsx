@@ -23,7 +23,7 @@ const MANAGE: Item[] = [
 ]
 const PLATFORM: Item[] = [
   { id: 'sluzby', label: 'Služby Tasker', icon: 'spark' },
-  { id: 'nastaveni', label: 'Nastavení domu', icon: 'gear' },
+  { id: 'nastaveni', label: 'Nastavení', icon: 'gear' },
 ]
 
 const P: Record<string, string> = {
