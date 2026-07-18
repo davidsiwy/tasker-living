@@ -25,35 +25,42 @@ export default function AdminPage() {
 
   if (!user || !can(user.role as Role, 'admin')) {
     return (
-      <div>
-        <div className="view-head"><div><h1>Správa domu</h1></div></div>
-        <div className="empty"><span className="cf-ic"><Icon name="sprava" /></span><p>Správa je dostupná jen výboru SVJ a developerovi.</p></div>
+      <div className="d-mini an" style={{ maxWidth: 520 }}>
+        <div className="h"><b>Správa domu</b></div>
+        <p style={{ fontSize: 12.5, color: 'var(--s-ink-2)', marginTop: 8, lineHeight: 1.55 }}>
+          Správa je dostupná jen výboru SVJ a developerovi.
+        </p>
       </div>
     )
   }
   const bid = user.buildingId
 
   return (
-    <div>
-      <div className="view-head">
-        <div><h1>Správa domu</h1><div className="desc">Kompletní řízení budovy, jednotek, financí a provozu</div></div>
-        <span className="pill pill-neutral">{user.buildingName}</span>
+    <>
+      <div className="d-hi">
+        <div>
+          <h2>Správa domu</h2>
+          <p>Nastavení, které jinde nenajdete: jednotky, přístupy členů a účet domu.</p>
+        </div>
+        <span className="s-badge neutral">{user.buildingName}</span>
       </div>
 
-      <div className="adm-tabs">
-        {TABS.map((t) => <button key={t.id} className={'adm-tab' + (tab === t.id ? ' on' : '')} onClick={() => setTab(t.id)}>{t.label}</button>)}
+      <div className="ad-tabs">
+        {TABS.map((t) => <button key={t.id} className={'ad-tab' + (tab === t.id ? ' on' : '')} onClick={() => setTab(t.id)}>{t.label}</button>)}
       </div>
 
-      {tab === 'prehled' && <Overview toast={toast} bid={bid} />}
-      {tab === 'jednotky' && <Units toast={toast} bid={bid} />}
-      {tab === 'lide' && <People toast={toast} />}
-      {tab === 'finance' && <Finance toast={toast} bid={bid} />}
-      {tab === 'udrzba' && <Maintenance toast={toast} bid={bid} isDemo={isDemo} />}
-      {tab === 'schuze' && <MeetingsAdmin toast={toast} bid={bid} />}
-      {tab === 'nastenka' && <Board toast={toast} user={{ role: user.role, buildingId: bid, name: user.name, handle: user.handle }} />}
-      {tab === 'dokumenty' && <Documents toast={toast} bid={bid} role={user.role} />}
-      {tab === 'nastaveni' && <BuildingSettingsTab toast={toast} bid={bid} isDemo={isDemo} buildingName={user.buildingName} />}
-    </div>
+      <div className="ad-wrap">
+        {tab === 'prehled' && <Overview toast={toast} bid={bid} />}
+        {tab === 'jednotky' && <Units toast={toast} bid={bid} />}
+        {tab === 'lide' && <People toast={toast} />}
+        {tab === 'finance' && <Finance toast={toast} bid={bid} />}
+        {tab === 'udrzba' && <Maintenance toast={toast} bid={bid} isDemo={isDemo} />}
+        {tab === 'schuze' && <MeetingsAdmin toast={toast} bid={bid} />}
+        {tab === 'nastenka' && <Board toast={toast} user={{ role: user.role, buildingId: bid, name: user.name, handle: user.handle }} />}
+        {tab === 'dokumenty' && <Documents toast={toast} bid={bid} role={user.role} />}
+        {tab === 'nastaveni' && <BuildingSettingsTab toast={toast} bid={bid} isDemo={isDemo} buildingName={user.buildingName} />}
+      </div>
+    </>
   )
 }
 

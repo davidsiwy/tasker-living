@@ -538,3 +538,13 @@
   font-size:12.5px;color:#4A3390;line-height:1.5}
 .sh .st-demo b{font-weight:800}
 @media(max-width:860px){ .sh .st-grid{grid-template-columns:1fr} }
+
+/* =========================================================================
+   Správa domu (handoff 5a/8x) — konzole výboru, tab bar v novém stylu
+   ========================================================================= */
+.sh .ad-tabs{display:flex;gap:4px;margin-top:16px;border-bottom:1px solid var(--s-line);overflow-x:auto;padding-bottom:0}
+.sh .ad-tab{background:none;border:none;font-family:inherit;font-size:13.5px;font-weight:600;color:var(--s-ink-2);
+  padding:11px 14px;cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent;margin-bottom:-1px;transition:color .15s ease}
+.sh .ad-tab:hover{color:var(--s-ink)}
+.sh .ad-tab.on{color:var(--s-ink);font-weight:700;border-bottom-color:var(--s-green)}
+.sh .ad-wrap{margin-top:18px}
