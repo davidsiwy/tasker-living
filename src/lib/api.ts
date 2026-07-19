@@ -14,6 +14,8 @@ const rid = () => Math.random().toString(36).slice(2, 10)
 const czDate = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString('cs-CZ') : '')
 const czDateTime = (iso: string) => new Date(iso).toLocaleDateString('cs-CZ') + ', ' + new Date(iso).toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' })
 export const currentPeriod = () => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') }
+export const prevPeriod = (p: string) => { const [y, m] = p.split('-').map(Number); const d = new Date(y, m - 2, 1); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') }
+export const nextPeriod = (p: string) => { const [y, m] = p.split('-').map(Number); const d = new Date(y, m, 1); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') }
 export const periodLabel = (p: string) => {
   const [y, m] = p.split('-'); const names = ['leden','únor','březen','duben','květen','červen','červenec','srpen','září','říjen','listopad','prosinec']
   return (names[Number(m) - 1] || m) + ' ' + y

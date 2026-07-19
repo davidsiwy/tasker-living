@@ -2,6 +2,7 @@
 // management goes through the admin-users Edge Function (service role stays
 // server side), organizations and activity go through RLS with is_platform_admin.
 import { supabase, isSupabaseConfigured } from './supabase'
+import { api } from './api'
 import type { Role } from './types'
 
 const FN_URL = ((import.meta.env.VITE_SUPABASE_URL as string) || '') + '/functions/v1/admin-users'
@@ -27,6 +28,7 @@ export interface ActivityRow { iso: string; at: string; kind: string; actor: str
 export interface OperatorRow { userId: string; name: string; email: string; since: string }
 export interface UnitRow { id: string; label: string; members: number }
 export interface PUnit { id: string; label: string }
+export interface OpCharge { id: string; unit: string; label: string; amount: number; vs: string; due: string; status: string }
 
 const czDate = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString('cs-CZ') : '')
 const czDateTime = (iso: string | null) =>
@@ -115,6 +117,37 @@ export const platformApi = {
     const { data, error } = await supabase!.rpc('admin_activity', { p_limit: 80 })
     if (error) throw error
     return (data || []).map((r: any) => ({ iso: r.at, at: czDateTime(r.at), kind: r.kind, actor: r.actor || '', detail: r.detail || '' }))
+  },
+
+  // ---------- platby klienta (operátor opravuje chyby, vidí stav) ----------
+  async chargesOf(buildingId: string, period: string): Promise<OpCharge[]> {
+    const { data, error } = await supabase!.from('charges')
+      .select('id, label, amount, vs, due_date, status, units(label)')
+      .eq('building_id', buildingId).eq('period', period)
+    if (error) throw error
+    return (data || []).map((c: any) => ({
+      id: c.id, unit: c.units?.label || '', label: c.label, amount: c.amount,
+      vs: c.vs || '', due: c.due_date || '', status: c.status,
+    })).sort((a, b) => a.unit.localeCompare(b.unit))
+  },
+  async setChargeStatus(id: string, status: 'paid' | 'awaiting' | 'unpaid'): Promise<void> {
+    const { error } = await supabase!.from('charges')
+      .update({ status, paid_at: status === 'paid' ? new Date().toISOString() : null }).eq('id', id)
+    if (error) throw error
+  },
+  async deleteCharge(id: string): Promise<void> {
+    const { error } = await supabase!.from('charges').delete().eq('id', id)
+    if (error) throw error
+  },
+  async generateCharges(buildingId: string, period: string): Promise<number> {
+    return api.generateCharges(buildingId, period)
+  },
+
+  // ---------- offboarding: smazání domu (RPC, jen operátor) ----------
+  async wipeBuilding(buildingId: string): Promise<Record<string, number>> {
+    const { data, error } = await supabase!.rpc('wipe_building', { p_building: buildingId })
+    if (error) throw error
+    return (data || {}) as Record<string, number>
   },
 }
 

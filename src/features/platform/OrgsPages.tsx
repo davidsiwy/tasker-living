@@ -5,8 +5,9 @@ import { Link, useParams, useNavigate } from 'react-router-dom'
 import { roleNames } from '../../lib/types'
 import type { Role } from '../../lib/types'
 import { platformApi, operatorApi } from '../../lib/platformApi'
-import type { PlatformBuilding, UnitRow } from '../../lib/platformApi'
+import type { OpCharge, PlatformBuilding, UnitRow } from '../../lib/platformApi'
 import { adminApi } from '../../lib/adminApi'
+import { currentPeriod, periodLabel, prevPeriod, nextPeriod } from '../../lib/api'
 import type { LiveMember, LiveCode } from '../../lib/adminApi'
 import { useToast } from '../../components/Toast'
 import { Icon } from '../../components/Icon'
@@ -88,6 +89,9 @@ export function OrgDetailPage() {
   const [newUnit, setNewUnit] = useState('')
   const [codeRole, setCodeRole] = useState<Role>('rezident')
   const [codeUnit, setCodeUnit] = useState('')
+  const [period, setPeriod] = useState(currentPeriod())
+  const [charges, setCharges] = useState<OpCharge[]>([])
+  const [wipeBusy, setWipeBusy] = useState(false)
 
   async function reload() {
     const [bs, us, ms, cs] = await Promise.all([
@@ -98,6 +102,7 @@ export function OrgDetailPage() {
     setUnits(us); setMembers(ms); setCodes(cs); setLoading(false)
   }
   useEffect(() => { reload().catch((e: any) => { setLoading(false); toast('Načtení selhalo: ' + (e.message || e)) }) }, [bid])
+  useEffect(() => { platformApi.chargesOf(bid, period).then(setCharges).catch(() => setCharges([])) }, [bid, period])
 
   async function run(fn: () => Promise<void>, ok: string) {
     try { await fn(); toast(ok); await reload() } catch (e: any) { toast('Chyba: ' + (e.message || e)) }
@@ -223,6 +228,74 @@ export function OrgDetailPage() {
             </tbody>
           </table>
         </div>
+      </div>
+
+      <div className="card" style={{ marginTop: 16, padding: 0 }}>
+        <div className="card-h" style={{ padding: '16px 18px 0', flexWrap: 'wrap', gap: 10 }}>
+          <h3>Platby</h3>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <button className="btn btn-ghost btn-sm" onClick={() => setPeriod(prevPeriod(period))}>‹</button>
+            <span className="mono" style={{ fontSize: 12.5, minWidth: 110, textAlign: 'center' }}>{periodLabel(period)}</span>
+            <button className="btn btn-ghost btn-sm" onClick={() => setPeriod(nextPeriod(period))}>›</button>
+            <button className="btn btn-soft btn-sm" onClick={() => run(async () => { const n = await platformApi.generateCharges(bid, period); setCharges(await platformApi.chargesOf(bid, period)); toast(n > 0 ? `Vystaveno ${n} předpisů` : 'Předpisy už existují nebo nejsou nájmy') }, 'Hotovo')}>Vygenerovat předpisy</button>
+          </div>
+        </div>
+        <div style={{ overflowX: 'auto' }}>
+          <table className="tbl">
+            <thead><tr><th>Jednotka</th><th>Položka</th><th>Částka</th><th>VS</th><th>Splatnost</th><th>Stav</th><th></th></tr></thead>
+            <tbody>
+              {charges.map((c) => (
+                <tr key={c.id}>
+                  <td className="mono">{c.unit}</td>
+                  <td>{c.label}</td>
+                  <td>{c.amount.toLocaleString('cs-CZ')} Kč</td>
+                  <td className="mono">{c.vs}</td>
+                  <td>{c.due}</td>
+                  <td>
+                    <select className="input" style={{ padding: '4px 8px', fontSize: 12.5, width: 'auto' }} value={c.status}
+                      onChange={(e) => run(async () => { await platformApi.setChargeStatus(c.id, e.target.value as any); setCharges(await platformApi.chargesOf(bid, period)) }, 'Stav platby upraven')}>
+                      <option value="unpaid">Nezaplaceno</option>
+                      <option value="awaiting">Čeká na potvrzení</option>
+                      <option value="paid">Zaplaceno</option>
+                    </select>
+                  </td>
+                  <td style={{ textAlign: 'right' }}>
+                    <button className="btn btn-ghost btn-sm" title="Smazat chybný předpis"
+                      onClick={() => window.confirm(`Smazat předpis ${c.label} pro ${c.unit} (${c.amount.toLocaleString('cs-CZ')} Kč)?`) && run(async () => { await platformApi.deleteCharge(c.id); setCharges(await platformApi.chargesOf(bid, period)) }, 'Předpis smazán')}>
+                      <Icon name="x" small />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+              {charges.length === 0 && <tr><td colSpan={7} className="adm-mini" style={{ padding: 16 }}>Za {periodLabel(period)} nejsou žádné předpisy.</td></tr>}
+            </tbody>
+          </table>
+        </div>
+        <p className="adm-mini" style={{ padding: '10px 18px 14px' }}>Změna stavu je okamžitá a klient ji uvidí. Mazání používejte jen na chybně vystavené předpisy.</p>
+      </div>
+
+      <div className="card" style={{ marginTop: 16, borderColor: '#F3C1B8' }}>
+        <div className="card-h"><h3 style={{ color: '#C0392B' }}>Nebezpečná zóna</h3></div>
+        <p className="adm-mini" style={{ marginBottom: 10 }}>
+          Smaže celý dům a všechna jeho data (jednotky, členy, platby, oznámení, hlasování, závady…) podle
+          offboarding slibu. Před smazáním si klient může stáhnout export v aplikaci (Správa domu → Nastavení).
+          Soubory v úložišti (dokumenty, fotky závad) je potřeba smazat zvlášť ve Storage.
+        </p>
+        <button className="btn btn-ghost btn-sm" style={{ color: '#C0392B', borderColor: '#F3C1B8' }} disabled={wipeBusy}
+          onClick={async () => {
+            const typed = window.prompt(`Trvale smazat „${org.name}" a všechna data? Napište přesný název domu pro potvrzení:`)
+            if (typed !== org.name) { if (typed !== null) toast('Název nesouhlasí, nic se nesmazalo'); return }
+            if (!window.confirm('Opravdu? Tohle nejde vrátit.')) return
+            setWipeBusy(true)
+            try {
+              const counts = await platformApi.wipeBuilding(bid)
+              const total = Object.values(counts).reduce((a, b) => a + (b || 0), 0)
+              toast(`Dům smazán, odstraněno ${total} záznamů`)
+              nav('/operator/organizace')
+            } catch (e: any) { toast('Chyba: ' + (e.message || e)) } finally { setWipeBusy(false) }
+          }}>
+          {wipeBusy ? 'Mažu…' : 'Smazat dům a všechna data'}
+        </button>
       </div>
     </div>
   )
