@@ -21,7 +21,7 @@ async function call(action: string, payload: Record<string, unknown> = {}): Prom
   return out
 }
 
-export interface PlatformMembership { membershipId: string; role: Role; building: string; buildingId: string; unit: string }
+export interface PlatformMembership { membershipId: string; role: Role; building: string; buildingId: string; unit: string; unitId: string | null }
 export interface PlatformUser { id: string; email: string; name: string; created: string; createdIso: string; lastLogin: string; lastLoginIso: string; banned: boolean; memberships: PlatformMembership[] }
 export interface PlatformBuilding { id: string; name: string; slug: string; units: number; members: number; posts: number }
 export interface ActivityRow { iso: string; at: string; kind: string; actor: string; detail: string }
@@ -41,7 +41,7 @@ export const platformApi = {
     const sb = supabase!
     const [{ users }, mems, profs] = await Promise.all([
       call('list'),
-      sb.from('memberships').select('id, user_id, role, building_id, buildings(name), units(label)'),
+      sb.from('memberships').select('id, user_id, role, building_id, unit_id, buildings(name), units(label)'),
       sb.from('profiles').select('id, full_name'),
     ])
     const names: Record<string, string> = {}
@@ -51,7 +51,7 @@ export const platformApi = {
       if (!byUser[m.user_id]) byUser[m.user_id] = []
       byUser[m.user_id].push({
         membershipId: m.id, role: m.role as Role, buildingId: m.building_id,
-        building: m.buildings?.name || '', unit: m.units?.label || '',
+        building: m.buildings?.name || '', unit: m.units?.label || '', unitId: m.unit_id || null,
       })
     }
     return (users as any[]).map((u) => ({
@@ -117,6 +117,24 @@ export const platformApi = {
     const { data, error } = await supabase!.rpc('admin_activity', { p_limit: 80 })
     if (error) throw error
     return (data || []).map((r: any) => ({ iso: r.at, at: czDateTime(r.at), kind: r.kind, actor: r.actor || '', detail: r.detail || '' }))
+  },
+
+
+  // ---------- sprava clenstvi a profilu (operator) ----------
+  async allUnits(): Promise<Record<string, PUnit[]>> {
+    const { data, error } = await supabase!.from('units').select('id, label, building_id').order('label')
+    if (error) throw error
+    const out: Record<string, PUnit[]> = {}
+    for (const u of (data || []) as any[]) { (out[u.building_id] = out[u.building_id] || []).push({ id: u.id, label: u.label }) }
+    return out
+  },
+  async setMembershipUnit(membershipId: string, unitId: string | null): Promise<void> {
+    const { error } = await supabase!.from('memberships').update({ unit_id: unitId }).eq('id', membershipId)
+    if (error) throw error
+  },
+  async updateProfile(userId: string, fullName: string): Promise<void> {
+    const { error } = await supabase!.from('profiles').update({ full_name: fullName }).eq('id', userId)
+    if (error) throw error
   },
 
   // ---------- platby klienta (operátor opravuje chyby, vidí stav) ----------

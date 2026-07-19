@@ -3,11 +3,11 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams, useNavigate } from 'react-router-dom'
 import { roleNames } from '../../lib/types'
-import type { Role } from '../../lib/types'
+import type { Role, UnitFull } from '../../lib/types'
 import { platformApi, operatorApi } from '../../lib/platformApi'
 import type { OpCharge, PlatformBuilding, UnitRow } from '../../lib/platformApi'
 import { adminApi } from '../../lib/adminApi'
-import { currentPeriod, periodLabel, prevPeriod, nextPeriod } from '../../lib/api'
+import { api, currentPeriod, periodLabel, prevPeriod, nextPeriod } from '../../lib/api'
 import type { LiveMember, LiveCode } from '../../lib/adminApi'
 import { useToast } from '../../components/Toast'
 import { Icon } from '../../components/Icon'
@@ -90,22 +90,34 @@ export function OrgDetailPage() {
   const [codeRole, setCodeRole] = useState<Role>('rezident')
   const [codeUnit, setCodeUnit] = useState('')
   const [period, setPeriod] = useState(currentPeriod())
+  const [fullUnits, setFullUnits] = useState<UnitFull[]>([])
+  const [editU, setEditU] = useState<UnitFull | null>(null)
+  const [acct, setAcct] = useState(''); const [rcpt, setRcpt] = useState(''); const [setBusy, setSetBusy] = useState(false)
   const [charges, setCharges] = useState<OpCharge[]>([])
   const [wipeBusy, setWipeBusy] = useState(false)
 
   async function reload() {
-    const [bs, us, ms, cs] = await Promise.all([
+    const [bs, us, ms, cs, fu, st] = await Promise.all([
       platformApi.listBuildings(), operatorApi.unitsWithCounts(bid),
       adminApi.listMembers(bid), adminApi.listCodes(bid),
+      api.getUnitsFull(bid).catch(() => []), api.getBuildingSettings(bid).catch(() => ({ account: '', recipient: '' })),
     ])
     setOrg(bs.find((b) => b.id === bid) || null)
-    setUnits(us); setMembers(ms); setCodes(cs); setLoading(false)
+    setUnits(us); setMembers(ms); setCodes(cs); setFullUnits(fu)
+    setAcct(st.account); setRcpt(st.recipient)
+    setLoading(false)
   }
   useEffect(() => { reload().catch((e: any) => { setLoading(false); toast('Načtení selhalo: ' + (e.message || e)) }) }, [bid])
   useEffect(() => { platformApi.chargesOf(bid, period).then(setCharges).catch(() => setCharges([])) }, [bid, period])
 
   async function run(fn: () => Promise<void>, ok: string) {
     try { await fn(); toast(ok); await reload() } catch (e: any) { toast('Chyba: ' + (e.message || e)) }
+  }
+
+  const czToIso = (v: string) => {
+    const m = /^(\d{1,2})\. ?(\d{1,2})\. ?(\d{4})$/.exec(v.trim())
+    if (m) return `${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}`
+    return /^\d{4}-\d{2}-\d{2}$/.test(v.trim()) ? v.trim() : ''
   }
 
   if (loading) return <div className="card"><p className="adm-mini">Načítání organizace...</p></div>
@@ -120,10 +132,6 @@ export function OrgDetailPage() {
   function addUnit() {
     if (!newUnit.trim()) return
     run(() => operatorApi.addUnit(bid, newUnit.trim()), 'Jednotka přidána').then(() => setNewUnit(''))
-  }
-  function renameUnit(u: UnitRow) {
-    const n = window.prompt('Nové označení jednotky', u.label)
-    if (n && n !== u.label) run(() => operatorApi.renameUnit(u.id, n), 'Jednotka přejmenována')
   }
   function delUnit(u: UnitRow) {
     const warn = u.members > 0 ? ` Jednotku má přiřazenou ${u.members} členů, těm se odebere.` : ''
@@ -157,15 +165,29 @@ export function OrgDetailPage() {
               onChange={(e) => setNewUnit(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && addUnit()} />
             <button className="btn btn-soft btn-sm" onClick={addUnit}><Icon name="plus" small /> Přidat</button>
           </div>
-          {units.map((u) => (
-            <div className="doc-row" key={u.id}>
-              <span className="cf-ic"><Icon name="najmy" small /></span>
-              <div style={{ flex: 1, minWidth: 0 }}><b className="mono" style={{ fontSize: 13.5 }}>{u.label}</b><span>{u.members} členů</span></div>
-              <button className="btn btn-ghost btn-sm" onClick={() => renameUnit(u)}>Upravit</button>
-              <button className="btn btn-ghost btn-sm" onClick={() => delUnit(u)}><Icon name="x" small /></button>
-            </div>
-          ))}
-          {units.length === 0 && <p className="adm-mini">Žádné jednotky.</p>}
+          <div style={{ overflowX: 'auto' }}>
+            <table className="tbl">
+              <thead><tr><th>Jednotka</th><th>Nájemník</th><th>Nájem</th><th>Členů</th><th></th></tr></thead>
+              <tbody>
+                {fullUnits.map((fu) => {
+                  const cnt = units.find((x) => x.id === fu.id)?.members || 0
+                  return (
+                    <tr key={fu.id}>
+                      <td className="mono" style={{ fontWeight: 600 }}>{fu.label}</td>
+                      <td>{fu.tenant || <span className="adm-mini">volné</span>}</td>
+                      <td className="mono">{fu.rent ? fu.rent.toLocaleString('cs-CZ') + ' Kč' : ''}</td>
+                      <td className="adm-mini">{cnt}</td>
+                      <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
+                        <button className="btn btn-ghost btn-sm" onClick={() => setEditU({ ...fu })}>Upravit</button>
+                        <button className="btn btn-ghost btn-sm" onClick={() => delUnit({ id: fu.id, label: fu.label, members: cnt })}><Icon name="x" small /></button>
+                      </td>
+                    </tr>
+                  )
+                })}
+                {fullUnits.length === 0 && <tr><td colSpan={5} className="adm-mini" style={{ padding: 12 }}>Žádné jednotky.</td></tr>}
+              </tbody>
+            </table>
+          </div>
         </div>
 
         <div className="card">
@@ -274,6 +296,19 @@ export function OrgDetailPage() {
         <p className="adm-mini" style={{ padding: '10px 18px 14px' }}>Změna stavu je okamžitá a klient ji uvidí. Mazání používejte jen na chybně vystavené předpisy.</p>
       </div>
 
+      <div className="card" style={{ marginTop: 16 }}>
+        <div className="card-h"><h3>Nastavení domu</h3><span className="adm-mini">účet pro QR platby</span></div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 8 }}>
+          <input className="input" placeholder="Číslo účtu, např. 123456789/0100" value={acct} onChange={(e) => setAcct(e.target.value)} />
+          <input className="input" placeholder="Příjemce, např. SVJ Vista Park" value={rcpt} onChange={(e) => setRcpt(e.target.value)} />
+          <button className="btn btn-soft btn-sm" disabled={setBusy}
+            onClick={async () => { setSetBusy(true); try { await api.saveBuildingSettings(bid, { account: acct.trim(), recipient: rcpt.trim() }); toast('Nastavení uloženo') } catch (e: any) { toast('Chyba: ' + (e.message || e)) } finally { setSetBusy(false) } }}>
+            {setBusy ? 'Ukládám…' : 'Uložit'}
+          </button>
+        </div>
+        <p className="adm-mini" style={{ marginTop: 8 }}>Z tohoto účtu se generují QR kódy plateb pro rezidenty. Bez vyplnění QR nefunguje.</p>
+      </div>
+
       <div className="card" style={{ marginTop: 16, borderColor: '#F3C1B8' }}>
         <div className="card-h"><h3 style={{ color: '#C0392B' }}>Nebezpečná zóna</h3></div>
         <p className="adm-mini" style={{ marginBottom: 10 }}>
@@ -297,6 +332,33 @@ export function OrgDetailPage() {
           {wipeBusy ? 'Mažu…' : 'Smazat dům a všechna data'}
         </button>
       </div>
+
+      {editU && (
+        <div className="overlay" onClick={(e) => { if (e.target === e.currentTarget) setEditU(null) }}>
+          <div className="modal">
+            <div className="modal-h"><h3>Jednotka {editU.label}</h3><button className="btn btn-ghost btn-sm" onClick={() => setEditU(null)}>Zrušit</button></div>
+            <div className="modal-b">
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                <div><label className="adm-mini">Označení</label><input className="input mono" value={editU.label} onChange={(e) => setEditU({ ...editU, label: e.target.value })} /></div>
+                <div><label className="adm-mini">Patro</label><input className="input" value={editU.floor} onChange={(e) => setEditU({ ...editU, floor: e.target.value })} /></div>
+              </div>
+              <div style={{ marginTop: 10 }}><label className="adm-mini">Nájemník / vlastník</label><input className="input" placeholder="Prázdné = volné" value={editU.tenant} onChange={(e) => setEditU({ ...editU, tenant: e.target.value })} /></div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 10 }}>
+                <div><label className="adm-mini">Nájem (Kč / měsíc)</label><input className="input mono" type="number" value={editU.rent || ''} onChange={(e) => setEditU({ ...editU, rent: Number(e.target.value) || 0 })} /></div>
+                <div><label className="adm-mini">Variabilní symbol</label><input className="input mono" value={editU.vs} onChange={(e) => setEditU({ ...editU, vs: e.target.value })} /></div>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 10 }}>
+                <div><label className="adm-mini">Vlastnický podíl (%)</label><input className="input mono" type="number" step="0.1" value={editU.share || ''} onChange={(e) => setEditU({ ...editU, share: Number(e.target.value) || 0 })} /></div>
+                <div><label className="adm-mini">Konec smlouvy</label><input className="input" type="date" value={czToIso(editU.leaseEnd)} onChange={(e) => setEditU({ ...editU, leaseEnd: e.target.value })} /></div>
+              </div>
+            </div>
+            <div className="modal-f">
+              <button className="btn btn-ghost btn-sm" onClick={() => setEditU(null)}>Zrušit</button>
+              <button className="btn btn-primary btn-sm" onClick={() => { const eu = editU; run(async () => { await api.saveUnit(eu.id, { label: eu.label.trim(), floor: eu.floor.trim(), tenant: eu.tenant.trim(), rent: eu.rent, vs: eu.vs.trim(), share: eu.share, leaseEnd: czToIso(eu.leaseEnd) }); setEditU(null) }, 'Jednotka uložena') }}>Uložit</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

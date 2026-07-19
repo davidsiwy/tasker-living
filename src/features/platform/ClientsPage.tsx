@@ -25,10 +25,13 @@ export default function ClientsPage() {
   const [nBid, setNBid] = useState(''); const [nRole, setNRole] = useState<Role>('rezident'); const [nUnit, setNUnit] = useState('')
   const [units, setUnits] = useState<PUnit[]>([])
   const [busy, setBusy] = useState(false)
+  const [unitsByB, setUnitsByB] = useState<Record<string, PUnit[]>>({})
+  const [addFor, setAddFor] = useState('')
+  const [aBid, setABid] = useState(''); const [aRole, setARole] = useState<Role>('rezident'); const [aUnit, setAUnit] = useState('')
 
   async function reload() {
-    const [u, b] = await Promise.all([platformApi.listUsers(), platformApi.listBuildings()])
-    setUsers(u); setBuildings(b); setLoading(false)
+    const [u, b, ub] = await Promise.all([platformApi.listUsers(), platformApi.listBuildings(), platformApi.allUnits().catch(() => ({}))])
+    setUsers(u); setBuildings(b); setUnitsByB(ub); setLoading(false)
   }
   useEffect(() => { reload().catch((e: any) => { setLoading(false); toast('Načtení selhalo: ' + (e.message || e)) }) }, [])
 
@@ -65,6 +68,19 @@ export default function ClientsPage() {
     } catch (e: any) { toast('Chyba: ' + (e.message || e)) } finally { setBusy(false) }
   }
 
+  function askName(u: PlatformUser) {
+    const n = window.prompt('Jméno a příjmení pro ' + u.email, u.name)
+    if (n !== null && n.trim() && n !== u.name) run(() => platformApi.updateProfile(u.id, n.trim()), 'Jméno změněno')
+  }
+  async function submitAdd(u: PlatformUser) {
+    if (!aBid) { toast('Vyberte dům'); return }
+    try {
+      await platformApi.addMembership(u.id, aBid, aRole, aUnit || null)
+      toast('Přidán do domu')
+      setAddFor(''); setABid(''); setARole('rezident'); setAUnit('')
+      await reload()
+    } catch (e: any) { toast('Chyba: ' + (e.message || e)) }
+  }
   function askPassword(u: PlatformUser) {
     const pw = window.prompt('Nové heslo pro ' + u.email)
     if (pw) run(() => platformApi.setPassword(u.id, pw), 'Heslo změněno')
@@ -153,7 +169,13 @@ export default function ClientsPage() {
                     {u.memberships.length === 0 && <span className="adm-mini">Žádné</span>}
                     {u.memberships.map((m) => (
                       <div key={m.membershipId} style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4, flexWrap: 'wrap' }}>
-                        <span className="adm-mini">{m.building}{m.unit ? ' · ' + m.unit : ''}</span>
+                        <span className="adm-mini">{m.building}</span>
+                        <select className="input" style={{ padding: '2px 6px', fontSize: 12, width: 'auto' }} value={m.unitId || ''}
+                          title="Jednotka"
+                          onChange={(e) => run(() => platformApi.setMembershipUnit(m.membershipId, e.target.value || null), 'Jednotka změněna')}>
+                          <option value="">Bez jednotky</option>
+                          {(unitsByB[m.buildingId] || []).map((un) => <option key={un.id} value={un.id}>{un.label}</option>)}
+                        </select>
                         <select className="input" style={{ padding: '2px 6px', fontSize: 12, width: 'auto' }} value={m.role}
                           onChange={(e) => run(() => platformApi.setMembershipRole(m.membershipId, e.target.value as Role), 'Role změněna')}>
                           {(Object.keys(roleNames) as Role[]).map((r) => <option key={r} value={r}>{roleNames[r]}</option>)}
@@ -164,9 +186,33 @@ export default function ClientsPage() {
                         </button>
                       </div>
                     ))}
+                    {addFor === u.id ? (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 6, flexWrap: 'wrap' }}>
+                        <select className="input" style={{ padding: '2px 6px', fontSize: 12, width: 'auto' }} value={aBid} onChange={(e) => { setABid(e.target.value); setAUnit('') }}>
+                          <option value="">Vyberte dům…</option>
+                          {buildings.filter((b) => !u.memberships.some((m) => m.buildingId === b.id)).map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
+                        </select>
+                        <select className="input" style={{ padding: '2px 6px', fontSize: 12, width: 'auto' }} value={aRole} onChange={(e) => setARole(e.target.value as Role)}>
+                          {(Object.keys(roleNames) as Role[]).map((r) => <option key={r} value={r}>{roleNames[r]}</option>)}
+                        </select>
+                        {aBid && (
+                          <select className="input" style={{ padding: '2px 6px', fontSize: 12, width: 'auto' }} value={aUnit} onChange={(e) => setAUnit(e.target.value)}>
+                            <option value="">Bez jednotky</option>
+                            {(unitsByB[aBid] || []).map((un) => <option key={un.id} value={un.id}>{un.label}</option>)}
+                          </select>
+                        )}
+                        <button className="btn btn-soft btn-sm" style={{ padding: '2px 10px' }} onClick={() => submitAdd(u)}>Přidat</button>
+                        <button className="btn btn-ghost btn-sm" style={{ padding: '2px 8px' }} onClick={() => setAddFor('')}>Zrušit</button>
+                      </div>
+                    ) : (
+                      <button className="btn btn-ghost btn-sm" style={{ padding: '2px 8px', marginTop: 2 }} onClick={() => { setAddFor(u.id); setABid(''); setARole('rezident'); setAUnit('') }}>
+                        <Icon name="plus" small /> Přidat do domu
+                      </button>
+                    )}
                   </td>
                   <td className="adm-mini">{u.lastLogin}</td>
                   <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
+                    <button className="btn btn-ghost btn-sm" onClick={() => askName(u)}>Jméno</button>
                     <button className="btn btn-ghost btn-sm" onClick={() => askPassword(u)}>Heslo</button>
                     <button className="btn btn-ghost btn-sm" onClick={() => askEmail(u)}>E-mail</button>
                     {u.id !== me && <button className="btn btn-ghost btn-sm" onClick={() => toggleBan(u)}>{u.banned ? 'Odblokovat' : 'Blokovat'}</button>}
