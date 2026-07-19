@@ -155,7 +155,7 @@ export default function ClientsPage() {
           <table className="tbl">
             <thead><tr><th>Účet</th><th>Členství</th><th>Poslední přihlášení</th><th></th></tr></thead>
             <tbody>
-              {loading && <tr><td colSpan={4} className="adm-mini" style={{ padding: 18 }}>Načítání...</td></tr>}
+              {loading && <tr><td colSpan={4} className="spin" style={{ padding: 18, display: 'table-cell' }}>Načítání</td></tr>}
               {!loading && filtered.length === 0 && <tr><td colSpan={4} className="adm-mini" style={{ padding: 18 }}>Nic nenalezeno.</td></tr>}
               {filtered.map((u) => (
                 <tr key={u.id}>

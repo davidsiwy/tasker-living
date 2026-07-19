@@ -17,3 +17,16 @@ createRoot(document.getElementById('root')!).render(
     </HashRouter>
   </React.StrictMode>,
 )
+
+// Remove the instant preloader once the app has painted. A short minimum keeps
+// it from flickering on fast loads; the fade is handled by CSS on #boot.
+const boot = document.getElementById('boot')
+if (boot) {
+  const start = Number(boot.dataset.t || 0) || performance.now()
+  const hide = () => {
+    boot.classList.add('boot-hide')
+    setTimeout(() => boot.remove(), 500)
+  }
+  const waited = performance.now() - start
+  setTimeout(hide, Math.max(0, 400 - waited))
+}

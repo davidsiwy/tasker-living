@@ -41,6 +41,55 @@
   </head>
   <body>
     <div id="root"></div>
+
+    <!-- Instant preloader: paints before the JS bundle downloads, so there is no
+         white flash. Removed by main.tsx once React mounts. -->
+    <div id="boot">
+      <div class="boot-stage">
+        <div class="boot-tile">
+          <svg class="boot-mark" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M14.7 6.3a1 1 0 0 0-1.4 0l-1.1 1.1a1 1 0 0 0 0 1.4l.3.3-6.2 6.2a2 2 0 0 0 2.8 2.8l6.2-6.2.3.3a1 1 0 0 0 1.4 0l1.1-1.1a1 1 0 0 0 0-1.4l-3.7-3.7Z" fill="#fff"/>
+            <path d="M8.5 4.2 6.3 5l-.8 2.2L6.3 9l2.2.8L10.3 9l.8-2.2L10.3 5 8.5 4.2Z" fill="#fff" opacity=".9"/>
+          </svg>
+        </div>
+        <div class="boot-roof">
+          <span></span><span></span><span></span>
+        </div>
+        <div class="boot-word">Tasker Living</div>
+      </div>
+    </div>
+
+    <style>
+      #boot{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;
+        background:radial-gradient(120% 90% at 50% 35%,#1a2a1c 0%,#12161D 55%,#0d1013 100%);
+        transition:opacity .45s ease,visibility .45s ease}
+      #boot.boot-hide{opacity:0;visibility:hidden;pointer-events:none}
+      .boot-stage{display:flex;flex-direction:column;align-items:center;gap:20px}
+      .boot-tile{width:74px;height:74px;border-radius:20px;background:#06C40A;
+        display:flex;align-items:center;justify-content:center;
+        box-shadow:0 16px 40px -10px rgba(6,196,10,.6),inset 0 0 0 1px rgba(255,255,255,.08);
+        animation:boot-pulse 1.7s cubic-bezier(.4,0,.2,1) infinite}
+      .boot-mark{width:42px;height:42px;animation:boot-rock 1.7s cubic-bezier(.45,.05,.35,1) infinite;transform-origin:60% 60%}
+      .boot-roof{display:flex;gap:6px;align-items:flex-end;height:22px}
+      .boot-roof span{width:10px;background:#06C40A;border-radius:3px;opacity:.25;
+        animation:boot-bars 1.4s ease-in-out infinite}
+      .boot-roof span:nth-child(1){height:12px;animation-delay:0s}
+      .boot-roof span:nth-child(2){height:22px;animation-delay:.18s}
+      .boot-roof span:nth-child(3){height:12px;animation-delay:.36s}
+      .boot-word{font-family:'Plus Jakarta Sans',system-ui,sans-serif;font-weight:800;
+        font-size:15px;letter-spacing:.04em;color:#fff;opacity:.92}
+      @keyframes boot-pulse{0%,100%{transform:scale(1);box-shadow:0 16px 40px -10px rgba(6,196,10,.6),inset 0 0 0 1px rgba(255,255,255,.08)}
+        50%{transform:scale(1.06);box-shadow:0 22px 52px -8px rgba(6,196,10,.85),inset 0 0 0 1px rgba(255,255,255,.14)}}
+      @keyframes boot-rock{0%,100%{transform:rotate(-8deg)}50%{transform:rotate(8deg)}}
+      @keyframes boot-bars{0%,100%{opacity:.22;transform:scaleY(.7)}50%{opacity:1;transform:scaleY(1)}}
+      .boot-roof span{transform-origin:bottom}
+      @media(prefers-reduced-motion:reduce){
+        .boot-tile,.boot-mark,.boot-roof span{animation-duration:0s}
+        .boot-tile{animation:boot-fade 1.4s ease-in-out infinite}
+        @keyframes boot-fade{0%,100%{opacity:.7}50%{opacity:1}}
+      }
+    </style>
+
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

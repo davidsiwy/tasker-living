@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
+import { Loader } from '../components/Loader'
 import { Navigate } from 'react-router-dom'
 import type { Role, AppNotification } from '../lib/types'
 import * as M from '../lib/mockData'
@@ -138,7 +139,7 @@ export function homeFor(isPlatformAdmin: boolean): string {
 // land on marketing. During session restore we wait rather than flash marketing.
 export function RootRoute({ marketing }: { marketing: ReactNode }) {
   const { user, loading, isPlatformAdmin, needsCode } = useSession()
-  if (loading) return <div style={{ padding: 40, color: 'var(--ink-3)' }}>Načítání...</div>
+  if (loading) return <Loader />
   if (needsCode) return <Navigate to="/kod" replace />
   if (user) return <Navigate to={homeFor(isPlatformAdmin)} replace />
   return <>{marketing}</>
@@ -154,7 +155,7 @@ export function PostLogin() {
 
 export function RequireOperator({ children }: { children: ReactNode }) {
   const { user, loading, isPlatformAdmin } = useSession()
-  if (loading) return <div style={{ padding: 40, color: 'var(--ink-3)' }}>Načítání...</div>
+  if (loading) return <Loader />
   if (!user) return <Navigate to="/prihlaseni" replace />
   if (!isPlatformAdmin) return <Navigate to="/app/prehled" replace />
   return <>{children}</>
@@ -162,7 +163,7 @@ export function RequireOperator({ children }: { children: ReactNode }) {
 
 export function RequireAuth({ children }: { children: ReactNode }) {
   const { user, loading, needsCode } = useSession()
-  if (loading) return <div style={{ padding: 40, color: 'var(--ink-3)' }}>Načítání...</div>
+  if (loading) return <Loader />
   if (needsCode) return <Navigate to="/kod" replace />
   if (!user) return <Navigate to="/prihlaseni" replace />
   return <>{children}</>

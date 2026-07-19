@@ -48,7 +48,7 @@ export function OrgsPage() {
             <table className="tbl">
               <thead><tr><th>Název</th><th>Členové</th><th>Jednotky</th><th>Příspěvky</th><th></th></tr></thead>
               <tbody>
-                {loading && <tr><td colSpan={5} className="adm-mini" style={{ padding: 18 }}>Načítání...</td></tr>}
+                {loading && <tr><td colSpan={5} className="spin" style={{ padding: 18, display: 'table-cell' }}>Načítání</td></tr>}
                 {buildings.map((b) => (
                   <tr key={b.id}>
                     <td><b style={{ fontWeight: 600 }}>{b.name}</b><br /><span className="adm-mini mono">{b.slug}</span></td>

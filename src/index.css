@@ -531,3 +531,24 @@
 
 /* The homepage now lives in features/marketing/landing.css (namespace .lp2).
    The .lp / .nav / .wrap / .band / .foot rules above stay for the legal pages. */
+
+/* ---------- In-app loader (matches boot preloader) ---------- */
+.loader{min-height:50vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:40px}
+.loader-tile{width:60px;height:60px;border-radius:17px;background:var(--green);display:flex;align-items:center;justify-content:center;box-shadow:0 14px 34px -12px rgba(6,196,10,.55);animation:ld-pulse 1.7s cubic-bezier(.4,0,.2,1) infinite}
+.loader-tile svg{width:34px;height:34px;transform-origin:60% 60%;animation:ld-rock 1.7s cubic-bezier(.45,.05,.35,1) infinite}
+.loader-bars{display:flex;gap:5px;align-items:flex-end;height:18px}
+.loader-bars span{width:8px;background:var(--green);border-radius:2.5px;opacity:.25;transform-origin:bottom;animation:ld-bars 1.4s ease-in-out infinite}
+.loader-bars span:nth-child(1){height:10px;animation-delay:0s}
+.loader-bars span:nth-child(2){height:18px;animation-delay:.18s}
+.loader-bars span:nth-child(3){height:10px;animation-delay:.36s}
+.loader-label{font-family:var(--fd);font-weight:700;font-size:13.5px;letter-spacing:.03em;color:var(--ink-3)}
+@keyframes ld-pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+@keyframes ld-rock{0%,100%{transform:rotate(-8deg)}50%{transform:rotate(8deg)}}
+@keyframes ld-bars{0%,100%{opacity:.22;transform:scaleY(.7)}50%{opacity:1;transform:scaleY(1)}}
+@media(prefers-reduced-motion:reduce){.loader-tile,.loader-tile svg,.loader-bars span{animation:none}.loader-tile{opacity:.85}}
+
+/* Inline mini-spinner for partial content (operator tables/sections) */
+.spin{display:inline-flex;align-items:center;gap:8px;color:var(--ink-3);font-size:13px}
+.spin::before{content:"";width:14px;height:14px;border-radius:50%;border:2px solid var(--green-100);border-top-color:var(--green);animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){.spin::before{animation-duration:0s}}

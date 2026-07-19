@@ -39,7 +39,7 @@ export function ActivityPage() {
       </div>
       <div className="card">
         <div className="card-h"><h3>Události</h3><span className="adm-mini">{filtered.length}</span></div>
-        {loading && <p className="adm-mini">Načítání...</p>}
+        {loading && <p className="spin">Načítání</p>}
         {!loading && filtered.map((a, i) => <ActRow key={i} a={a} />)}
         {!loading && filtered.length === 0 && <p className="adm-mini">Nic nenalezeno.</p>}
       </div>
@@ -74,7 +74,7 @@ export function OperatorsPage() {
       <div className="grid-2">
         <div className="card">
           <div className="card-h"><h3>Aktivní operátoři</h3><span className="adm-mini">{ops.length}</span></div>
-          {loading && <p className="adm-mini">Načítání...</p>}
+          {loading && <p className="spin">Načítání</p>}
           {ops.map((o) => (
             <div className="doc-row" key={o.userId}>
               <span className="cf-ic"><Icon name="sprava" small /></span>

@@ -2,6 +2,7 @@ import { lazy, Suspense, useEffect, Component } from 'react'
 import type { ReactNode } from 'react'
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { RequireAuth, RequireOperator, PostLogin, RootRoute } from './state/session'
+import { Loader } from './components/Loader'
 import AppShell from './components/AppShell'
 import MarketingPage from './features/marketing/MarketingPage'
 import AuthPage from './features/auth/AuthPage'
@@ -65,7 +66,7 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { err: Error | nu
   }
 }
 
-const Fallback = () => <div style={{ padding: 40, color: 'var(--ink-3)' }}>Načítání...</div>
+const Fallback = () => <Loader />
 
 export default function App() {
   return (
