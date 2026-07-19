@@ -10,6 +10,7 @@ import { useSession } from '../../state/session'
 import { useToast } from '../../components/Toast'
 import { Icon } from '../../components/Icon'
 import { SIcon } from '../../components/AppShell'
+import { exportBuilding } from '../../lib/exportBuilding'
 
 const money = (n: number) => n.toLocaleString('cs-CZ') + ' Kč'
 type Toast = (m: string) => void
@@ -526,6 +527,18 @@ function DocumentsAdmin() {
 }
 
 function BuildingSettingsTab({ toast, bid, isDemo, buildingName }: { toast: Toast; bid: string; isDemo: boolean; buildingName: string }) {
+  const [exp, setExp] = useState('')
+  async function doExport() {
+    if (exp) return
+    setExp('Připravuji export…')
+    try {
+      const { blob, filename, note } = await exportBuilding(bid, buildingName, setExp)
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a'); a.href = url; a.download = filename; a.click()
+      URL.revokeObjectURL(url)
+      toast('Export stažen' + (note ? ' · ' + note : ''))
+    } catch (e: any) { toast(e.message || 'Export selhal') } finally { setExp('') }
+  }
   const [account, setAccount] = useState('')
   const [recipient, setRecipient] = useState('')
   const [busy, setBusy] = useState(false)
@@ -577,6 +590,27 @@ function BuildingSettingsTab({ toast, bid, isDemo, buildingName }: { toast: Toas
           </div>
         ))}
         <p className="a-note" style={{ padding: '4px 16px 14px' }}>Integrace zapneme postupně. Ozvěte se, kterou potřebujete nejdřív.</p>
+      </div>
+
+      <div className="s-card" style={{ gridColumn: '1 / -1', padding: '18px 20px' }}>
+        <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+          <span style={{ width: 40, height: 40, borderRadius: 11, background: 'var(--s-green-050)', color: 'var(--s-green-ink)', display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none' }}><SIcon n="shield" /></span>
+          <div style={{ flex: 1, minWidth: 260 }}>
+            <b style={{ fontSize: 14, fontWeight: 800, display: 'block' }}>Data patří domu, ne nám</b>
+            <p style={{ fontSize: 12.5, color: 'var(--s-ink-2)', lineHeight: 1.55, margin: '6px 0 0' }}>
+              Kompletní export si stáhnete kdykoli sami: jednotky, členové, všechny platby, oznámení včetně
+              čtenosti po bytech, závady, hlasování s plnými mocemi, soužití i soubory dokumentů. CSV pro Excel,
+              JSON pro stroje. Ukončení služby: jedna zpráva na info@tasker.cz a do 30 dnů smažeme všechna
+              data domu z databáze i úložiště.
+            </p>
+            <div className="a-acts" style={{ marginTop: 12 }}>
+              <button className="s-btn s-dark sm" onClick={doExport} disabled={!!exp}>
+                {exp || 'Stáhnout kompletní export (ZIP)'}
+              </button>
+              {isDemo && <span className="a-note">v ukázce bez souborů dokumentů</span>}
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   )

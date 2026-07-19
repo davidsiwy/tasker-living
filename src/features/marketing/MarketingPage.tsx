@@ -231,7 +231,7 @@ export default function MarketingPage() {
     { q: 'Jak dlouho trvá spuštění a co pro to musíme udělat?', a: `Pošlete seznam jednotek a nájmů, my do ${OFFER.launch} připravíme celý dům a přístupové kódy. Nic neinstalujete, aplikace běží v prohlížeči i jako ikona na ploše telefonu.` },
     { q: 'Jak fungují platby nájmů a záloh?', a: 'Výbor jedním tlačítkem vystaví měsíční předpisy. Soused zaplatí QR kódem přímo na účet domu, peníze vám nikdy neprocházejí přes nás. Platbu potvrdíte jedním klikem, upomínka je taky na klik. Automatické párování z banky připravujeme.' },
     { q: 'Pokrývá aplikace povinnost internetových stránek SVJ?', a: 'Výbor dostane zabezpečený prostor pro oznámení, dokumenty, zápisy a hlasování, tedy způsob, jak zpřístupnit informace vlastníkům podle stanov. Konkrétní požadavky vašich stanov s vámi rádi projdeme.' },
-    { q: 'Jsou data domu v bezpečí a co s nimi, když skončíme?', a: 'Data jsou uložena v Evropské unii a chráněná právy podle rolí, každý vidí jen to, co má. Když skončíte, předáme vám export a data smažeme. Žádné držení dat jako rukojmí.' },
+    { q: 'Jsou data domu v bezpečí a co s nimi, když skončíme?', a: 'Data jsou uložena v Evropské unii a chráněná právy podle rolí, každý vidí jen to, co má. Kompletní export (platby, hlasování, čtenost, dokumenty) si výbor kdykoli stáhne sám v Nastavení domu. Když skončíte, do 30 dnů smažeme všechna data z databáze i úložiště. Žádné držení dat jako rukojmí.' },
     { q: 'Musíme kvůli tomu měnit správce nebo účetnictví?', a: 'Ne. Tasker Living doplňuje správce o komunikaci, platby a hlasování, které dnes řešíte ručně. Účetnictví i technická správa zůstávají, jak jste zvyklí.' },
   ]
 
