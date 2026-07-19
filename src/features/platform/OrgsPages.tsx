@@ -7,6 +7,7 @@ import type { Role, UnitFull } from '../../lib/types'
 import { platformApi, operatorApi } from '../../lib/platformApi'
 import type { OpCharge, PlatformBuilding, UnitRow } from '../../lib/platformApi'
 import { adminApi } from '../../lib/adminApi'
+import { BankCard } from '../../components/BankCard'
 import { api, currentPeriod, periodLabel, prevPeriod, nextPeriod } from '../../lib/api'
 import type { LiveMember, LiveCode } from '../../lib/adminApi'
 import { useToast } from '../../components/Toast'
@@ -307,6 +308,11 @@ export function OrgDetailPage() {
           </button>
         </div>
         <p className="adm-mini" style={{ marginTop: 8 }}>Z tohoto účtu se generují QR kódy plateb pro rezidenty. Bez vyplnění QR nefunguje.</p>
+      </div>
+
+      <div className="card" style={{ marginTop: 16 }}>
+        <div className="card-h"><h3>Napojení na banku</h3><span className="adm-mini">Fio · automatické párování</span></div>
+        <BankCard buildingId={bid} variant="op" toast={toast} />
       </div>
 
       <div className="card" style={{ marginTop: 16, borderColor: '#F3C1B8' }}>

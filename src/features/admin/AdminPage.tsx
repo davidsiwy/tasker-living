@@ -11,6 +11,7 @@ import { useToast } from '../../components/Toast'
 import { Icon } from '../../components/Icon'
 import { SIcon } from '../../components/AppShell'
 import { exportBuilding } from '../../lib/exportBuilding'
+import { BankCard } from '../../components/BankCard'
 
 const money = (n: number) => n.toLocaleString('cs-CZ') + ' Kč'
 type Toast = (m: string) => void
@@ -449,7 +450,7 @@ function Finance({ toast, bid }: { toast: Toast; bid: string }) {
             </tbody>
           </table>
         </div>
-        <div className="ad-tot">Upomínka pošle notifikaci členům jednotky v aplikaci. Automatické párování z banky připravujeme.</div>
+        <div className="ad-tot">Upomínka pošle notifikaci členům jednotky v aplikaci. Fio párování zapnete v záložce Nastavení domu.</div>
       </div>
     </>
   )
@@ -590,6 +591,11 @@ function BuildingSettingsTab({ toast, bid, isDemo, buildingName }: { toast: Toas
           </div>
         ))}
         <p className="a-note" style={{ padding: '4px 16px 14px' }}>Integrace zapneme postupně. Ozvěte se, kterou potřebujete nejdřív.</p>
+      </div>
+
+      <div className="s-card" style={{ gridColumn: '1 / -1', padding: '18px 20px' }}>
+        <b style={{ fontSize: 14, fontWeight: 800, display: 'block', marginBottom: 10 }}>Napojení na banku</b>
+        <BankCard buildingId={bid} variant="sh" toast={toast} />
       </div>
 
       <div className="s-card" style={{ gridColumn: '1 / -1', padding: '18px 20px' }}>

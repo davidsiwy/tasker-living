@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { bank } from '../../lib/bank'
 import { api, currentPeriod, periodLabel } from '../../lib/api'
 import type { Charge, BuildingSettings, ChargeStatus } from '../../lib/types'
 import { can } from '../../lib/types'
@@ -45,6 +46,20 @@ export default function RentPage() {
       api.getCharges(bid, period).then(setCharges).catch(console.error)
     }
   }, [bid, isResident, user?.unitId, period])
+
+  useEffect(() => {
+    // tiché dopárování z banky při otevření Plateb (výbor/developer, max 1x za 15 min)
+    if (!bank.available || !bid || isResident) return
+    const key = 'tl-banksync-' + bid
+    if (Date.now() - Number(sessionStorage.getItem(key) || 0) < 15 * 60e3) return
+    sessionStorage.setItem(key, String(Date.now()))
+    bank.status(bid).then((st) => {
+      if (!st?.enabled) return
+      bank.syncNow(bid).then((r) => {
+        if (r.matched > 0) { toast(`Banka: spárováno ${r.matched} plateb`); api.getCharges(bid, period).then(setCharges).catch(() => {}) }
+      }).catch(() => {})
+    }).catch(() => {})
+  }, [bid, isResident])
 
   const canPay = Boolean(settings.account)
 
@@ -314,8 +329,8 @@ export default function RentPage() {
           )}
 
           <div className="p-soon an" style={{ ['--d' as string]: '.14s' }}>
-            <b>Připravujeme:</b> automatické párování plateb z bankovního výpisu (FIO, ČS, KB).
-            Do té doby platbu potvrdíte jedním klikem.
+            <b>Párování s bankou:</b> Fio napojíte ve Správě domu → Nastavení a příchozí platby se
+            podle VS a částky potvrzují samy. ČS a KB připravujeme.
           </div>
         </div>
       </div>

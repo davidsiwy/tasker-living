@@ -308,6 +308,18 @@ export const api = {
     }))
   },
 
+  async getOpenCharges(buildingId: string): Promise<{ id: string; label: string }[]> {
+    if (!isSupabaseConfigured) {
+      await wait(60)
+      return demoCharges().filter((c) => c.status !== 'paid').map((c) => ({ id: c.id, label: `${c.unitLabel} · ${c.label} · ${c.amount.toLocaleString('cs-CZ')} Kč` }))
+    }
+    const { data, error } = await supabase!.from('charges')
+      .select('id, label, amount, period, units(label)').eq('building_id', buildingId).neq('status', 'paid')
+      .order('period', { ascending: false }).limit(120)
+    if (error) throw error
+    return (data || []).map((c: any) => ({ id: c.id, label: `${c.units?.label || ''} · ${c.label} ${periodLabel(c.period)} · ${Number(c.amount).toLocaleString('cs-CZ')} Kč` }))
+  },
+
   async generateCharges(buildingId: string, period: string): Promise<number> {
     if (!isSupabaseConfigured) { await wait(); return demoCharges().length }
     const units = await this.getUnitsFull(buildingId)
