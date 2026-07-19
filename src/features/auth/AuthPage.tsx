@@ -40,7 +40,7 @@ export default function AuthPage() {
   const [info, setInfo] = useState('')
   const [busy, setBusy] = useState(false)
 
-  function demoEnter(r: Role) { setRole(r); nav('/app/nastenka') }
+  function demoEnter(r: Role) { setRole(r); nav('/go') }
 
   async function submit() {
     if (busy) return

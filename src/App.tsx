@@ -1,7 +1,7 @@
 import { lazy, Suspense, useEffect, Component } from 'react'
 import type { ReactNode } from 'react'
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
-import { RequireAuth, RequireOperator, PostLogin } from './state/session'
+import { RequireAuth, RequireOperator, PostLogin, RootRoute } from './state/session'
 import AppShell from './components/AppShell'
 import MarketingPage from './features/marketing/MarketingPage'
 import AuthPage from './features/auth/AuthPage'
@@ -73,7 +73,7 @@ export default function App() {
       <TitleSync />
       <Suspense fallback={<Fallback />}>
         <Routes>
-          <Route path="/" element={<MarketingPage />} />
+          <Route path="/" element={<RootRoute marketing={<MarketingPage />} />} />
           <Route path="/prihlaseni" element={<AuthPage />} />
           <Route path="/kod" element={<CodePage />} />
           <Route path="/reset" element={<ResetPage />} />

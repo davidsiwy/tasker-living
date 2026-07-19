@@ -128,19 +128,35 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   return <C.Provider value={value}>{children}</C.Provider>
 }
 
+export function homeFor(isPlatformAdmin: boolean): string {
+  return isPlatformAdmin ? '/operator' : '/app/prehled'
+}
+
+// Root URL ("/"): a logged-in user goes straight to their dashboard, everyone
+// else sees the marketing page. "Logged in" means an actual user session — in
+// demo that's only true after a role is picked, so first-time visitors still
+// land on marketing. During session restore we wait rather than flash marketing.
+export function RootRoute({ marketing }: { marketing: ReactNode }) {
+  const { user, loading, isPlatformAdmin, needsCode } = useSession()
+  if (loading) return <div style={{ padding: 40, color: 'var(--ink-3)' }}>Načítání...</div>
+  if (needsCode) return <Navigate to="/kod" replace />
+  if (user) return <Navigate to={homeFor(isPlatformAdmin)} replace />
+  return <>{marketing}</>
+}
+
 export function PostLogin() {
   const { user, isPlatformAdmin, isDemo, needsCode } = useSession()
-  if (isDemo) return <Navigate to="/app/nastenka" replace />
+  if (isDemo) return <Navigate to="/app/prehled" replace />
   if (needsCode) return <Navigate to="/kod" replace />
   if (!user) return <div style={{ padding: 40, color: 'var(--ink-3)' }}>Přihlašování...</div>
-  return <Navigate to={isPlatformAdmin ? '/operator' : '/app/nastenka'} replace />
+  return <Navigate to={homeFor(isPlatformAdmin)} replace />
 }
 
 export function RequireOperator({ children }: { children: ReactNode }) {
   const { user, loading, isPlatformAdmin } = useSession()
   if (loading) return <div style={{ padding: 40, color: 'var(--ink-3)' }}>Načítání...</div>
   if (!user) return <Navigate to="/prihlaseni" replace />
-  if (!isPlatformAdmin) return <Navigate to="/app/nastenka" replace />
+  if (!isPlatformAdmin) return <Navigate to="/app/prehled" replace />
   return <>{children}</>
 }
 
