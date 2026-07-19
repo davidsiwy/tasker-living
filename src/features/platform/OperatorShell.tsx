@@ -3,7 +3,6 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useSession } from '../../state/session'
 import { Icon } from '../../components/Icon'
-import logo from '../../assets/logo-stacked.png'
 import type { ActivityRow } from '../../lib/platformApi'
 
 const OPNAV = [
@@ -23,7 +22,7 @@ export default function OperatorShell() {
   return (
     <div className="app">
       <aside className="side">
-        <div style={{ padding: '0 6px 4px' }}><img src={logo} alt="Tasker Living" style={{ width: 132 }} /></div>
+        <div className="op-brand"><span className="op-brand-dot" /><b>Tasker Living</b></div>
         <div className="side-lbl">Operátor platformy</div>
         {OPNAV.map((n) => (
           <NavLink key={n.id} to={'/operator' + (n.id ? '/' + n.id : '')} end={n.end}

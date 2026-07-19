@@ -98,6 +98,63 @@ export default function ClientsPage() {
       run(() => platformApi.deleteUser(u.id), 'Účet smazán')
   }
 
+  const Memberships = ({ u }: { u: PlatformUser }) => (
+    <>
+      {u.memberships.length === 0 && <span className="adm-mini">Žádné</span>}
+      {u.memberships.map((m) => (
+        <div key={m.membershipId} className="op-mem">
+          <span className="adm-mini op-mem-b">{m.building}</span>
+          <select className="input" value={m.unitId || ''} title="Jednotka"
+            onChange={(e) => run(() => platformApi.setMembershipUnit(m.membershipId, e.target.value || null), 'Jednotka změněna')}>
+            <option value="">Bez jednotky</option>
+            {(unitsByB[m.buildingId] || []).map((un) => <option key={un.id} value={un.id}>{un.label}</option>)}
+          </select>
+          <select className="input" value={m.role}
+            onChange={(e) => run(() => platformApi.setMembershipRole(m.membershipId, e.target.value as Role), 'Role změněna')}>
+            {(Object.keys(roleNames) as Role[]).map((r) => <option key={r} value={r}>{roleNames[r]}</option>)}
+          </select>
+          <button className="btn btn-ghost btn-sm op-mem-x" title="Odebrat z organizace"
+            onClick={() => window.confirm('Odebrat ' + (u.name || u.email) + ' z ' + m.building + '?') && run(() => platformApi.removeMembership(m.membershipId), 'Členství odebráno')}>
+            <Icon name="x" small />
+          </button>
+        </div>
+      ))}
+      {addFor === u.id ? (
+        <div className="op-mem op-add">
+          <select className="input" value={aBid} onChange={(e) => { setABid(e.target.value); setAUnit('') }}>
+            <option value="">Vyberte dům…</option>
+            {buildings.filter((b) => !u.memberships.some((m) => m.buildingId === b.id)).map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
+          </select>
+          <select className="input" value={aRole} onChange={(e) => setARole(e.target.value as Role)}>
+            {(Object.keys(roleNames) as Role[]).map((r) => <option key={r} value={r}>{roleNames[r]}</option>)}
+          </select>
+          {aBid && (
+            <select className="input" value={aUnit} onChange={(e) => setAUnit(e.target.value)}>
+              <option value="">Bez jednotky</option>
+              {(unitsByB[aBid] || []).map((un) => <option key={un.id} value={un.id}>{un.label}</option>)}
+            </select>
+          )}
+          <button className="btn btn-soft btn-sm" onClick={() => submitAdd(u)}>Přidat</button>
+          <button className="btn btn-ghost btn-sm" onClick={() => setAddFor('')}>Zrušit</button>
+        </div>
+      ) : (
+        <button className="btn btn-ghost btn-sm" style={{ padding: '2px 8px', marginTop: 4 }} onClick={() => { setAddFor(u.id); setABid(''); setARole('rezident'); setAUnit('') }}>
+          <Icon name="plus" small /> Přidat do domu
+        </button>
+      )}
+    </>
+  )
+
+  const Actions = ({ u }: { u: PlatformUser }) => (
+    <>
+      <button className="btn btn-ghost btn-sm" onClick={() => askName(u)}>Jméno</button>
+      <button className="btn btn-ghost btn-sm" onClick={() => askPassword(u)}>Heslo</button>
+      <button className="btn btn-ghost btn-sm" onClick={() => askEmail(u)}>E-mail</button>
+      {u.id !== me && <button className="btn btn-ghost btn-sm" onClick={() => toggleBan(u)}>{u.banned ? 'Odblokovat' : 'Blokovat'}</button>}
+      {u.id !== me && <button className="btn btn-ghost btn-sm op-danger" onClick={() => delUser(u)}>Smazat</button>}
+    </>
+  )
+
   return (
     <div>
       <div className="view-head">
@@ -134,13 +191,13 @@ export default function ClientsPage() {
       )}
 
       <div className="card" style={{ marginBottom: 16 }}>
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          <input className="input" style={{ flex: 2, minWidth: 180 }} placeholder="Hledat jméno nebo e-mail" value={q} onChange={(e) => setQ(e.target.value)} />
-          <select className="input" style={{ flex: 1, minWidth: 140 }} value={fOrg} onChange={(e) => setFOrg(e.target.value)}>
+        <div className="op-filters">
+          <input className="input" style={{ flex: 2, minWidth: 160 }} placeholder="Hledat jméno nebo e-mail" value={q} onChange={(e) => setQ(e.target.value)} />
+          <select className="input" style={{ flex: 1, minWidth: 130 }} value={fOrg} onChange={(e) => setFOrg(e.target.value)}>
             <option value="">Všechny organizace</option>
             {buildings.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
           </select>
-          <select className="input" style={{ flex: 1, minWidth: 130 }} value={fStatus} onChange={(e) => setFStatus(e.target.value)}>
+          <select className="input" style={{ flex: 1, minWidth: 120 }} value={fStatus} onChange={(e) => setFStatus(e.target.value)}>
             <option value="vse">Všichni</option>
             <option value="aktivni">Aktivní</option>
             <option value="blokovani">Blokovaní</option>
@@ -151,78 +208,57 @@ export default function ClientsPage() {
 
       <div className="card" style={{ padding: 0 }}>
         <div className="card-h" style={{ padding: '16px 18px 0' }}><h3>Účty</h3><span className="adm-mini">{filtered.length} z {users.length}</span></div>
-        <div style={{ overflowX: 'auto' }}>
-          <table className="tbl">
-            <thead><tr><th>Účet</th><th>Členství</th><th>Poslední přihlášení</th><th></th></tr></thead>
-            <tbody>
-              {loading && <tr><td colSpan={4} className="spin" style={{ padding: 18, display: 'table-cell' }}>Načítání</td></tr>}
-              {!loading && filtered.length === 0 && <tr><td colSpan={4} className="adm-mini" style={{ padding: 18 }}>Nic nenalezeno.</td></tr>}
-              {filtered.map((u) => (
-                <tr key={u.id}>
-                  <td>
-                    <b style={{ fontWeight: 600 }}>{u.name || 'Bez jména'}</b>
+
+        {loading && <div style={{ padding: 18 }}><span className="spin">Načítání</span></div>}
+        {!loading && filtered.length === 0 && <p className="adm-mini" style={{ padding: 18 }}>Nic nenalezeno.</p>}
+
+        {/* Desktop: table */}
+        {!loading && filtered.length > 0 && (
+          <div className="hide-mobile" style={{ overflowX: 'auto' }}>
+            <table className="tbl">
+              <thead><tr><th>Účet</th><th>Členství</th><th>Poslední přihlášení</th><th></th></tr></thead>
+              <tbody>
+                {filtered.map((u) => (
+                  <tr key={u.id}>
+                    <td>
+                      <b style={{ fontWeight: 600 }}>{u.name || 'Bez jména'}</b>
+                      {u.banned && <span className="pill pill-bad" style={{ marginLeft: 6 }}>Blokován</span>}
+                      {u.id === me && <span className="pill pill-ok" style={{ marginLeft: 6 }}>Vy</span>}
+                      <br /><span className="adm-mini">{u.email} · od {u.created}</span>
+                    </td>
+                    <td><Memberships u={u} /></td>
+                    <td className="adm-mini">{u.lastLogin}</td>
+                    <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}><Actions u={u} /></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {/* Mobile: cards */}
+        {!loading && filtered.length > 0 && (
+          <div className="show-mobile op-cards">
+            {filtered.map((u) => (
+              <div className="op-card" key={u.id}>
+                <div className="op-card-top">
+                  <div style={{ minWidth: 0 }}>
+                    <b>{u.name || 'Bez jména'}</b>
                     {u.banned && <span className="pill pill-bad" style={{ marginLeft: 6 }}>Blokován</span>}
                     {u.id === me && <span className="pill pill-ok" style={{ marginLeft: 6 }}>Vy</span>}
-                    <br /><span className="adm-mini">{u.email} · od {u.created}</span>
-                  </td>
-                  <td>
-                    {u.memberships.length === 0 && <span className="adm-mini">Žádné</span>}
-                    {u.memberships.map((m) => (
-                      <div key={m.membershipId} style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4, flexWrap: 'wrap' }}>
-                        <span className="adm-mini">{m.building}</span>
-                        <select className="input" style={{ padding: '2px 6px', fontSize: 12, width: 'auto' }} value={m.unitId || ''}
-                          title="Jednotka"
-                          onChange={(e) => run(() => platformApi.setMembershipUnit(m.membershipId, e.target.value || null), 'Jednotka změněna')}>
-                          <option value="">Bez jednotky</option>
-                          {(unitsByB[m.buildingId] || []).map((un) => <option key={un.id} value={un.id}>{un.label}</option>)}
-                        </select>
-                        <select className="input" style={{ padding: '2px 6px', fontSize: 12, width: 'auto' }} value={m.role}
-                          onChange={(e) => run(() => platformApi.setMembershipRole(m.membershipId, e.target.value as Role), 'Role změněna')}>
-                          {(Object.keys(roleNames) as Role[]).map((r) => <option key={r} value={r}>{roleNames[r]}</option>)}
-                        </select>
-                        <button className="btn btn-ghost btn-sm" style={{ padding: '2px 8px' }} title="Odebrat z organizace"
-                          onClick={() => window.confirm('Odebrat ' + (u.name || u.email) + ' z ' + m.building + '?') && run(() => platformApi.removeMembership(m.membershipId), 'Členství odebráno')}>
-                          <Icon name="x" small />
-                        </button>
-                      </div>
-                    ))}
-                    {addFor === u.id ? (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 6, flexWrap: 'wrap' }}>
-                        <select className="input" style={{ padding: '2px 6px', fontSize: 12, width: 'auto' }} value={aBid} onChange={(e) => { setABid(e.target.value); setAUnit('') }}>
-                          <option value="">Vyberte dům…</option>
-                          {buildings.filter((b) => !u.memberships.some((m) => m.buildingId === b.id)).map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
-                        </select>
-                        <select className="input" style={{ padding: '2px 6px', fontSize: 12, width: 'auto' }} value={aRole} onChange={(e) => setARole(e.target.value as Role)}>
-                          {(Object.keys(roleNames) as Role[]).map((r) => <option key={r} value={r}>{roleNames[r]}</option>)}
-                        </select>
-                        {aBid && (
-                          <select className="input" style={{ padding: '2px 6px', fontSize: 12, width: 'auto' }} value={aUnit} onChange={(e) => setAUnit(e.target.value)}>
-                            <option value="">Bez jednotky</option>
-                            {(unitsByB[aBid] || []).map((un) => <option key={un.id} value={un.id}>{un.label}</option>)}
-                          </select>
-                        )}
-                        <button className="btn btn-soft btn-sm" style={{ padding: '2px 10px' }} onClick={() => submitAdd(u)}>Přidat</button>
-                        <button className="btn btn-ghost btn-sm" style={{ padding: '2px 8px' }} onClick={() => setAddFor('')}>Zrušit</button>
-                      </div>
-                    ) : (
-                      <button className="btn btn-ghost btn-sm" style={{ padding: '2px 8px', marginTop: 2 }} onClick={() => { setAddFor(u.id); setABid(''); setARole('rezident'); setAUnit('') }}>
-                        <Icon name="plus" small /> Přidat do domu
-                      </button>
-                    )}
-                  </td>
-                  <td className="adm-mini">{u.lastLogin}</td>
-                  <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
-                    <button className="btn btn-ghost btn-sm" onClick={() => askName(u)}>Jméno</button>
-                    <button className="btn btn-ghost btn-sm" onClick={() => askPassword(u)}>Heslo</button>
-                    <button className="btn btn-ghost btn-sm" onClick={() => askEmail(u)}>E-mail</button>
-                    {u.id !== me && <button className="btn btn-ghost btn-sm" onClick={() => toggleBan(u)}>{u.banned ? 'Odblokovat' : 'Blokovat'}</button>}
-                    {u.id !== me && <button className="btn btn-ghost btn-sm" onClick={() => delUser(u)}>Smazat</button>}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                    <div className="adm-mini" style={{ wordBreak: 'break-all' }}>{u.email}</div>
+                    <div className="adm-mini">od {u.created} · přihlášení {u.lastLogin}</div>
+                  </div>
+                </div>
+                <div className="op-card-sec">
+                  <div className="op-card-lbl">Členství</div>
+                  <Memberships u={u} />
+                </div>
+                <div className="op-card-acts"><Actions u={u} /></div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   )

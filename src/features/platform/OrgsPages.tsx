@@ -45,15 +45,15 @@ export function OrgsPage() {
         <div className="card" style={{ padding: 0 }}>
           <div className="card-h" style={{ padding: '16px 18px 0' }}><h3>Seznam</h3><span className="adm-mini">{buildings.length} organizací</span></div>
           <div style={{ overflowX: 'auto' }}>
-            <table className="tbl">
+            <table className="tbl tbl-cards">
               <thead><tr><th>Název</th><th>Členové</th><th>Jednotky</th><th>Příspěvky</th><th></th></tr></thead>
               <tbody>
                 {loading && <tr><td colSpan={5} className="spin" style={{ padding: 18, display: 'table-cell' }}>Načítání</td></tr>}
                 {buildings.map((b) => (
                   <tr key={b.id}>
-                    <td><b style={{ fontWeight: 600 }}>{b.name}</b><br /><span className="adm-mini mono">{b.slug}</span></td>
-                    <td>{b.members}</td><td>{b.units}</td><td>{b.posts}</td>
-                    <td style={{ textAlign: 'right' }}><Link className="btn btn-ghost btn-sm" to={'/operator/organizace/' + b.id}>Spravovat</Link></td>
+                    <td data-label="Název"><b style={{ fontWeight: 600 }}>{b.name}</b><br /><span className="adm-mini mono">{b.slug}</span></td>
+                    <td data-label="Členové">{b.members}</td><td data-label="Jednotky">{b.units}</td><td data-label="Příspěvky">{b.posts}</td>
+                    <td data-label="" style={{ textAlign: 'right' }}><Link className="btn btn-ghost btn-sm" to={'/operator/organizace/' + b.id}>Spravovat</Link></td>
                   </tr>
                 ))}
               </tbody>
@@ -145,7 +145,7 @@ export function OrgDetailPage() {
   }
 
   return (
-    <div>
+    <div className="op-orgdetail">
       <div className="view-head">
         <div>
           <h1>{org.name}</h1>
@@ -166,18 +166,18 @@ export function OrgDetailPage() {
             <button className="btn btn-soft btn-sm" onClick={addUnit}><Icon name="plus" small /> Přidat</button>
           </div>
           <div style={{ overflowX: 'auto' }}>
-            <table className="tbl">
+            <table className="tbl tbl-cards">
               <thead><tr><th>Jednotka</th><th>Nájemník</th><th>Nájem</th><th>Členů</th><th></th></tr></thead>
               <tbody>
                 {fullUnits.map((fu) => {
                   const cnt = units.find((x) => x.id === fu.id)?.members || 0
                   return (
                     <tr key={fu.id}>
-                      <td className="mono" style={{ fontWeight: 600 }}>{fu.label}</td>
-                      <td>{fu.tenant || <span className="adm-mini">volné</span>}</td>
-                      <td className="mono">{fu.rent ? fu.rent.toLocaleString('cs-CZ') + ' Kč' : ''}</td>
-                      <td className="adm-mini">{cnt}</td>
-                      <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
+                      <td data-label="Jednotka" className="mono" style={{ fontWeight: 600 }}>{fu.label}</td>
+                      <td data-label="Nájemník">{fu.tenant || <span className="adm-mini">volné</span>}</td>
+                      <td data-label="Nájem" className="mono">{fu.rent ? fu.rent.toLocaleString('cs-CZ') + ' Kč' : ''}</td>
+                      <td data-label="Členů" className="adm-mini">{cnt}</td>
+                      <td data-label="" style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
                         <button className="btn btn-ghost btn-sm" onClick={() => setEditU({ ...fu })}>Upravit</button>
                         <button className="btn btn-ghost btn-sm" onClick={() => delUnit({ id: fu.id, label: fu.label, members: cnt })}><Icon name="x" small /></button>
                       </td>
@@ -222,22 +222,22 @@ export function OrgDetailPage() {
       <div className="card" style={{ marginTop: 16, padding: 0 }}>
         <div className="card-h" style={{ padding: '16px 18px 0' }}><h3>Členové</h3><span className="adm-mini">{members.length} osob</span></div>
         <div style={{ overflowX: 'auto' }}>
-          <table className="tbl">
+          <table className="tbl tbl-cards">
             <thead><tr><th>Jméno</th><th>Jednotka</th><th>Role</th><th></th></tr></thead>
             <tbody>
               {members.length === 0 && <tr><td colSpan={4} className="adm-mini" style={{ padding: 18 }}>Zatím nikdo. Založte účet v Klientech nebo pošlete kód.</td></tr>}
               {members.map((m) => (
                 <tr key={m.membershipId}>
-                  <td><b style={{ fontWeight: 600 }}>{m.name}</b><br /><span className="adm-mini">{m.email || 'bez e-mailu'} · od {m.since}</span></td>
-                  <td className="mono">{m.unit || <span className="adm-mini">bez jednotky</span>}</td>
-                  <td>
+                  <td data-label="Jméno"><b style={{ fontWeight: 600 }}>{m.name}</b><br /><span className="adm-mini">{m.email || 'bez e-mailu'} · od {m.since}</span></td>
+                  <td data-label="Jednotka" className="mono">{m.unit || <span className="adm-mini">bez jednotky</span>}</td>
+                  <td data-label="Role">
                     <select className="input" style={{ padding: '4px 8px', fontSize: 12.5, width: 'auto' }} value={m.role}
                       onChange={(e) => run(() => platformApi.setMembershipRole(m.membershipId, e.target.value as Role), 'Role změněna')}
                       disabled={m.userId === user?.userId}>
                       {(Object.keys(roleNames) as Role[]).map((r) => <option key={r} value={r}>{roleNames[r]}</option>)}
                     </select>
                   </td>
-                  <td style={{ textAlign: 'right' }}>
+                  <td data-label="" style={{ textAlign: 'right' }}>
                     {m.userId !== user?.userId && (
                       <button className="btn btn-ghost btn-sm"
                         onClick={() => window.confirm(`Odebrat ${m.name} z organizace?`) && run(() => platformApi.removeMembership(m.membershipId), 'Člen odebrán')}>
@@ -253,9 +253,9 @@ export function OrgDetailPage() {
       </div>
 
       <div className="card" style={{ marginTop: 16, padding: 0 }}>
-        <div className="card-h" style={{ padding: '16px 18px 0', flexWrap: 'wrap', gap: 10 }}>
+        <div className="card-h op-pay-head" style={{ padding: '16px 18px 0', flexWrap: 'wrap', gap: 10 }}>
           <h3>Platby</h3>
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <div className="op-pay-nav" style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
             <button className="btn btn-ghost btn-sm" onClick={() => setPeriod(prevPeriod(period))}>‹</button>
             <span className="mono" style={{ fontSize: 12.5, minWidth: 110, textAlign: 'center' }}>{periodLabel(period)}</span>
             <button className="btn btn-ghost btn-sm" onClick={() => setPeriod(nextPeriod(period))}>›</button>
@@ -263,17 +263,17 @@ export function OrgDetailPage() {
           </div>
         </div>
         <div style={{ overflowX: 'auto' }}>
-          <table className="tbl">
+          <table className="tbl tbl-cards">
             <thead><tr><th>Jednotka</th><th>Položka</th><th>Částka</th><th>VS</th><th>Splatnost</th><th>Stav</th><th></th></tr></thead>
             <tbody>
               {charges.map((c) => (
                 <tr key={c.id}>
-                  <td className="mono">{c.unit}</td>
-                  <td>{c.label}</td>
-                  <td>{c.amount.toLocaleString('cs-CZ')} Kč</td>
-                  <td className="mono">{c.vs}</td>
-                  <td>{c.due}</td>
-                  <td>
+                  <td data-label="Jednotka" className="mono">{c.unit}</td>
+                  <td data-label="Položka">{c.label}</td>
+                  <td data-label="Částka">{c.amount.toLocaleString('cs-CZ')} Kč</td>
+                  <td data-label="VS" className="mono">{c.vs}</td>
+                  <td data-label="Splatnost">{c.due}</td>
+                  <td data-label="Stav">
                     <select className="input" style={{ padding: '4px 8px', fontSize: 12.5, width: 'auto' }} value={c.status}
                       onChange={(e) => run(async () => { await platformApi.setChargeStatus(c.id, e.target.value as any); setCharges(await platformApi.chargesOf(bid, period)) }, 'Stav platby upraven')}>
                       <option value="unpaid">Nezaplaceno</option>
@@ -281,7 +281,7 @@ export function OrgDetailPage() {
                       <option value="paid">Zaplaceno</option>
                     </select>
                   </td>
-                  <td style={{ textAlign: 'right' }}>
+                  <td data-label="" style={{ textAlign: 'right' }}>
                     <button className="btn btn-ghost btn-sm" title="Smazat chybný předpis"
                       onClick={() => window.confirm(`Smazat předpis ${c.label} pro ${c.unit} (${c.amount.toLocaleString('cs-CZ')} Kč)?`) && run(async () => { await platformApi.deleteCharge(c.id); setCharges(await platformApi.chargesOf(bid, period)) }, 'Předpis smazán')}>
                       <Icon name="x" small />
