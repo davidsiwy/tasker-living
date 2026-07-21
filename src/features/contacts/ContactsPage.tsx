@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { api } from '../../lib/api'
 import type { Neighbor } from '../../lib/types'
 import { useSession } from '../../state/session'
@@ -11,6 +12,7 @@ const ini = (name: string) => name.split(' ').map((x) => x[0]).join('').slice(0,
 // Sousedé (handoff 4f): adresář domu. Viditelnost telefonu je dobrovolná,
 // napsat můžete komukoli i bez zveřejněného čísla — zprávy vidí jen vy dva.
 export default function ContactsPage() {
+  const { t } = useTranslation(['contacts', 'common'])
   const { user, isDemo } = useSession()
   const toast = useToast()
   const bid = user?.buildingId || ''
@@ -36,9 +38,9 @@ export default function ContactsPage() {
     try {
       await api.saveMyProfile({ shareContact: !meShares })
       setMeShares(!meShares)
-      toast(meShares ? 'Váš telefon je teď skrytý' : 'Sousedé teď vidí vaše číslo')
+      toast(meShares ? t('contacts:toastNowHidden') : t('contacts:toastNowVisible'))
       reload()
-    } catch (e: any) { toast(e.message || 'Uložení selhalo') }
+    } catch (e: any) { toast(e.message || t('contacts:toastSaveFailed')) }
   }
   async function openChat(n: Neighbor) {
     setChatWith(n); setText('')
@@ -49,10 +51,10 @@ export default function ContactsPage() {
   }
   function closeChat() { unsub.current(); unsub.current = () => {}; setChatWith(null) }
   async function send() {
-    const t = text.trim(); if (!t || !chatWith) return
+    const msg = text.trim(); if (!msg || !chatWith) return
     setText('')
-    try { const m = await dm.send(bid, chatWith.userId || chatWith.unit, t); setMsgs((s) => [...s, m]) }
-    catch (e: any) { toast(e.message || 'Odeslání selhalo') }
+    try { const m = await dm.send(bid, chatWith.userId || chatWith.unit, msg); setMsgs((s) => [...s, m]) }
+    catch (e: any) { toast(e.message || t('contacts:toastSendFailed')) }
   }
   function call(n: Neighbor) { if (n.phone) window.location.href = 'tel:' + n.phone.replace(/\s/g, '') }
 
@@ -65,20 +67,20 @@ export default function ContactsPage() {
     <>
       <div className="d-hi">
         <div>
-          <h2>Sousedé</h2>
-          <p>Adresář domu. Telefon sdílíte, jen když chcete — napsat můžete komukoli.</p>
+          <h2>{t('contacts:title')}</h2>
+          <p>{t('contacts:subtitle')}</p>
         </div>
-        <span className="d-live"><i style={{ background: 'var(--s-green)' }} />{others.length} sousedů · {sharing} sdílí číslo</span>
+        <span className="d-live"><i style={{ background: 'var(--s-green)' }} />{t('contacts:neighborCount', { count: others.length })} · {t('contacts:sharingCount', { count: sharing })}</span>
       </div>
 
       {!isMinority && (
         <div className="n-me an">
           <span className="ic"><SIcon n="people" /></span>
           <div style={{ flex: 1 }}>
-            <b>Moje viditelnost v adresáři</b>
-            <span>{meShares ? 'sousedé vidí vaše jméno a telefon' : 'vaše číslo je skryté, zprávy vám ale i tak mohou přijít'}</span>
+            <b>{t('contacts:visibilityTitle')}</b>
+            <span>{meShares ? t('contacts:visibilityOn') : t('contacts:visibilityOff')}</span>
           </div>
-          <button className={'a-tog' + (meShares ? ' on' : '')} onClick={toggleMe} aria-pressed={meShares} aria-label="Viditelnost" />
+          <button className={'a-tog' + (meShares ? ' on' : '')} onClick={toggleMe} aria-pressed={meShares} aria-label={t('contacts:visibilityTitle')} />
         </div>
       )}
 
@@ -92,16 +94,16 @@ export default function ContactsPage() {
             </div>
             <div className="n-act">
               {n.shares && n.phone
-                ? <button className="n-ib" onClick={() => call(n)} aria-label="Volat"><SIcon n="phone" s={15} /></button>
-                : <span className="n-hidden">skryto</span>}
-              <button className="n-ib" onClick={() => openChat(n)} aria-label="Napsat"><SIcon n="chat" s={15} /></button>
+                ? <button className="n-ib" onClick={() => call(n)} aria-label={t('contacts:call')}><SIcon n="phone" s={15} /></button>
+                : <span className="n-hidden">{t('contacts:hidden')}</span>}
+              <button className="n-ib" onClick={() => openChat(n)} aria-label={t('contacts:write')}><SIcon n="chat" s={15} /></button>
             </div>
           </div>
         ))}
       </div>
       {others.length === 0 && (
         <div className="d-empty" style={{ background: '#fff', border: '1px solid var(--s-line)', borderRadius: 14, marginTop: 14 }}>
-          Zatím tu kromě vás nikdo není. Sousedé se objeví, jakmile se připojí přístupovým kódem ke svému bytu.
+          {t('contacts:empty')}
         </div>
       )}
 
@@ -116,11 +118,11 @@ export default function ContactsPage() {
                   <span className="s-mono" style={{ fontSize: 11, color: 'var(--s-muted)' }}>{chatWith.unit}{chatWith.floor ? ' · ' + chatWith.floor : ''}</span>
                 </div>
               </div>
-              <button className="s-btn s-ghost sm" onClick={closeChat}>Zavřít</button>
+              <button className="s-btn s-ghost sm" onClick={closeChat}>{t('contacts:close')}</button>
             </div>
             <div className="modal-b">
               <div className="ch-scroll" ref={scrollRef}>
-                {msgs.length === 0 && <p className="a-note" style={{ textAlign: 'center', padding: '20px 0' }}>Začátek konverzace. Zprávy vidíte jen vy dva.</p>}
+                {msgs.length === 0 && <p className="a-note" style={{ textAlign: 'center', padding: '20px 0' }}>{t('contacts:chatStart')}</p>}
                 {msgs.map((m) => (
                   <div className={'ch-b ' + (m.from === 'me' ? 'me' : 'them')} key={m.id}>
                     {m.text}<span className="bt">{m.at}</span>
@@ -128,11 +130,11 @@ export default function ContactsPage() {
                 ))}
               </div>
               <div className="ch-in">
-                <input placeholder="Napište zprávu…" value={text} onChange={(e) => setText(e.target.value)}
+                <input placeholder={t('contacts:messagePlaceholder')} value={text} onChange={(e) => setText(e.target.value)}
                   onKeyDown={(e) => { if (e.key === 'Enter') send() }} />
-                <button className="s-btn s-primary" onClick={send}>Odeslat</button>
+                <button className="s-btn s-primary" onClick={send}>{t('contacts:send')}</button>
               </div>
-              {isDemo && <p className="a-note" style={{ marginTop: 8 }}>Ukázková konverzace. V provozu se zprávy doručí druhé straně okamžitě.</p>}
+              {isDemo && <p className="a-note" style={{ marginTop: 8 }}>{t('contacts:demoNote')}</p>}
             </div>
           </div>
         </div>
