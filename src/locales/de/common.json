@@ -85,5 +85,14 @@
     "parking": "Parken",
     "pets": "Haustiere",
     "other": "Sonstiges"
+  },
+  "docCat": {
+    "bylaws": "Satzung & Recht",
+    "minutes": "Protokolle",
+    "billing": "Abrechnungen",
+    "inspections": "Revisionen",
+    "contracts": "Verträge",
+    "meetings": "Versammlungen",
+    "other": "Sonstiges"
   }
 }

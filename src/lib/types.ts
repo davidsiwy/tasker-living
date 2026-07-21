@@ -83,6 +83,14 @@ export const COMPLAINT_TYPE_KEYS: Record<string, string> = {
 export const complaintTypeLabel = (ty: string, t: (k: string) => string): string =>
   COMPLAINT_TYPE_KEYS[ty] ? t(`common:complaintType.${COMPLAINT_TYPE_KEYS[ty]}`) : ty
 
+// Sedm pevných kategorií dokumentů — stejný vzor jako fault/complaint výše.
+export const DOC_CAT_KEYS: Record<string, string> = {
+  'Stanovy a právní': 'bylaws', 'Zápisy': 'minutes', 'Vyúčtování': 'billing', 'Revize': 'inspections',
+  'Smlouvy': 'contracts', 'Schůze': 'meetings', 'Ostatní': 'other',
+}
+export const docCatLabel = (cat: string, t: (k: string) => string): string =>
+  DOC_CAT_KEYS[cat] ? t(`common:docCat.${DOC_CAT_KEYS[cat]}`) : cat
+
 // Stejný vzor jako faultStatusLabel — 'paid'/'awaiting'/'unpaid' jsou
 // hodnoty ChargeStatus používané k porovnávání napříč appkou (Dashboard,
 // Sprava, Platby), tohle je jen sdílené zobrazovací mapování, aby se

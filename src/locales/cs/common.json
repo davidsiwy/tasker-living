@@ -88,5 +88,14 @@
     "parking": "Parkování",
     "pets": "Zvířata",
     "other": "Jiné"
+  },
+  "docCat": {
+    "bylaws": "Stanovy a právní",
+    "minutes": "Zápisy",
+    "billing": "Vyúčtování",
+    "inspections": "Revize",
+    "contracts": "Smlouvy",
+    "meetings": "Schůze",
+    "other": "Ostatní"
   }
 }

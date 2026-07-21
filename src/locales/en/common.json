@@ -85,5 +85,14 @@
     "parking": "Parking",
     "pets": "Pets",
     "other": "Other"
+  },
+  "docCat": {
+    "bylaws": "Bylaws & legal",
+    "minutes": "Minutes",
+    "billing": "Billing",
+    "inspections": "Inspections",
+    "contracts": "Contracts",
+    "meetings": "Meetings",
+    "other": "Other"
   }
 }
