@@ -1,0 +1,15 @@
+{
+  "title": "Hauskalender",
+  "subtitle": "Versammlungen, Fälligkeiten, Abstellungen und Services an einem Ort.",
+  "today": "Heute",
+  "prevMonth": "Vorheriger Monat",
+  "nextMonth": "Nächster Monat",
+  "kind": { "schuze": "Versammlung", "platba": "Fälligkeit", "udalost": "Ereignis", "sluzba": "Service", "odstavka": "Abstellung" },
+  "fromToday": "Ab heute",
+  "fromDate": "Ab {{date}}",
+  "upcoming": "Bevorstehend",
+  "eventCount_one": "{{count}} Ereignis im Haus",
+  "eventCount_other": "{{count}} Ereignisse im Haus",
+  "emptyAgenda": "Ab dem gewählten Tag ist nichts geplant. Wählen Sie einen früheren Tag oder Monat.",
+  "todayPrefix": "Heute"
+}

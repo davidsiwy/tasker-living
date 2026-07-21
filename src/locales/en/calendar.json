@@ -1,0 +1,15 @@
+{
+  "title": "Building Calendar",
+  "subtitle": "Meetings, payments due, service interruptions, and bookings all in one place.",
+  "today": "Today",
+  "prevMonth": "Previous month",
+  "nextMonth": "Next month",
+  "kind": { "schuze": "Meeting", "platba": "Payment due", "udalost": "Event", "sluzba": "Service", "odstavka": "Service interruption" },
+  "fromToday": "From today",
+  "fromDate": "From {{date}}",
+  "upcoming": "Upcoming",
+  "eventCount_one": "{{count}} event in the building",
+  "eventCount_other": "{{count}} events in the building",
+  "emptyAgenda": "Nothing planned from the selected day. Try an earlier day or month.",
+  "todayPrefix": "Today"
+}

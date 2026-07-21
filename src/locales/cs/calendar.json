@@ -1,0 +1,16 @@
+{
+  "title": "Kalendář domu",
+  "subtitle": "Schůze, splatnosti, odstávky i služby na jednom místě.",
+  "today": "Dnes",
+  "prevMonth": "Předchozí měsíc",
+  "nextMonth": "Další měsíc",
+  "kind": { "schuze": "Schůze", "platba": "Splatnost", "udalost": "Událost", "sluzba": "Služba", "odstavka": "Odstávka" },
+  "fromToday": "Ode dneška",
+  "fromDate": "Od {{date}}",
+  "upcoming": "Nadcházející",
+  "eventCount_one": "{{count}} událost v domě",
+  "eventCount_few": "{{count}} události v domě",
+  "eventCount_other": "{{count}} událostí v domě",
+  "emptyAgenda": "Od vybraného dne nic naplánováno. Vyberte dřívější den nebo měsíc.",
+  "todayPrefix": "Dnes"
+}
