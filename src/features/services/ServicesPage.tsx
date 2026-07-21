@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { api } from '../../lib/api'
 import * as M from '../../lib/mockData'
 import type { Service, Booking } from '../../lib/types'
@@ -16,12 +17,18 @@ const SG: Record<string, string> = {
   odpad: '<path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13"/>',
   malovani: '<rect x="4" y="3" width="12" height="7" rx="1.5"/><path d="M16 6h3v5h-7v3M12 14v7"/>',
 }
-const worker = { name: 'Marek P.', ini: 'MP', rating: '4,9', jobs: 132 }
-const SLOTS = ['Čt 14:00', 'Pá 9:00', 'Pá 16:00']
+const worker = { name: 'Marek P.', ini: 'MP', jobs: 132 }
 
 // Služby Tasker (handoff 4g): moat udělaný konkrétním. Soused objedná ověřeného
 // pracovníka přímo z aplikace domu — to nikdo jiný v téhle kategorii nemá.
+//
+// Katalog služeb (M.services) je sdílený tasker-wide, ne za dům, ale jméno/
+// popis v mockData.ts zůstávají česky — id (uklid/handyman/...) je stabilní
+// klíč nezávislý na jazyce, takže tady mapujeme na preklad přes services:catalog.<id>
+// místo úpravy samotného mockData.ts (to zůstává mimo scope, viz poznámky k i18n).
 export default function ServicesPage() {
+  const { t } = useTranslation(['services', 'marketing', 'common'])
+  const SLOTS = [t('marketing:moat.slotA'), t('marketing:moat.slotB'), t('marketing:moat.slotC')]
   const { user, isDemo } = useSession()
   const toast = useToast()
   const bid = user?.buildingId || ''
@@ -29,9 +36,13 @@ export default function ServicesPage() {
   const [services] = useState<Service[]>(M.services)
   const [bookings, setBookings] = useState<Booking[]>([])
   const [pick, setPick] = useState<Service | null>(null)
-  const [slot, setSlot] = useState(SLOTS[0])
+  const [slotIdx, setSlotIdx] = useState(0)
+  const slot = SLOTS[slotIdx]
   const [note, setNote] = useState('')
   const [busy, setBusy] = useState(false)
+
+  const serviceName = (s: Service) => t(`services:catalog.${s.id}.name`, { defaultValue: s.name })
+  const serviceDesc = (s: Service) => t(`services:catalog.${s.id}.desc`, { defaultValue: s.desc })
 
   useEffect(() => { if (bid) api.getBookings(bid).then(setBookings).catch(console.error) }, [bid])
 
@@ -43,23 +54,23 @@ export default function ServicesPage() {
     try {
       const b = await api.createBooking(bid, pick.name, `${slot}${note.trim() ? ' · ' + note.trim() : ''}`)
       setBookings((s) => [b, ...s]); setPick(null); setNote('')
-      toast('Objednáno. Dispečink potvrdí termín.')
+      toast(t('services:toastOrdered'))
       if (isDemo) {
         const assigned = await api.demoAssignWorker(b.id)
-        if (assigned) { setBookings((s) => s.map((x) => (x.id === b.id ? assigned : x))); toast(`${assigned.worker} přiřazen`) }
+        if (assigned) { setBookings((s) => s.map((x) => (x.id === b.id ? assigned : x))); toast(t('services:toastAssigned', { worker: assigned.worker })) }
       }
-    } catch (e: any) { toast(e.message || 'Objednávka selhala') } finally { setBusy(false) }
+    } catch (e: any) { toast(e.message || t('services:toastOrderFailed')) } finally { setBusy(false) }
   }
   async function cancel(b: Booking) {
-    try { await api.cancelBooking(b.id); setBookings((s) => s.map((x) => (x.id === b.id ? { ...x, status: 'cancelled', date: 'zrušeno' } : x))); toast('Objednávka zrušena') }
-    catch (e: any) { toast(e.message || 'Zrušení selhalo') }
+    try { await api.cancelBooking(b.id); setBookings((s) => s.map((x) => (x.id === b.id ? { ...x, status: 'cancelled', date: t('services:cancelledDate') } : x))); toast(t('services:toastCancelled')) }
+    catch (e: any) { toast(e.message || t('services:toastCancelFailed')) }
   }
   async function pay(name: string) {
     try {
       const r = await taskerApi.createOrder({ service: name, unit: user?.unit || '' })
       if (r.payUrl) window.open(r.payUrl, '_blank')
-      else toast(`Objednávka ${r.orderId} vytvořena, platbu dokončíte v aplikaci Tasker`)
-    } catch { toast('Platbu služby vyřídíte v aplikaci Tasker') }
+      else toast(t('services:toastOrderCreated', { id: r.orderId }))
+    } catch { toast(t('services:toastPayViaTasker')) }
   }
 
   if (!user) return null
@@ -68,18 +79,18 @@ export default function ServicesPage() {
     <>
       <div className="d-hi">
         <div>
-          <h2>Služby Tasker</h2>
-          <p>Ověřený pracovník k vám domů na pár kliknutí. Bez shánění, s hodnocením.</p>
+          <h2>{t('services:title')}</h2>
+          <p>{t('services:subtitle')}</p>
         </div>
       </div>
 
       <div className="sv-hero an">
         <div className="t">
-          <div className="k">Tohle nikdo jiný v kategorii nemá</div>
-          <h3>Ostatní aplikace evidují. My pošleme i ruce.</h3>
-          <p>Tasker Living stojí na platformě Tasker, takže objednáte úklid, drobnou opravu nebo mytí oken přímo tady. Termín potvrdí dispečink, platba přes Tasker.</p>
+          <div className="k">{t('services:heroTag')}</div>
+          <h3>{t('services:heroTitle')}</h3>
+          <p>{t('services:heroBody')}</p>
         </div>
-        <div className="n"><b>20 000+</b><span>klientů platformy Tasker</span></div>
+        <div className="n"><b>20 000+</b><span>{t('services:heroStat')}</span></div>
       </div>
 
       {active.length > 0 && (
@@ -91,9 +102,9 @@ export default function ServicesPage() {
                 <b>{b.name}</b>
                 <span>{b.worker ? `${b.worker}${b.rating ? ' · ★ ' + b.rating : ''} · ${b.date}` : b.date}</span>
               </div>
-              {b.status === 'new' && <><span className="s-badge neutral">Hledáme pracovníka</span><button className="s-btn s-ghost sm" onClick={() => cancel(b)}>Zrušit</button></>}
-              {b.status === 'assigned' && <><span className="s-badge ok">Naplánováno</span><button className="s-btn s-dark sm" onClick={() => pay(b.name)}>Zaplatit přes Tasker</button></>}
-              {b.status === 'done' && <span className="s-badge neutral">Dokončeno</span>}
+              {b.status === 'new' && <><span className="s-badge neutral">{t('services:statusSearching')}</span><button className="s-btn s-ghost sm" onClick={() => cancel(b)}>{t('services:cancel')}</button></>}
+              {b.status === 'assigned' && <><span className="s-badge ok">{t('services:statusScheduled')}</span><button className="s-btn s-dark sm" onClick={() => pay(b.name)}>{t('services:payViaTasker')}</button></>}
+              {b.status === 'done' && <span className="s-badge neutral">{t('services:statusDone')}</span>}
             </div>
           ))}
         </div>
@@ -108,9 +119,9 @@ export default function ServicesPage() {
                 strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"
                 dangerouslySetInnerHTML={{ __html: SG[s.id] || SG.handyman }} />
             </span>
-            <b>{s.name}</b>
-            <span>{s.desc}</span>
-            <span className="from">od {s.from} Kč{s.unit}</span>
+            <b>{serviceName(s)}</b>
+            <span>{serviceDesc(s)}</span>
+            <span className="from">{t('services:fromPrice', { from: s.from, unit: s.unit })}</span>
           </button>
         ))}
       </div>
@@ -118,35 +129,35 @@ export default function ServicesPage() {
       {pick && (
         <div className="overlay" onClick={(e) => { if (e.target === e.currentTarget) setPick(null) }}>
           <div className="modal">
-            <div className="modal-h"><h3>{pick.name}</h3><button className="s-btn s-ghost sm" onClick={() => setPick(null)}>Zrušit</button></div>
+            <div className="modal-h"><h3>{serviceName(pick)}</h3><button className="s-btn s-ghost sm" onClick={() => setPick(null)}>{t('services:cancel')}</button></div>
             <div className="modal-b">
               <div className="sv-worker">
                 <span className="ava">{worker.ini}</span>
                 <div style={{ flex: 1 }}>
                   <b>{worker.name}</b>
-                  <span>★ {worker.rating} · {worker.jobs} zakázek · prověřený</span>
+                  <span>★ {t('services:workerRating', { defaultValue: '4,9' })} · {t('services:jobsCount', { count: worker.jobs })} · {t('services:verified')}</span>
                 </div>
-                <span className="s-badge ok">Ověřený</span>
+                <span className="s-badge ok">{t('services:verifiedBadge')}</span>
               </div>
 
               <div className="a-f" style={{ marginTop: 14 }}>
-                <label>Termín</label>
+                <label>{t('services:when')}</label>
                 <div className="sv-slots">
-                  {SLOTS.map((s) => (
-                    <button key={s} className={'sv-slot' + (slot === s ? ' on' : '')} onClick={() => setSlot(s)}>{s}</button>
+                  {SLOTS.map((s, si) => (
+                    <button key={si} className={'sv-slot' + (slotIdx === si ? ' on' : '')} onClick={() => setSlotIdx(si)}>{s}</button>
                   ))}
                 </div>
               </div>
               <div className="a-f">
-                <label htmlFor="sv-n">Poznámka pro pracovníka</label>
-                <textarea id="sv-n" rows={2} value={note} onChange={(e) => setNote(e.target.value)} placeholder="Byt v 3. patře, klíč u sousedky…" />
+                <label htmlFor="sv-n">{t('services:noteLabel')}</label>
+                <textarea id="sv-n" rows={2} value={note} onChange={(e) => setNote(e.target.value)} placeholder={t('services:notePlaceholder')} />
               </div>
-              <p className="a-note">Od {pick.from} Kč{pick.unit}. Dispečink potvrdí přesný termín, platbu dokončíte přes Tasker.</p>
+              <p className="a-note">{t('services:confirmNote', { from: pick.from, unit: pick.unit })}</p>
             </div>
             <div className="modal-f">
-              <button className="s-btn s-ghost" onClick={() => setPick(null)}>Zrušit</button>
+              <button className="s-btn s-ghost" onClick={() => setPick(null)}>{t('services:cancel')}</button>
               <button className="s-btn s-primary" onClick={order} disabled={busy}>
-                {busy ? 'Objednávám…' : `Objednat na ${slot}`}
+                {busy ? t('services:ordering') : t('services:orderFor', { slot })}
               </button>
             </div>
           </div>

@@ -64,6 +64,9 @@ import deContacts from '../locales/de/contacts.json'
 import csDocuments from '../locales/cs/documents.json'
 import enDocuments from '../locales/en/documents.json'
 import deDocuments from '../locales/de/documents.json'
+import csServices from '../locales/cs/services.json'
+import enServices from '../locales/en/services.json'
+import deServices from '../locales/de/services.json'
 
 export const SUPPORTED_LANGS = ['cs', 'en', 'de'] as const
 export type Lang = typeof SUPPORTED_LANGS[number]
@@ -74,14 +77,14 @@ i18n
   .use(initReactI18next)
   .init({
     resources: {
-      cs: { common: csCommon, shell: csShell, auth: csAuth, marketing: csMarketing, legal: csLegal, dashboard: csDashboard, admin: csAdmin, bank: csBank, settings: csSettings, faults: csFaults, rent: csRent, meetings: csMeetings, complaints: csComplaints, contacts: csContacts, documents: csDocuments },
-      en: { common: enCommon, shell: enShell, auth: enAuth, marketing: enMarketing, legal: enLegal, dashboard: enDashboard, admin: enAdmin, bank: enBank, settings: enSettings, faults: enFaults, rent: enRent, meetings: enMeetings, complaints: enComplaints, contacts: enContacts, documents: enDocuments },
-      de: { common: deCommon, shell: deShell, auth: deAuth, marketing: deMarketing, legal: deLegal, dashboard: deDashboard, admin: deAdmin, bank: deBank, settings: deSettings, faults: deFaults, rent: deRent, meetings: deMeetings, complaints: deComplaints, contacts: deContacts, documents: deDocuments },
+      cs: { common: csCommon, shell: csShell, auth: csAuth, marketing: csMarketing, legal: csLegal, dashboard: csDashboard, admin: csAdmin, bank: csBank, settings: csSettings, faults: csFaults, rent: csRent, meetings: csMeetings, complaints: csComplaints, contacts: csContacts, documents: csDocuments, services: csServices },
+      en: { common: enCommon, shell: enShell, auth: enAuth, marketing: enMarketing, legal: enLegal, dashboard: enDashboard, admin: enAdmin, bank: enBank, settings: enSettings, faults: enFaults, rent: enRent, meetings: enMeetings, complaints: enComplaints, contacts: enContacts, documents: enDocuments, services: enServices },
+      de: { common: deCommon, shell: deShell, auth: deAuth, marketing: deMarketing, legal: deLegal, dashboard: deDashboard, admin: deAdmin, bank: deBank, settings: deSettings, faults: deFaults, rent: deRent, meetings: deMeetings, complaints: deComplaints, contacts: deContacts, documents: deDocuments, services: deServices },
     },
     fallbackLng: 'cs',
     supportedLngs: SUPPORTED_LANGS as unknown as string[],
     defaultNS: 'common',
-    ns: ['common', 'shell', 'auth', 'marketing', 'legal', 'dashboard', 'admin', 'bank', 'settings', 'faults', 'rent', 'meetings', 'complaints', 'contacts', 'documents'],
+    ns: ['common', 'shell', 'auth', 'marketing', 'legal', 'dashboard', 'admin', 'bank', 'settings', 'faults', 'rent', 'meetings', 'complaints', 'contacts', 'documents', 'services'],
     interpolation: { escapeValue: false },
     // Detekce jen z uloženého vyberu (localStorage) — NE z jazyka prohlížeče.
     // Tenhle produkt je česky napřed; hodně lidí má OS/prohlížeč v angličtině

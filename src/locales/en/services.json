@@ -1,0 +1,58 @@
+{
+  "title": "Tasker Services",
+  "subtitle": "A vetted professional at your door in a few taps. No searching, with ratings.",
+  "heroTag": "Nobody else in this category has this",
+  "heroTitle": "Others just keep records. We also send the hands.",
+  "heroBody": "Tasker Living runs on the Tasker platform, so you can book cleaning, a small repair, or window washing right here. Dispatch confirms the time, payment goes through Tasker.",
+  "heroStat": "Tasker platform clients",
+  "statusSearching": "Finding a professional",
+  "statusScheduled": "Scheduled",
+  "statusDone": "Done",
+  "cancel": "Cancel",
+  "payViaTasker": "Pay via Tasker",
+  "fromPrice": "from {{from}} Kč{{unit}}",
+  "verified": "vetted",
+  "verifiedBadge": "Vetted",
+  "jobsCount": "{{count}} jobs",
+  "when": "Time slot",
+  "noteLabel": "Note for the professional",
+  "notePlaceholder": "Unit on the 3rd floor, key with the neighbor…",
+  "confirmNote": "From {{from}} Kč{{unit}}. Dispatch confirms the exact time, payment goes through Tasker.",
+  "ordering": "Booking…",
+  "orderFor": "Book for {{slot}}",
+  "catalog": {
+    "uklid": {
+      "name": "Home cleaning",
+      "desc": "Regular or one-off apartment cleaning by a vetted professional."
+    },
+    "handyman": {
+      "name": "Handyman & small repairs",
+      "desc": "Installations, small repairs, replacements. We bring the tools."
+    },
+    "okna": {
+      "name": "Window washing",
+      "desc": "Windows, frames, and sills spotless, including hard-to-reach ones."
+    },
+    "koberce": {
+      "name": "Carpet cleaning",
+      "desc": "Deep cleaning of carpets and upholstery right at your place."
+    },
+    "odpad": {
+      "name": "Waste removal",
+      "desc": "Clearing and hauling away bulky waste from a basement or apartment."
+    },
+    "malovani": {
+      "name": "Painting",
+      "desc": "Painting an apartment or common areas, we supply the materials."
+    }
+  },
+  "toastOrdered": "Booked. Dispatch will confirm the time.",
+  "toastAssigned": "{{worker}} assigned",
+  "toastOrderFailed": "Couldn't place the booking",
+  "toastCancelled": "Booking cancelled",
+  "cancelledDate": "cancelled",
+  "toastCancelFailed": "Couldn't cancel the booking",
+  "toastOrderCreated": "Order {{id}} created, finish payment in the Tasker app",
+  "toastPayViaTasker": "Finish paying for this service in the Tasker app",
+  "workerRating": "4.9"
+}

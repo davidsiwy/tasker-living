@@ -1,0 +1,58 @@
+{
+  "title": "Služby Tasker",
+  "subtitle": "Ověřený pracovník k vám domů na pár kliknutí. Bez shánění, s hodnocením.",
+  "heroTag": "Tohle nikdo jiný v kategorii nemá",
+  "heroTitle": "Ostatní aplikace evidují. My pošleme i ruce.",
+  "heroBody": "Tasker Living stojí na platformě Tasker, takže objednáte úklid, drobnou opravu nebo mytí oken přímo tady. Termín potvrdí dispečink, platba přes Tasker.",
+  "heroStat": "klientů platformy Tasker",
+  "statusSearching": "Hledáme pracovníka",
+  "statusScheduled": "Naplánováno",
+  "statusDone": "Dokončeno",
+  "cancel": "Zrušit",
+  "payViaTasker": "Zaplatit přes Tasker",
+  "fromPrice": "od {{from}} Kč{{unit}}",
+  "verified": "prověřený",
+  "verifiedBadge": "Ověřený",
+  "jobsCount": "{{count}} zakázek",
+  "when": "Termín",
+  "noteLabel": "Poznámka pro pracovníka",
+  "notePlaceholder": "Byt v 3. patře, klíč u sousedky…",
+  "confirmNote": "Od {{from}} Kč{{unit}}. Dispečink potvrdí přesný termín, platbu dokončíte přes Tasker.",
+  "ordering": "Objednávám…",
+  "orderFor": "Objednat na {{slot}}",
+  "catalog": {
+    "uklid": {
+      "name": "Úklid domácnosti",
+      "desc": "Pravidelný nebo jednorázový úklid bytu ověřeným pracovníkem."
+    },
+    "handyman": {
+      "name": "Údržbář a drobné opravy",
+      "desc": "Montáže, drobné opravy, výměny. Přijedeme s nářadím."
+    },
+    "okna": {
+      "name": "Mytí oken",
+      "desc": "Okna, rámy i parapety do čista, včetně těžko dostupných."
+    },
+    "koberce": {
+      "name": "Čištění koberců",
+      "desc": "Hloubkové čištění koberců a čalounění přímo u vás."
+    },
+    "odpad": {
+      "name": "Odvoz odpadu",
+      "desc": "Vyklizení a odvoz objemného odpadu ze sklepa či bytu."
+    },
+    "malovani": {
+      "name": "Malování",
+      "desc": "Vymalování bytu nebo společných prostor, materiál zajistíme."
+    }
+  },
+  "toastOrdered": "Objednáno. Dispečink potvrdí termín.",
+  "toastAssigned": "{{worker}} přiřazen",
+  "toastOrderFailed": "Objednávka selhala",
+  "toastCancelled": "Objednávka zrušena",
+  "cancelledDate": "zrušeno",
+  "toastCancelFailed": "Zrušení selhalo",
+  "toastOrderCreated": "Objednávka {{id}} vytvořena, platbu dokončíte v aplikaci Tasker",
+  "toastPayViaTasker": "Platbu služby vyřídíte v aplikaci Tasker",
+  "workerRating": "4,9"
+}

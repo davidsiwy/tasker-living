@@ -1,0 +1,58 @@
+{
+  "title": "Tasker-Services",
+  "subtitle": "Eine geprüfte Fachkraft in wenigen Klicks vor Ihrer Tür. Ohne Suchen, mit Bewertungen.",
+  "heroTag": "Das hat sonst niemand in dieser Kategorie",
+  "heroTitle": "Andere erfassen nur. Wir schicken auch die Hände.",
+  "heroBody": "Tasker Living baut auf der Tasker-Plattform auf, sodass Sie Reinigung, eine kleine Reparatur oder Fensterputzen direkt hier buchen können. Die Disposition bestätigt den Termin, die Zahlung läuft über Tasker.",
+  "heroStat": "Kunden der Tasker-Plattform",
+  "statusSearching": "Wir suchen eine Fachkraft",
+  "statusScheduled": "Geplant",
+  "statusDone": "Erledigt",
+  "cancel": "Stornieren",
+  "payViaTasker": "Über Tasker bezahlen",
+  "fromPrice": "ab {{from}} Kč{{unit}}",
+  "verified": "geprüft",
+  "verifiedBadge": "Geprüft",
+  "jobsCount": "{{count}} Aufträge",
+  "when": "Termin",
+  "noteLabel": "Notiz für die Fachkraft",
+  "notePlaceholder": "Wohnung im 3. Stock, Schlüssel bei der Nachbarin…",
+  "confirmNote": "Ab {{from}} Kč{{unit}}. Die Disposition bestätigt den genauen Termin, die Zahlung läuft über Tasker.",
+  "ordering": "Wird gebucht…",
+  "orderFor": "Für {{slot}} buchen",
+  "catalog": {
+    "uklid": {
+      "name": "Haushaltsreinigung",
+      "desc": "Regelmäßige oder einmalige Wohnungsreinigung durch eine geprüfte Fachkraft."
+    },
+    "handyman": {
+      "name": "Hausmeister & kleine Reparaturen",
+      "desc": "Montagen, kleine Reparaturen, Austausch. Wir bringen das Werkzeug mit."
+    },
+    "okna": {
+      "name": "Fensterputzen",
+      "desc": "Fenster, Rahmen und Fensterbänke blitzsauber, auch schwer erreichbare."
+    },
+    "koberce": {
+      "name": "Teppichreinigung",
+      "desc": "Tiefenreinigung von Teppichen und Polstern direkt bei Ihnen."
+    },
+    "odpad": {
+      "name": "Sperrmüllentsorgung",
+      "desc": "Räumung und Abtransport von Sperrmüll aus Keller oder Wohnung."
+    },
+    "malovani": {
+      "name": "Malerarbeiten",
+      "desc": "Streichen von Wohnung oder Gemeinschaftsflächen, wir liefern das Material."
+    }
+  },
+  "toastOrdered": "Gebucht. Die Disposition bestätigt den Termin.",
+  "toastAssigned": "{{worker}} zugewiesen",
+  "toastOrderFailed": "Buchung fehlgeschlagen",
+  "toastCancelled": "Buchung storniert",
+  "cancelledDate": "storniert",
+  "toastCancelFailed": "Stornierung fehlgeschlagen",
+  "toastOrderCreated": "Bestellung {{id}} erstellt, Zahlung in der Tasker-App abschließen",
+  "toastPayViaTasker": "Zahlung für den Service in der Tasker-App abschließen",
+  "workerRating": "4,9"
+}
