@@ -1,0 +1,56 @@
+{
+  "title": "Einstellungen",
+  "subtitle": "Ihr Profil, wie die App Sie erreicht, und die Kontosicherheit.",
+  "profile": {
+    "title": "Profil",
+    "role": "Rolle", "email": "E-Mail",
+    "phoneLabel": "Telefon für Nachbarn",
+    "shareTitle": "Telefon im Verzeichnis teilen",
+    "shareBody": "Nachbarn sehen Ihre Nummer im Bereich Nachbarn",
+    "save": "Speichern"
+  },
+  "language": {
+    "title": "App-Sprache",
+    "body": "Die Sprache gilt nur für Ihr Konto. Der Beirat kann die App auf Tschechisch nutzen, während Sie Englisch oder Deutsch verwenden — über dieselben Hausdaten."
+  },
+  "security": {
+    "title": "Sicherheit",
+    "newPassword": "Neues Passwort",
+    "newPasswordAgain": "Neues Passwort wiederholen",
+    "change": "Passwort ändern"
+  },
+  "notifications": {
+    "title": "Benachrichtigungen",
+    "body": "Wählen Sie, wie die App Sie erreicht. Wir empfehlen, Push aktiviert zu lassen — so verpassen Sie keine Ankündigung des Hauses.",
+    "pushName": "Push aufs Telefon", "pushDesc": "Ankündigungen, Erinnerungen, Mängelfortschritt",
+    "emailName": "E-Mail", "emailDesc": "Vorschreibungen, Protokolle, wichtige Termine",
+    "smsName": "SMS", "smsDesc": "nur Erinnerungen bei überfälligen Zahlungen",
+    "demoNote": "Im Demo werden Nachrichten in einem internen Postausgang gesammelt, damit der Erinnerungsplan sichtbar ist. Im echten Betrieb gehen sie per E-Mail, SMS und Push hinaus."
+  },
+  "reminders": {
+    "title": "Automatische Zahlungserinnerungen",
+    "body": "Die App verschickt diese im Namen des Beirats — niemand muss Fälligkeiten manuell im Blick behalten.",
+    "r1": "3 Tage vor Fälligkeit (Hinweis)",
+    "r2": "Am Fälligkeitstag",
+    "r3": "3 Tage nach Fälligkeit (1. Erinnerung)",
+    "r4": "7 Tage nach Fälligkeit (2. Erinnerung)"
+  },
+  "account": {
+    "viewAs": "App anzeigen als", "account": "Konto",
+    "demoRole": "Rolle im Demo",
+    "logout": "Abmelden"
+  },
+  "demo": {
+    "title": "Demo-Modus.",
+    "body": "Sie sehen eine öffentliche Demo mit erfundenen Daten — nichts wird gespeichert.",
+    "exitLink": "Demo beenden und anmelden"
+  },
+  "toastContactSaved": "Kontakt gespeichert",
+  "toastSaveFailed": "Speichern fehlgeschlagen",
+  "toastChannelOn": "{{channel}} aktiviert",
+  "toastChannelOff": "{{channel}} deaktiviert",
+  "toastPasswordTooShort": "Das Passwort muss mindestens 8 Zeichen haben",
+  "toastPasswordMismatch": "Die Passwörter stimmen nicht überein",
+  "toastPasswordChanged": "Passwort geändert",
+  "toastPasswordChangeFailed": "Passwort konnte nicht geändert werden"
+}

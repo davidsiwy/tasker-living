@@ -32,6 +32,9 @@ export async function send(m: { channel: Channel; to: string; subject: string; b
 
 // Reminder schedule: offsets in days relative to the due date. A daily job on the
 // backend calls runReminders; here the admin can also trigger it manually.
+// label je klíč do settings:reminders.<id> (přeloženo až při zobrazení v
+// Nastavení) — sem se ukládá jen jako výchozí/fallback popisek pro necesty,
+// co by tento modul importovaly bez React kontextu.
 export interface ReminderRule { id: string; offset: number; label: string; channel: Channel }
 export const reminderRules: ReminderRule[] = [
   { id: 'r1', offset: -3, label: '3 dny před splatností (připomenutí)', channel: 'push' },

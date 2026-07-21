@@ -1,0 +1,56 @@
+{
+  "title": "Settings",
+  "subtitle": "Your profile, how the app reaches you, and account security.",
+  "profile": {
+    "title": "Profile",
+    "role": "Role", "email": "Email",
+    "phoneLabel": "Phone for neighbors",
+    "shareTitle": "Share phone in the directory",
+    "shareBody": "neighbors will see your number in the Neighbors section",
+    "save": "Save"
+  },
+  "language": {
+    "title": "App language",
+    "body": "The language is set for your account only. The committee can use the app in Czech while you use English or German — over the same building data."
+  },
+  "security": {
+    "title": "Security",
+    "newPassword": "New password",
+    "newPasswordAgain": "New password again",
+    "change": "Change password"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "body": "Choose how the app reaches you. We recommend leaving push on — it makes sure you never miss an announcement from the building.",
+    "pushName": "Push to phone", "pushDesc": "announcements, reminders, issue progress",
+    "emailName": "Email", "emailDesc": "charges, minutes, important events",
+    "smsName": "SMS", "smsDesc": "overdue payment reminders only",
+    "demoNote": "In the demo, messages are collected in an in-app outbox so you can see the reminder schedule. In production they go out by email, SMS, and push."
+  },
+  "reminders": {
+    "title": "Automatic payment reminders",
+    "body": "The app sends these on the committee's behalf — no one has to track due dates manually.",
+    "r1": "3 days before due (heads-up)",
+    "r2": "On the due date",
+    "r3": "3 days after due (1st reminder)",
+    "r4": "7 days after due (2nd reminder)"
+  },
+  "account": {
+    "viewAs": "View the app as", "account": "Account",
+    "demoRole": "Demo role",
+    "logout": "Log out"
+  },
+  "demo": {
+    "title": "Demo mode.",
+    "body": "You're viewing a public demo with made-up data — nothing is saved.",
+    "exitLink": "Exit the demo and log in"
+  },
+  "toastContactSaved": "Contact saved",
+  "toastSaveFailed": "Save failed",
+  "toastChannelOn": "{{channel}} turned on",
+  "toastChannelOff": "{{channel}} turned off",
+  "toastPasswordTooShort": "Password must be at least 8 characters",
+  "toastPasswordMismatch": "Passwords don't match",
+  "toastPasswordChanged": "Password changed",
+  "toastPasswordChangeFailed": "Couldn't change the password"
+}

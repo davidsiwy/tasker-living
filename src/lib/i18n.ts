@@ -43,6 +43,9 @@ import deAdmin from '../locales/de/admin.json'
 import csBank from '../locales/cs/bank.json'
 import enBank from '../locales/en/bank.json'
 import deBank from '../locales/de/bank.json'
+import csSettings from '../locales/cs/settings.json'
+import enSettings from '../locales/en/settings.json'
+import deSettings from '../locales/de/settings.json'
 
 export const SUPPORTED_LANGS = ['cs', 'en', 'de'] as const
 export type Lang = typeof SUPPORTED_LANGS[number]
@@ -53,14 +56,14 @@ i18n
   .use(initReactI18next)
   .init({
     resources: {
-      cs: { common: csCommon, shell: csShell, auth: csAuth, marketing: csMarketing, legal: csLegal, dashboard: csDashboard, admin: csAdmin, bank: csBank },
-      en: { common: enCommon, shell: enShell, auth: enAuth, marketing: enMarketing, legal: enLegal, dashboard: enDashboard, admin: enAdmin, bank: enBank },
-      de: { common: deCommon, shell: deShell, auth: deAuth, marketing: deMarketing, legal: deLegal, dashboard: deDashboard, admin: deAdmin, bank: deBank },
+      cs: { common: csCommon, shell: csShell, auth: csAuth, marketing: csMarketing, legal: csLegal, dashboard: csDashboard, admin: csAdmin, bank: csBank, settings: csSettings },
+      en: { common: enCommon, shell: enShell, auth: enAuth, marketing: enMarketing, legal: enLegal, dashboard: enDashboard, admin: enAdmin, bank: enBank, settings: enSettings },
+      de: { common: deCommon, shell: deShell, auth: deAuth, marketing: deMarketing, legal: deLegal, dashboard: deDashboard, admin: deAdmin, bank: deBank, settings: deSettings },
     },
     fallbackLng: 'cs',
     supportedLngs: SUPPORTED_LANGS as unknown as string[],
     defaultNS: 'common',
-    ns: ['common', 'shell', 'auth', 'marketing', 'legal', 'dashboard', 'admin', 'bank'],
+    ns: ['common', 'shell', 'auth', 'marketing', 'legal', 'dashboard', 'admin', 'bank', 'settings'],
     interpolation: { escapeValue: false },
     // Detekce jen z uloženého vyberu (localStorage) — NE z jazyka prohlížeče.
     // Tenhle produkt je česky napřed; hodně lidí má OS/prohlížeč v angličtině

@@ -1,0 +1,56 @@
+{
+  "title": "Nastavení",
+  "subtitle": "Profil, čím vás aplikace osloví, a zabezpečení účtu.",
+  "profile": {
+    "title": "Profil",
+    "role": "Role", "email": "E-mail",
+    "phoneLabel": "Telefon pro sousedy",
+    "shareTitle": "Sdílet telefon v adresáři",
+    "shareBody": "sousedé uvidí vaše číslo v sekci Sousedé",
+    "save": "Uložit"
+  },
+  "language": {
+    "title": "Jazyk aplikace",
+    "body": "Jazyk je nastavený jen pro váš účet. Výbor může mít aplikaci česky, vy klidně anglicky nebo německy — nad stejnými daty domu."
+  },
+  "security": {
+    "title": "Zabezpečení",
+    "newPassword": "Nové heslo",
+    "newPasswordAgain": "Nové heslo znovu",
+    "change": "Změnit heslo"
+  },
+  "notifications": {
+    "title": "Notifikace",
+    "body": "Vyberte, čím vás aplikace osloví. Push doporučujeme nechat zapnutý — díky němu vám neuteče oznámení domu.",
+    "pushName": "Push do telefonu", "pushDesc": "oznámení, upomínky, průběh závad",
+    "emailName": "E-mail", "emailDesc": "předpisy, zápisy, důležité události",
+    "smsName": "SMS", "smsDesc": "jen upomínky po splatnosti",
+    "demoNote": "V ukázce se zprávy sbírají do interní schránky, aby byl vidět plán připomínek. V ostrém provozu chodí e-mailem, SMS a push."
+  },
+  "reminders": {
+    "title": "Automatické připomínky plateb",
+    "body": "Aplikace je posílá za výbor sama — nikdo nemusí hlídat splatnosti.",
+    "r1": "3 dny před splatností (připomenutí)",
+    "r2": "V den splatnosti",
+    "r3": "3 dny po splatnosti (1. upomínka)",
+    "r4": "7 dní po splatnosti (2. upomínka)"
+  },
+  "account": {
+    "viewAs": "Zobrazit aplikaci jako", "account": "Účet",
+    "demoRole": "Role v ukázce",
+    "logout": "Odhlásit se"
+  },
+  "demo": {
+    "title": "Ukázkový režim.",
+    "body": "Prohlížíte veřejnou ukázku na smyšlených datech, nic se neukládá.",
+    "exitLink": "Ukončit demo a přihlásit se"
+  },
+  "toastContactSaved": "Kontakt uložen",
+  "toastSaveFailed": "Uložení selhalo",
+  "toastChannelOn": "{{channel}} zapnuto",
+  "toastChannelOff": "{{channel}} vypnuto",
+  "toastPasswordTooShort": "Heslo musí mít alespoň 8 znaků",
+  "toastPasswordMismatch": "Hesla se neshodují",
+  "toastPasswordChanged": "Heslo změněno",
+  "toastPasswordChangeFailed": "Změna hesla selhala"
+}
