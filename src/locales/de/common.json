@@ -39,5 +39,11 @@
     "vybor": "Beirat",
     "developer": "Bauträger",
     "investor": "Investor"
+  },
+  "units": {
+    "months_one": "{{count}} Monat",
+    "months_other": "{{count}} Monate",
+    "hours_one": "{{count}} Stunde",
+    "hours_other": "{{count}} Stunden"
   }
 }

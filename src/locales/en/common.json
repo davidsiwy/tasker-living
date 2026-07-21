@@ -39,5 +39,11 @@
     "vybor": "Committee",
     "developer": "Developer",
     "investor": "Investor"
+  },
+  "units": {
+    "months_one": "{{count}} month",
+    "months_other": "{{count}} months",
+    "hours_one": "{{count}} hour",
+    "hours_other": "{{count}} hours"
   }
 }

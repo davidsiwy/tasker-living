@@ -1,13 +1,17 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { enterDemo } from '../../lib/supabase'
+import { LanguageSwitcher } from '../../components/LanguageSwitcher'
 import mark from '../../assets/mark.png'
 import './landing.css'
 
 const CONTACT_EMAIL = 'info@tasker.cz'
+const SIZE_KEYS = ['s1', 's2', 's3', 's4'] as const
+const SIZE_CZ: Record<string, string> = { s1: 'do 20 jednotek', s2: '20 až 50 jednotek', s3: '50 a více jednotek', s4: 'více domů / portfolio' }
 
 // The offer. One place to tune the promise the ads and the page make.
-const OFFER = { freeMonths: '2 měsíce', launch: '48 hodin', pricePerUnit: 399 }
+const OFFER = { freeMonths: 2, launchHours: 48, pricePerUnit: 399 }
 
 /* ---------- small building blocks ---------- */
 
@@ -61,9 +65,12 @@ const G = {
 type Tour = { today: string; h: string; p: string; ticks: string[]; mock: JSX.Element; flip?: boolean }
 
 export default function MarketingPage() {
+  const { t } = useTranslation('marketing')
+  const freeMonthsLabel = t('common:units.months', { count: OFFER.freeMonths })
+  const launchLabel = t('common:units.hours', { count: OFFER.launchHours })
   const go = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
   const [cName, setCName] = useState(''); const [cEmail, setCEmail] = useState(''); const [cPhone, setCPhone] = useState('')
-  const [cSize, setCSize] = useState('do 20 jednotek'); const [cMsg, setCMsg] = useState('')
+  const [cSize, setCSize] = useState('s1'); const [cMsg, setCMsg] = useState('')
   const [cState, setCState] = useState<'idle' | 'busy' | 'done' | 'err'>('idle')
   const [scrolled, setScrolled] = useState(false)
   const [sticky, setSticky] = useState(false)
@@ -99,7 +106,7 @@ export default function MarketingPage() {
         body: JSON.stringify({
           _subject: 'Tasker Living: poptávka ukázky z webu',
           Jmeno: cName.trim(), Email: cEmail.trim(), Telefon: cPhone.trim(),
-          Velikost: cSize, Zprava: cMsg.trim(),
+          Velikost: SIZE_CZ[cSize] || cSize, Zprava: cMsg.trim(),
         }),
       })
       if (!res.ok) throw new Error('send failed')
@@ -110,116 +117,116 @@ export default function MarketingPage() {
   /* ----- 01 tour: four manual processes, each with the real UI next to it ----- */
   const tours: Tour[] = [
     {
-      today: '„Vylepím to do vchodu a stejně polovina lidí řekne, že o ničem nevěděla.“',
-      h: 'Oznámení, které si sousedé přečtou',
-      p: 'Napíšete ho jednou a všem přijde notifikace do telefonu. Konec papírků ve vchodě a mailů ve spamu.',
-      ticks: ['Vidíte, kolik bytů si oznámení přečetlo', 'Cílení na vchod, patro nebo celý dům'],
+      today: t('tours.t1.today'),
+      h: t('tours.t1.h'),
+      p: t('tours.t1.p'),
+      ticks: [t('tours.t1.tick1'), t('tours.t1.tick2')],
       mock: (
         <div className="l-mock an">
           <div style={{ background: '#12161D', color: '#fff', borderRadius: 12, padding: '12px 14px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 10, color: '#aeb5c0', fontWeight: 600 }}>
               <img src={mark} alt="" style={{ width: 14, height: 14, borderRadius: 4 }} />
-              TASKER LIVING · teď
+              TASKER LIVING · {t('common:time.now')}
             </div>
-            <b style={{ fontSize: 14, fontWeight: 700, display: 'block', marginTop: 5 }}>Odstávka vody ve čtvrtek 8:00–12:00</b>
-            <span style={{ fontSize: 12, color: '#aeb5c0' }}>Týká se vchodů A a B · napusťte si vodu předem</span>
+            <b style={{ fontSize: 14, fontWeight: 700, display: 'block', marginTop: 5 }}>{t('showcase.notifTitle')} 8:00–12:00</b>
+            <span style={{ fontSize: 12, color: '#aeb5c0' }}>{t('showcase.notifSub')}</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 16 }}>
-            <span style={{ fontSize: 12.5, fontWeight: 700, color: '#48515C', flex: 'none' }}>Přečteno</span>
+            <span style={{ fontSize: 12.5, fontWeight: 700, color: '#48515C', flex: 'none' }}>{t('tours.t1.mockRead')}</span>
             <div className="l-bar"><i className="grow" style={{ width: '95%' }} /></div>
-            <b className="l-mono" style={{ fontSize: 12.5, fontWeight: 600, color: '#12901E', flex: 'none' }}>38 / 40 bytů</b>
+            <b className="l-mono" style={{ fontSize: 12.5, fontWeight: 600, color: '#12901E', flex: 'none' }}>{t('tours.t1.mockCount')}</b>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, fontSize: 12, color: '#8b93a0' }}>
-            <span className="l-mono" style={{ fontWeight: 600, background: '#EEF2F7', borderRadius: 999, padding: '3px 10px', fontSize: 10.5, color: '#48515C' }}>CELÝ DŮM</span>
-            <span>odesláno 1×, doručeno všem · žádné přelepené papírky</span>
+            <span className="l-mono" style={{ fontWeight: 600, background: '#EEF2F7', borderRadius: 999, padding: '3px 10px', fontSize: 10.5, color: '#48515C' }}>{t('tours.t1.mockChip')}</span>
+            <span>{t('tours.t1.mockFoot')}</span>
           </div>
         </div>
       ),
     },
     {
-      today: '„Zase kontroluju výpisy a píšu SMS, kdo nezaplatil zálohy.“',
-      h: 'Nájmy a zálohy bez tabulek',
-      p: 'Předpisy na klik, soused platí QR kódem na účet domu, vy jen potvrdíte. Neplatiče vidíte na jedné obrazovce.',
-      ticks: ['Peníze jdou přímo na účet domu, ne přes nás', 'Upomínky hromadně jedním klikem'],
+      today: t('tours.t2.today'),
+      h: t('tours.t2.h'),
+      p: t('tours.t2.p'),
+      ticks: [t('tours.t2.tick1'), t('tours.t2.tick2')],
       flip: true,
       mock: (
         <div className="l-mock an">
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-            <b style={{ fontSize: 14, fontWeight: 800 }}>Předpisy · červen</b>
-            <span className="l-state l-ok" style={{ width: 'auto' }}>Vybráno 92 %</span>
+            <b style={{ fontSize: 14, fontWeight: 800 }}>{t('tours.t2.mockTitle')}</b>
+            <span className="l-state l-ok" style={{ width: 'auto' }}>{t('tours.t2.mockOk')}</span>
           </div>
           <div className="l-rows">
-            <div className="l-row"><b>B-204</b><span className="l-what">24 500 Kč</span><span className="l-state l-ok" style={{ width: 'auto' }}>Zaplaceno · QR</span></div>
-            <div className="l-row due"><b>B-112</b><span className="l-what">8 900 Kč</span><span className="l-state l-warn" style={{ width: 'auto' }}>Po splatnosti</span></div>
-            <div className="l-row due"><b>C-018</b><span className="l-what">8 900 Kč</span><span className="l-state l-warn" style={{ width: 'auto' }}>Po splatnosti</span></div>
+            <div className="l-row"><b>B-204</b><span className="l-what">24 500 Kč</span><span className="l-state l-ok" style={{ width: 'auto' }}>{t('tours.t2.mockPaid')}</span></div>
+            <div className="l-row due"><b>B-112</b><span className="l-what">8 900 Kč</span><span className="l-state l-warn" style={{ width: 'auto' }}>{t('tours.t2.mockDue')}</span></div>
+            <div className="l-row due"><b>C-018</b><span className="l-what">8 900 Kč</span><span className="l-state l-warn" style={{ width: 'auto' }}>{t('tours.t2.mockDue')}</span></div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 14, flexWrap: 'wrap' }}>
-            <span className="l-btn l-dark l-sm" style={{ fontSize: 12.5, padding: '9px 14px', borderRadius: 10 }}>Poslat 2 upomínky</span>
-            <span style={{ fontSize: 12, color: '#8b93a0' }}>jedním klikem, bez SMS a bez výčitek</span>
+            <span className="l-btn l-dark l-sm" style={{ fontSize: 12.5, padding: '9px 14px', borderRadius: 10 }}>{t('tours.t2.mockBtn')}</span>
+            <span style={{ fontSize: 12, color: '#8b93a0' }}>{t('tours.t2.mockNote')}</span>
           </div>
         </div>
       ),
     },
     {
-      today: '„Svoláme schůzi a nesejde se ani polovina podílů.“',
-      h: 'Schůze, která se konečně sejde',
-      p: 'Hlasování podle podílů, plné moci a zápis vygenerovaný z výsledků. Per rollam bez obcházení pater.',
-      ticks: ['Podíly a usnášeníschopnost počítá aplikace', 'Zápis ke stažení hned po hlasování'],
+      today: t('tours.t3.today'),
+      h: t('tours.t3.h'),
+      p: t('tours.t3.p'),
+      ticks: [t('tours.t3.tick1'), t('tours.t3.tick2')],
       mock: (
         <div className="l-mock an">
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
-            <b style={{ fontSize: 14, fontWeight: 800 }}>Usnesení 3/2026 · Oprava střechy</b>
-            <span className="l-state l-ok" style={{ width: 'auto', flex: 'none' }}>Usnášeníschopné</span>
+            <b style={{ fontSize: 14, fontWeight: 800 }}>{t('tours.t3.mockTitle')}</b>
+            <span className="l-state l-ok" style={{ width: 'auto', flex: 'none' }}>{t('tours.t3.mockOk')}</span>
           </div>
           <div className="l-dual">
             <div className="grow" style={{ width: '62%', background: '#06C40A' }} />
             <div className="grow" style={{ width: '11%', background: '#B26A00', ['--d' as string]: '.5s' }} />
           </div>
           <div className="l-legend">
-            <span><i style={{ background: '#06C40A' }} /><b style={{ fontWeight: 700 }}>62 %</b> podílů pro</span>
-            <span><i style={{ background: '#B26A00' }} />11 % proti</span>
-            <span><i style={{ background: '#D7DDE7' }} />27 % zatím nehlasovalo</span>
+            <span><i style={{ background: '#06C40A' }} /><b style={{ fontWeight: 700 }}>62 %</b> {t('tours.t3.mockFor')}</span>
+            <span><i style={{ background: '#B26A00' }} />11 % {t('tours.t3.mockAgainst')}</span>
+            <span><i style={{ background: '#D7DDE7' }} />27 % {t('tours.t3.mockUndecided')}</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 11, marginTop: 16, paddingTop: 14, borderTop: '1px solid #E5E9F0' }}>
             <span style={{ width: 32, height: 32, borderRadius: 9, background: '#EEF2F7', color: '#12901E', display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none' }}>
               <Glyph d={G.doc} size={15} />
             </span>
             <div style={{ flex: 1 }}>
-              <b style={{ fontSize: 13, fontWeight: 700, display: 'block' }}>Zápis z hlasování</b>
-              <span style={{ fontSize: 11.5, color: '#8b93a0' }}>vygenerovaný z výsledků, včetně plných mocí</span>
+              <b style={{ fontSize: 13, fontWeight: 700, display: 'block' }}>{t('tours.t3.mockDocTitle')}</b>
+              <span style={{ fontSize: 11.5, color: '#8b93a0' }}>{t('tours.t3.mockDocSub')}</span>
             </div>
-            <span style={{ fontSize: 12, fontWeight: 700, color: '#12901E' }}>Stáhnout PDF</span>
+            <span style={{ fontSize: 12, fontWeight: 700, color: '#12901E' }}>{t('tours.t3.mockDocBtn')}</span>
           </div>
         </div>
       ),
     },
     {
-      today: '„Hlásil jsem to před měsícem a dodnes nevím, jestli se něco děje.“',
-      h: 'Závady s fotkou místo lístečku',
-      p: 'Soused vyfotí, vy přiřadíte dodavatele, on vidí průběh. Každá závada má odpovědného a termín.',
-      ticks: ['Historie u bytu i u domu, nic se neztratí', 'Ohlašovatel dostává notifikace o průběhu'],
+      today: t('tours.t4.today'),
+      h: t('tours.t4.h'),
+      p: t('tours.t4.p'),
+      ticks: [t('tours.t4.tick1'), t('tours.t4.tick2')],
       flip: true,
       mock: (
         <div className="l-mock an">
           <div style={{ display: 'flex', gap: 14 }}>
-            <div className="l-photo" style={{ width: 110, height: 110, flex: 'none' }}><span>foto závady<br />od souseda</span></div>
+            <div className="l-photo" style={{ width: 110, height: 110, flex: 'none' }}><span>{t('tours.t4.mockPhoto')}</span></div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-                <b style={{ fontSize: 14, fontWeight: 800 }}>Kape ventil ve sklepě</b>
-                <span className="l-mono" style={{ fontSize: 10, fontWeight: 600, color: '#48515C', background: '#EEF2F7', borderRadius: 999, padding: '3px 9px', flex: 'none' }}>VCHOD B</span>
+                <b style={{ fontSize: 14, fontWeight: 800 }}>{t('tours.t4.mockTitle')}</b>
+                <span className="l-mono" style={{ fontSize: 10, fontWeight: 600, color: '#48515C', background: '#EEF2F7', borderRadius: 999, padding: '3px 9px', flex: 'none' }}>{t('tours.t4.mockChip')}</span>
               </div>
-              <span style={{ fontSize: 12, color: '#8b93a0' }}>nahlásil byt B-112 · úterý 19:42</span>
+              <span style={{ fontSize: 12, color: '#8b93a0' }}>{t('tours.t4.mockBy')}</span>
               <div style={{ display: 'grid', gap: 7, marginTop: 10, fontSize: 12.5 }}>
-                <span style={{ display: 'flex', gap: 8, alignItems: 'center', color: '#12901E', fontWeight: 600 }}><Chk w={13} />Nahlášeno s fotkou</span>
-                <span style={{ display: 'flex', gap: 8, alignItems: 'center', color: '#12901E', fontWeight: 600 }}><Chk w={13} />Přiřazeno: Instalatér Kraus, čtvrtek</span>
+                <span style={{ display: 'flex', gap: 8, alignItems: 'center', color: '#12901E', fontWeight: 600 }}><Chk w={13} />{t('tours.t4.mockStep1')}</span>
+                <span style={{ display: 'flex', gap: 8, alignItems: 'center', color: '#12901E', fontWeight: 600 }}><Chk w={13} />{t('tours.t4.mockStep2')}</span>
                 <span style={{ display: 'flex', gap: 8, alignItems: 'center', color: '#8b93a0', fontWeight: 600 }}>
-                  <span style={{ width: 13, height: 13, borderRadius: '50%', border: '2px solid #D7DDE7', flex: 'none' }} />Vyřešeno
+                  <span style={{ width: 13, height: 13, borderRadius: '50%', border: '2px solid #D7DDE7', flex: 'none' }} />{t('tours.t4.mockStep3')}
                 </span>
               </div>
             </div>
           </div>
           <div style={{ marginTop: 14, paddingTop: 12, borderTop: '1px solid #E5E9F0', fontSize: 12, color: '#8b93a0' }}>
-            Ohlašovatel vidí každý krok — nikdo nevolá výboru v neděli večer.
+            {t('tours.t4.mockFoot')}
           </div>
         </div>
       ),
@@ -227,12 +234,12 @@ export default function MarketingPage() {
   ]
 
   const faqs = [
-    { q: 'Co když sousedé žádnou aplikaci používat nechtějí?', a: 'Nemusí se připojit všichni a nemusí to být hned. Aplikace dává smysl už pro samotný výbor: předpisy, dokumenty, evidence závad. Sousedé se přidávají postupně, každé oznámení s notifikací je důvod navíc. V pilotním domě se většina připojila během prvních týdnů.' },
-    { q: 'Jak dlouho trvá spuštění a co pro to musíme udělat?', a: `Pošlete seznam jednotek a nájmů, my do ${OFFER.launch} připravíme celý dům a přístupové kódy. Nic neinstalujete, aplikace běží v prohlížeči i jako ikona na ploše telefonu.` },
-    { q: 'Jak fungují platby nájmů a záloh?', a: 'Výbor jedním tlačítkem vystaví měsíční předpisy. Soused zaplatí QR kódem přímo na účet domu, peníze vám nikdy neprocházejí přes nás. Platbu potvrdíte jedním klikem, upomínka je taky na klik. Automatické párování z banky připravujeme.' },
-    { q: 'Pokrývá aplikace povinnost internetových stránek SVJ?', a: 'Výbor dostane zabezpečený prostor pro oznámení, dokumenty, zápisy a hlasování, tedy způsob, jak zpřístupnit informace vlastníkům podle stanov. Konkrétní požadavky vašich stanov s vámi rádi projdeme.' },
-    { q: 'Jsou data domu v bezpečí a co s nimi, když skončíme?', a: 'Data jsou uložena v Evropské unii a chráněná právy podle rolí, každý vidí jen to, co má. Kompletní export (platby, hlasování, čtenost, dokumenty) si výbor kdykoli stáhne sám v Nastavení domu. Když skončíte, do 30 dnů smažeme všechna data z databáze i úložiště. Žádné držení dat jako rukojmí.' },
-    { q: 'Musíme kvůli tomu měnit správce nebo účetnictví?', a: 'Ne. Tasker Living doplňuje správce o komunikaci, platby a hlasování, které dnes řešíte ručně. Účetnictví i technická správa zůstávají, jak jste zvyklí.' },
+    { q: t('faq.q1'), a: t('faq.a1') },
+    { q: t('faq.q2'), a: t('faq.a2', { launch: launchLabel }) },
+    { q: t('faq.q3'), a: t('faq.a3') },
+    { q: t('faq.q4'), a: t('faq.a4') },
+    { q: t('faq.q5'), a: t('faq.a5') },
+    { q: t('faq.q6'), a: t('faq.a6') },
   ]
 
   return (
@@ -242,39 +249,39 @@ export default function MarketingPage() {
         <div className="l-nav-in">
           <div className="l-brand">
             <img src={mark} alt="" />
-            <div><b>Tasker Living</b><small>Součást Tasker</small></div>
+            <div><b>Tasker Living</b><small>{t('shell:brand.tagline')}</small></div>
           </div>
           <div className="l-nav-links">
-            <button onClick={() => go('prohlidka')}>Prohlídka</button>
-            <button onClick={() => go('prokoho')}>Pro koho</button>
-            <button onClick={() => go('cenik')}>Ceník</button>
-            <button onClick={() => go('faq')}>Dotazy</button>
+            <button onClick={() => go('prohlidka')}>{t('nav.prohlidka')}</button>
+            <button onClick={() => go('prokoho')}>{t('nav.prokoho')}</button>
+            <button onClick={() => go('cenik')}>{t('nav.cenik')}</button>
+            <button onClick={() => go('faq')}>{t('nav.faq')}</button>
           </div>
           <div className="l-nav-right">
-            <button className="l-nav-demo" onClick={enterDemo}>Vyzkoušet demo</button>
-            <button className="l-btn l-primary l-sm" onClick={() => go('kontakt')}>Ukázka zdarma</button>
+            <LanguageSwitcher />
+            <button className="l-nav-demo" onClick={enterDemo}>{t('nav.demo')}</button>
+            <button className="l-btn l-primary l-sm" onClick={() => go('kontakt')}>{t('nav.cta')}</button>
           </div>
         </div>
       </nav>
 
       {/* hero: the claim, and right under it the real product for both roles */}
       <header className="l-hero">
-        <div className="l-eyebrow an"><i className="pulse" /> Aplikace pro bytové domy a SVJ</div>
+        <div className="l-eyebrow an"><i className="pulse" /> {t('hero.eyebrow')}</div>
         <h1 className="an" style={{ ['--d' as string]: '.05s' }}>
-          Celý dům v jedné aplikaci. <em>Konec papírků ve vchodě.</em>
+          {t('hero.titleA')} <em>{t('hero.titleEm')}</em>
         </h1>
         <p className="l-lead an" style={{ ['--d' as string]: '.1s' }}>
-          Oznámení přijdou sousedům jako notifikace, nájmy se platí QR kódem, závady mají fotku a průběh
-          a hlasování se konečně sejde. Pro výbor, rezidenty i developera.
+          {t('hero.lead')}
         </p>
         <div className="l-hero-cta an" style={{ ['--d' as string]: '.15s' }}>
-          <button className="l-btn l-primary" onClick={() => go('kontakt')}>Chci ukázku zdarma</button>
-          <button className="l-btn l-ghost" onClick={enterDemo}>Vyzkoušet demo hned</button>
+          <button className="l-btn l-primary" onClick={() => go('kontakt')}>{t('hero.ctaPrimary')}</button>
+          <button className="l-btn l-ghost" onClick={enterDemo}>{t('hero.ctaDemo')}</button>
         </div>
         <div className="l-risk an" style={{ ['--d' as string]: '.25s' }}>
-          <span><Chk w={14} /> Spuštění do {OFFER.launch}</span>
-          <span><Chk w={14} /> Prvních {OFFER.freeMonths} zdarma</span>
-          <span><Chk w={14} /> Zrušíte jednou zprávou</span>
+          <span><Chk w={14} /> {t('hero.riskLaunch', { launch: launchLabel })}</span>
+          <span><Chk w={14} /> {t('hero.riskFree', { months: freeMonthsLabel })}</span>
+          <span><Chk w={14} /> {t('hero.riskCancel')}</span>
         </div>
       </header>
 
@@ -282,33 +289,33 @@ export default function MarketingPage() {
       <section className="l-show">
         <div className="l-show-in">
           <div className="l-browser an">
-            <span className="l-tag">VÝBOR VIDÍ · WEB</span>
+            <span className="l-tag">{t('showcase.browserTag')}</span>
             <div className="l-chrome">
               <span style={{ display: 'flex', gap: 5 }}><i /><i /><i /></span>
               <span className="l-url">living.tasker.cz/vista-park</span>
             </div>
             <div className="l-bhead">
               <div style={{ flex: 1 }}>
-                <div className="l-kicker-xs">Rezidence</div>
-                <b>Vista Park</b>
+                <div className="l-kicker-xs">{t('showcase.kicker')}</div>
+                <b>{t('showcase.buildingName')}</b>
               </div>
-              <span style={{ fontSize: 11.5, fontWeight: 600, padding: '4px 11px', borderRadius: 999, background: '#EFE9FC', color: '#6A4BC2' }}>Role: výbor</span>
+              <span style={{ fontSize: 11.5, fontWeight: 600, padding: '4px 11px', borderRadius: 999, background: '#EFE9FC', color: '#6A4BC2' }}>{t('showcase.roleChip')}</span>
             </div>
             <div className="l-btabs">
-              <span className="on">Přehled</span><span>Platby</span><span>Schůze</span><span>Závady</span><span>Dokumenty</span>
+              <span className="on">{t('showcase.tabs.prehled')}</span><span>{t('showcase.tabs.platby')}</span><span>{t('showcase.tabs.schuze')}</span><span>{t('showcase.tabs.zavady')}</span><span>{t('showcase.tabs.dokumenty')}</span>
             </div>
             <div className="l-bkpis">
-              <div className="l-bkpi"><span>Vybráno v červnu</span><b className="g">92 %</b></div>
-              <div className="l-bkpi"><span>Otevřené závady</span><b>2</b></div>
-              <div className="l-bkpi"><span>Hlasování o střeše</span><b className="g">62 % pro</b></div>
+              <div className="l-bkpi"><span>{t('showcase.kpi1')}</span><b className="g">92 %</b></div>
+              <div className="l-bkpi"><span>{t('showcase.kpi2')}</span><b>2</b></div>
+              <div className="l-bkpi"><span>{t('showcase.kpi3')}</span><b className="g">62 % pro</b></div>
             </div>
             <div style={{ padding: '16px 22px 20px' }}>
-              <div style={{ fontSize: 12.5, fontWeight: 700, color: '#48515C', marginBottom: 8 }}>Platby · červen</div>
+              <div style={{ fontSize: 12.5, fontWeight: 700, color: '#48515C', marginBottom: 8 }}>{t('showcase.paymentsLabel')}</div>
               <div className="l-rows">
-                <div className="l-row"><b>B-201</b><span className="l-what">nájem + zálohy</span><span className="l-amt">24 500 Kč</span><span className="l-state l-ok">Zaplaceno</span></div>
-                <div className="l-row"><b>B-204</b><span className="l-what">nájem + zálohy</span><span className="l-amt">24 500 Kč</span><span className="l-state l-ok">Zaplaceno · QR</span></div>
-                <div className="l-row due"><b>B-112</b><span className="l-what">zálohy</span><span className="l-amt">8 900 Kč</span><span className="l-state l-warn">Upomínka odeslána</span></div>
-                <div className="l-row"><b>C-018</b><span className="l-what">zálohy</span><span className="l-amt">8 900 Kč</span><span className="l-state l-neutral">Čeká</span></div>
+                <div className="l-row"><b>B-201</b><span className="l-what">{t('showcase.row1')}</span><span className="l-amt">24 500 Kč</span><span className="l-state l-ok">{t('showcase.paidPlain')}</span></div>
+                <div className="l-row"><b>B-204</b><span className="l-what">{t('showcase.row1')}</span><span className="l-amt">24 500 Kč</span><span className="l-state l-ok">{t('tours.t2.mockPaid')}</span></div>
+                <div className="l-row due"><b>B-112</b><span className="l-what">{t('showcase.row2')}</span><span className="l-amt">8 900 Kč</span><span className="l-state l-warn">{t('tours.t2.mockDue')}</span></div>
+                <div className="l-row"><b>C-018</b><span className="l-what">{t('showcase.row2')}</span><span className="l-amt">8 900 Kč</span><span className="l-state l-neutral">{t('showcase.waiting')}</span></div>
               </div>
             </div>
           </div>
@@ -316,78 +323,77 @@ export default function MarketingPage() {
           <div className="l-phone floaty">
             <div className="l-status"><span>9:41</span><span style={{ display: 'flex', gap: 3, alignItems: 'center' }}><i /><i className="r" /></span></div>
             <div className="l-pnotif notif">
-              <div className="h"><img src={mark} alt="" />TASKER LIVING · teď</div>
-              <b>Odstávka vody ve čtvrtek</b>
-              <span className="s">8:00–12:00, vchody A a B</span>
+              <div className="h"><img src={mark} alt="" />TASKER LIVING · {t('common:time.now')}</div>
+              <b>{t('showcase.notifTitle')}</b>
+              <span className="s">{t('showcase.notifSub')}</span>
             </div>
             <div className="l-pcard">
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <b style={{ fontSize: 11, fontWeight: 800 }}>Nájem · červen</b>
-                <span style={{ fontSize: 9, fontWeight: 700, padding: '2px 7px', borderRadius: 999, background: '#FDF1E2', color: '#B26A00' }}>Do 15. 6.</span>
+                <b style={{ fontSize: 11, fontWeight: 800 }}>{t('showcase.rentCard')}</b>
+                <span style={{ fontSize: 9, fontWeight: 700, padding: '2px 7px', borderRadius: 999, background: '#FDF1E2', color: '#B26A00' }}>{t('showcase.rentDue')}</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 8 }}>
                 <div className="l-qr" />
                 <div>
                   <b style={{ fontSize: 13, fontWeight: 800, display: 'block' }}>24 500 Kč</b>
-                  <span style={{ fontSize: 9.5, color: '#8b93a0' }}>QR na účet domu</span>
+                  <span style={{ fontSize: 9.5, color: '#8b93a0' }}>{t('showcase.rentNote')}</span>
                 </div>
               </div>
-              <div className="l-pbtn">Zaplatit v bance</div>
+              <div className="l-pbtn">{t('showcase.rentBtn')}</div>
             </div>
             <div className="l-pcard" style={{ marginBottom: 12, display: 'flex', gap: 9, alignItems: 'center' }}>
               <span style={{ width: 26, height: 26, borderRadius: 8, background: '#E7F7E8', color: '#12901E', display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none' }}>
                 <Glyph d={G.lift} size={13} />
               </span>
               <div>
-                <b style={{ fontSize: 10.5, fontWeight: 700, display: 'block' }}>Výtah C: přiřazen servis</b>
-                <span style={{ fontSize: 9, color: '#8b93a0' }}>sledujete průběh</span>
+                <b style={{ fontSize: 10.5, fontWeight: 700, display: 'block' }}>{t('showcase.faultCard')}</b>
+                <span style={{ fontSize: 9, color: '#8b93a0' }}>{t('showcase.faultNote')}</span>
               </div>
             </div>
             <span className="l-home" />
           </div>
-          <span className="l-ptag">SOUSED VIDÍ · TELEFON</span>
+          <span className="l-ptag">{t('showcase.phoneTag')}</span>
         </div>
 
         {/* stat strip */}
         <div className="l-strip an" style={{ ['--d' as string]: '.15s' }}>
           <div className="l-stats">
-            <div><b>40</b>jednotek v pilotu</div>
-            <div><b>48 h</b>od podkladů ke spuštění</div>
-            <div><b>0 Kč</b>za nastavení domu</div>
-            <div><b>20 000+</b>klientů platformy Tasker</div>
+            <div><b>40</b>{t('showcase.stat1')}</div>
+            <div><b>48 h</b>{t('showcase.stat2')}</div>
+            <div><b>0 Kč</b>{t('showcase.stat3')}</div>
+            <div><b>20 000+</b>{t('showcase.stat4')}</div>
           </div>
           <div className="l-chips">
-            <span className="l-chip"><Glyph d={G.home} size={13} stroke="#12901E" />Pilot: Vista Park, Praha 5</span>
-            <span className="l-chip"><Glyph d={G.shield} size={13} stroke="#12901E" />Data v EU</span>
-            <span className="l-chip"><Glyph d={G.doc} size={13} stroke="#12901E" />Pokrývá povinnost webu SVJ</span>
-            <span className="l-chip"><Glyph d={G.spark} size={13} stroke="#12901E" />Součást rodiny Tasker</span>
+            <span className="l-chip"><Glyph d={G.home} size={13} stroke="#12901E" />{t('showcase.chip1')}</span>
+            <span className="l-chip"><Glyph d={G.shield} size={13} stroke="#12901E" />{t('showcase.chip2')}</span>
+            <span className="l-chip"><Glyph d={G.doc} size={13} stroke="#12901E" />{t('showcase.chip3')}</span>
+            <span className="l-chip"><Glyph d={G.spark} size={13} stroke="#12901E" />{t('showcase.chip4')}</span>
           </div>
         </div>
       </section>
 
       {/* 01 tour: pain -> solution -> real UI */}
       <section className="l-sec" id="prohlidka">
-        <div className="l-num">01 · Prohlídka aplikace</div>
-        <h2 className="an" style={{ maxWidth: '18em' }}>Čtyři večery, které výboru každý měsíc vrátíme</h2>
+        <div className="l-num">{t('tours.sectionNum')}</div>
+        <h2 className="an" style={{ maxWidth: '18em' }}>{t('tours.sectionTitle')}</h2>
         <p className="l-sub">
-          Výbor to dnes dělá po večerech, s nástěnkou, Excelem a trpělivostí. Každý blok níže nahrazuje
-          jeden ruční proces — a ukazuje, jak přesně to v aplikaci vypadá.
+          {t('tours.sectionSub')}
         </p>
 
-        {tours.map((t) => (
-          <div className="l-tour" key={t.h}>
-            {t.flip && t.mock}
+        {tours.map((tour) => (
+          <div className="l-tour" key={tour.h}>
+            {tour.flip && tour.mock}
             <div>
-              <div className="l-today">DNES</div>
-              <div className="l-quote">{t.today}</div>
-              <div className="l-with">S TASKER LIVING</div>
-              <h3>{t.h}</h3>
-              <p>{t.p}</p>
+              <div className="l-today">{t('tours.today')}</div>
+              <div className="l-quote">{tour.today}</div>
+              <div className="l-with">{t('tours.with')}</div>
+              <h3>{tour.h}</h3>
+              <p>{tour.p}</p>
               <div className="l-ticks">
-                {t.ticks.map((x) => <span key={x}><Chk />{x}</span>)}
+                {tour.ticks.map((x) => <span key={x}><Chk />{x}</span>)}
               </div>
             </div>
-            {!t.flip && t.mock}
+            {!tour.flip && tour.mock}
           </div>
         ))}
 
@@ -395,15 +401,15 @@ export default function MarketingPage() {
           <div className="l-side an">
             <span className="l-sic"><Glyph d={G.doc} /></span>
             <div>
-              <b>A k tomu: stanovy a zápisy k nalezení</b>
-              <p>Dokumenty domu na jednom místě, viditelnost podle rolí. Konec hledání v deset let staré poště.</p>
+              <b>{t('sideNotes.docsTitle')}</b>
+              <p>{t('sideNotes.docsBody')}</p>
             </div>
           </div>
           <div className="l-side an" style={{ ['--d' as string]: '.08s' }}>
             <span className="l-sic"><Glyph d={G.chat} /></span>
             <div>
-              <b>A k tomu: sousedské spory bez konfliktu</b>
-              <p>Stížnost se eviduje k bytu, ne ke jménu. Výbor upozorní jedním tlačítkem, nikdo se nehádá na chodbě.</p>
+              <b>{t('sideNotes.disputesTitle')}</b>
+              <p>{t('sideNotes.disputesBody')}</p>
             </div>
           </div>
         </div>
@@ -413,229 +419,223 @@ export default function MarketingPage() {
       <section className="l-moat" id="moat">
         <div className="l-moat-in">
           <div>
-            <div className="l-num">02 · Tohle nikdo jiný nemá</div>
-            <h2 className="an">Ostatní evidují. My pošleme i ruce, které to udělají.</h2>
+            <div className="l-num">{t('moat.num')}</div>
+            <h2 className="an">{t('moat.title')}</h2>
             <p className="l-sub">
-              Ostatní aplikace pro domy končí u evidence. Tasker Living stojí na platformě Tasker, takže soused
-              na pár kliknutí objedná ověřeného pracovníka: úklid, drobnou opravu, mytí oken. Bez shánění,
-              bez telefonování, s hodnocením.
+              {t('moat.body')}
             </p>
             <div className="l-ticks">
-              <span><ChkLight />Ověření pracovníci s hodnocením</span>
-              <span><ChkLight />Objednávka přímo z aplikace, termín potvrdí dispečink</span>
-              <span><ChkLight />Dům se službami po ruce je atraktivnější pro nájemníky</span>
+              <span><ChkLight />{t('moat.tick1')}</span>
+              <span><ChkLight />{t('moat.tick2')}</span>
+              <span><ChkLight />{t('moat.tick3')}</span>
             </div>
             <div className="l-20k an" style={{ ['--d' as string]: '.15s' }}>
-              <b className="n">20 000+</b>
-              <span><b>klientů dnes používá platformu Tasker.</b><br />Síť ověřených pracovníků a zkušenosti z tisíců zakázek přenášíme do Tasker Living.</span>
+              <b className="n">{t('moat.statNum')}</b>
+              <span><b>{t('moat.statLine1')}</b><br />{t('moat.statLine2')}</span>
             </div>
           </div>
           <div className="l-svc an">
-            <div className="l-kicker-xs">Služby Tasker · byt B-204</div>
+            <div className="l-kicker-xs">{t('moat.svcKicker')}</div>
             <div className="l-pills">
-              <span className="on">Drobná oprava</span><span>Úklid</span><span>Mytí oken</span>
+              <span className="on">{t('moat.svcTab1')}</span><span>{t('moat.svcTab2')}</span><span>{t('moat.svcTab3')}</span>
             </div>
             <div className="l-worker">
               <span className="l-ava">MP</span>
               <div style={{ flex: 1 }}>
-                <b style={{ fontSize: 14.5, fontWeight: 800, display: 'block' }}>Marek P.</b>
-                <span style={{ fontSize: 12, color: '#8b93a0' }}>★ 4,9 · 132 zakázek · prověřený</span>
+                <b style={{ fontSize: 14.5, fontWeight: 800, display: 'block' }}>{t('moat.workerName')}</b>
+                <span style={{ fontSize: 12, color: '#8b93a0' }}>{t('moat.workerMeta')}</span>
               </div>
-              <span className="l-state l-ok" style={{ width: 'auto' }}>Ověřený</span>
+              <span className="l-state l-ok" style={{ width: 'auto' }}>{t('moat.workerBadge')}</span>
             </div>
             <div className="l-slots">
-              <span className="on">Čt 14:00</span><span>Pá 9:00</span><span>Pá 16:00</span>
+              <span className="on">{t('moat.slotA')}</span><span>{t('moat.slotB')}</span><span>{t('moat.slotC')}</span>
             </div>
-            <div className="l-btn l-primary" style={{ width: '100%', marginTop: 14, fontSize: 14, padding: 13 }}>Objednat na čtvrtek 14:00</div>
+            <div className="l-btn l-primary" style={{ width: '100%', marginTop: 14, fontSize: 14, padding: 13 }}>{t('moat.slotBtn')}</div>
           </div>
         </div>
       </section>
 
       {/* 03 for whom: three roles, each with its own CTA */}
       <section className="l-sec" id="prokoho">
-        <div className="l-num">03 · Pro koho</div>
-        <h2 className="an">Jeden dům, tři role, každá dostane svoje</h2>
+        <div className="l-num">{t('roles.num')}</div>
+        <h2 className="an">{t('roles.title')}</h2>
         <div className="l-roles">
           <div className="l-role an">
-            <div className="l-kicker-xs" style={{ fontSize: 10.5 }}>Výbor SVJ</div>
-            <h3>Vrátíme vám večery</h3>
+            <div className="l-kicker-xs" style={{ fontSize: 10.5 }}>{t('roles.vybor.kicker')}</div>
+            <h3>{t('roles.vybor.h')}</h3>
             <div className="l-ticks">
-              <span><Chk />Platby a upomínky bez tabulek</span>
-              <span><Chk />Hlasování, které je usnášeníschopné</span>
-              <span><Chk />Závady s odpovědným a termínem</span>
+              <span><Chk />{t('roles.vybor.t1')}</span>
+              <span><Chk />{t('roles.vybor.t2')}</span>
+              <span><Chk />{t('roles.vybor.t3')}</span>
             </div>
-            <button onClick={() => go('kontakt')}>Chci ukázku zdarma →</button>
+            <button onClick={() => go('kontakt')}>{t('roles.vybor.cta')}</button>
           </div>
           <div className="l-role an" style={{ ['--d' as string]: '.08s' }}>
-            <div className="l-kicker-xs" style={{ fontSize: 10.5 }}>Soused · rezident</div>
-            <h3>Celý dům v kapse</h3>
+            <div className="l-kicker-xs" style={{ fontSize: 10.5 }}>{t('roles.rezident.kicker')}</div>
+            <h3>{t('roles.rezident.h')}</h3>
             <div className="l-ticks">
-              <span><Chk />Notifikace místo nástěnky ve vchodě</span>
-              <span><Chk />Nájem zaplacený QR kódem za minutu</span>
-              <span><Chk />Služby Tasker na pár kliknutí</span>
+              <span><Chk />{t('roles.rezident.t1')}</span>
+              <span><Chk />{t('roles.rezident.t2')}</span>
+              <span><Chk />{t('roles.rezident.t3')}</span>
             </div>
-            <button onClick={enterDemo}>Vyzkoušet demo →</button>
+            <button onClick={enterDemo}>{t('roles.rezident.cta')}</button>
           </div>
           <div className="l-role an" style={{ ['--d' as string]: '.16s' }}>
-            <div className="l-kicker-xs" style={{ fontSize: 10.5 }}>Developer · investor</div>
-            <h3>Předáte dům, ne šanon</h3>
+            <div className="l-kicker-xs" style={{ fontSize: 10.5 }}>{t('roles.developer.kicker')}</div>
+            <h3>{t('roles.developer.h')}</h3>
             <div className="l-ticks">
-              <span><Chk />Novostavba předaná s hotovou aplikací</span>
-              <span><Chk />Přehled nájmů napříč portfoliem</span>
-              <span><Chk />Podmínky a nasazení na míru</span>
+              <span><Chk />{t('roles.developer.t1')}</span>
+              <span><Chk />{t('roles.developer.t2')}</span>
+              <span><Chk />{t('roles.developer.t3')}</span>
             </div>
-            <button onClick={() => go('kontakt')}>Domluvit podmínky →</button>
+            <button onClick={() => go('kontakt')}>{t('roles.developer.cta')}</button>
           </div>
         </div>
       </section>
 
       {/* 04 launch: timeline + founder */}
       <section className="l-sec">
-        <div className="l-num">04 · Spuštění</div>
-        <h2 className="an">Vy pošlete tabulku, my uděláme zbytek</h2>
+        <div className="l-num">{t('launch.num')}</div>
+        <h2 className="an">{t('launch.title')}</h2>
         <p className="l-sub" style={{ maxWidth: '34em' }}>
-          Žádná instalace, žádná migrace, žádné školení na půl dne. Nastavení domu je naše práce, ne vaše.
+          {t('launch.sub')}
         </p>
         <div className="l-steps">
           <div className="l-step an">
             <div className="n">1</div>
-            <div className="d">DEN 0</div>
-            <h4>Pošlete nám seznam jednotek</h4>
-            <p>Stačí čísla bytů a nájmy. Klidně vyfocená tabulka, zbytek uděláme my.</p>
+            <div className="d">{t('launch.s1.d')}</div>
+            <h4>{t('launch.s1.h')}</h4>
+            <p>{t('launch.s1.p')}</p>
           </div>
           <div className="l-step an" style={{ ['--d' as string]: '.08s' }}>
             <div className="n">2</div>
-            <div className="d">DEN 1–2</div>
-            <h4>Připravíme celý dům</h4>
-            <p>Nastavíme jednotky, platby i dokumenty a předáme vám přístupové kódy pro sousedy.</p>
+            <div className="d">{t('launch.s2.d')}</div>
+            <h4>{t('launch.s2.h')}</h4>
+            <p>{t('launch.s2.p')}</p>
           </div>
           <div className="l-step an" style={{ ['--d' as string]: '.16s' }}>
             <div className="n g">3</div>
-            <div className="d g">DO 48 HODIN</div>
-            <h4>Rozdáte kódy a dům běží</h4>
-            <p>Sousedé se připojí kódem ke svému bytu. První oznámení pošlete ještě ten den.</p>
+            <div className="d g">{t('launch.s3.d')}</div>
+            <h4>{t('launch.s3.h')}</h4>
+            <p>{t('launch.s3.p')}</p>
           </div>
         </div>
         <div className="l-founder an">
           <div className="f">DS</div>
           <div>
             <blockquote>
-              „Tasker Living jsme nepostavili od stolu. Stavíme a spravujeme vlastní rezidenci se 40 jednotkami
-              a přesně tyhle věci nás štvaly: papírky, výpisy, schůze, které se nesejdou. Tak jsme si udělali nástroj,
-              který bychom sami chtěli, a teď ho dáváme dalším domům. Každý dům spouštím osobně.“
+              {t('launch.quote')}
             </blockquote>
-            <div className="sig"><b>David Siwy</b>, zakladatel Tasker Living · developer Rezidence Vista Park · zakladatel platformy Tasker</div>
+            <div className="sig"><b>David Siwy</b>{t('launch.sig')}</div>
           </div>
         </div>
       </section>
 
       {/* 05 proof from the pilot: concrete numbers right before the price */}
       <section className="l-sec">
-        <div className="l-num">05 · Důkaz z pilotu</div>
-        <h2 className="an" style={{ maxWidth: '16em' }}>Neslibujeme. Ukazujeme dům, kde to běží.</h2>
+        <div className="l-num">{t('proof.num')}</div>
+        <h2 className="an" style={{ maxWidth: '16em' }}>{t('proof.title')}</h2>
         <p className="l-sub">
-          Žádná loga vymyšlených klientů. Jeden skutečný dům, 40 jednotek a čísla z prvních týdnů provozu —
-          na požádání vám je ukážeme přímo v aplikaci.
+          {t('proof.sub')}
         </p>
         <div className="l-proof">
           <div className="l-pilot an">
-            <div className="ph"><span>foto: Rezidence Vista Park, Praha 5</span></div>
+            <div className="ph"><span>{t('proof.photoCaption')}</span></div>
             <div className="body">
               <div className="t">
                 <b className="name">Rezidence Vista Park</b>
-                <span className="l-live"><i className="pulse" />Živý provoz</span>
+                <span className="l-live"><i className="pulse" />{t('proof.live')}</span>
               </div>
-              <div className="l-mono" style={{ fontSize: 11, color: '#8b93a0', marginTop: 4 }}>Praha 5 · 40 jednotek · pilot od dubna 2026</div>
+              <div className="l-mono" style={{ fontSize: 11, color: '#8b93a0', marginTop: 4 }}>{t('proof.meta')}</div>
               <div className="l-pgrid">
-                <div className="l-pcell"><b>38 / 40</b><span>bytů připojeno do 3 týdnů</span></div>
-                <div className="l-pcell"><b>92 %</b><span>plateb do splatnosti, bez jediné SMS</span></div>
-                <div className="l-pcell"><b>6 dní</b><span>k usnášeníschopnému hlasování — poprvé v historii domu</span></div>
-                <div className="l-pcell"><b>0</b><span>papírků ve vchodě od spuštění</span></div>
+                <div className="l-pcell"><b>{t('proof.p1n')}</b><span>{t('proof.p1t')}</span></div>
+                <div className="l-pcell"><b>{t('proof.p2n')}</b><span>{t('proof.p2t')}</span></div>
+                <div className="l-pcell"><b>{t('proof.p3n')}</b><span>{t('proof.p3t')}</span></div>
+                <div className="l-pcell"><b>{t('proof.p4n')}</b><span>{t('proof.p4t')}</span></div>
               </div>
             </div>
           </div>
           <div className="l-tstm">
             <div className="l-tcard an">
-              <div className="q">„Vyúčtování a upomínky mi dřív žraly <b>dva večery měsíčně</b>. Teď to mám za <b>dvacet minut u kafe</b> — a poprvé nikomu nepíšu SMS, kdo nezaplatil.“</div>
+              <div className="q">{t('proof.q1')}</div>
               <div className="who">
                 <span className="ini">PH</span>
-                <div><b>Petr Hlaváček</b>předseda výboru · Vista Park</div>
-                <span className="badge">VÝBOR</span>
+                <div><b>{t('proof.who1n')}</b>{t('proof.who1r')}</div>
+                <span className="badge">{t('roles.vybor.kicker')}</span>
               </div>
             </div>
             <div className="l-tcard an" style={{ ['--d' as string]: '.08s' }}>
-              <div className="q">„Je mi <b>71 a žádné aplikace nepoužívám</b>. Kód od výboru jsem zadala jednou a od té doby mi dům prostě chodí do telefonu. O odstávce vody jsem věděla dřív než dcera.“</div>
+              <div className="q">{t('proof.q2')}</div>
               <div className="who">
                 <span className="ini">MK</span>
-                <div><b>Marie Konečná</b>vlastnice · byt A-014</div>
+                <div><b>{t('proof.who2n')}</b>{t('proof.who2r')}</div>
                 <span className="badge">A-014</span>
               </div>
             </div>
             <div className="l-tcard an" style={{ ['--d' as string]: '.16s' }}>
-              <div className="q">„Kapající ventil jsem vyfotil <b>v neděli, ve čtvrtek byl vyměněný</b>. A celou dobu jsem v telefonu viděl, co se s tím děje — nikomu jsem nemusel volat.“</div>
+              <div className="q">{t('proof.q3')}</div>
               <div className="who">
                 <span className="ini">TR</span>
-                <div><b>Tomáš Růžička</b>nájemník · byt B-112</div>
+                <div><b>{t('proof.who3n')}</b>{t('proof.who3r')}</div>
                 <span className="badge">B-112</span>
               </div>
             </div>
-            <div className="l-note">Rezidenti pilotního domu, jména a byty se souhlasem. Čísla jsou z provozu, ne z prezentace.</div>
+            <div className="l-note">{t('proof.note')}</div>
           </div>
         </div>
         <div className="l-cta-bar an">
-          <div className="t">Chcete to vidět naživo? Ukážeme vám aplikaci přímo na datech Vista Parku.</div>
-          <button className="l-btn l-primary l-sm" onClick={() => go('kontakt')}>Chci ukázku zdarma</button>
+          <div className="t">{t('proof.ctaText')}</div>
+          <button className="l-btn l-primary l-sm" onClick={() => go('kontakt')}>{t('proof.ctaBtn')}</button>
         </div>
       </section>
 
       {/* 06 pricing: one card, guarantee inside */}
       <section className="l-sec" id="cenik">
         <div style={{ textAlign: 'center' }}>
-          <div className="l-num">06 · Ceník</div>
-          <h2 className="an">Jedna cena, všechno v ní</h2>
+          <div className="l-num">{t('pricing.num')}</div>
+          <h2 className="an">{t('pricing.title')}</h2>
           <p className="l-sub" style={{ margin: '12px auto 0', maxWidth: '34em' }}>
-            Žádné moduly, žádné příplatky, žádný ceník na tři stránky. Platíte jen za obsazené jednotky.
+            {t('pricing.sub')}
           </p>
         </div>
         <div className="l-price-card an">
-          <span className="flag">Pilotní program 2026</span>
+          <span className="flag">{t('pricing.flag')}</span>
           <div className="l-price">
             <div className="v">{OFFER.pricePerUnit} Kč</div>
-            <div className="u">/ jednotka / měsíc · vše v ceně</div>
+            <div className="u">{t('pricing.perUnit')}</div>
           </div>
           <div className="l-price-desc">
-            Zhruba 13 Kč na byt a den. Méně, než dům platí za úklid schodiště, a ušetří výboru večery každý měsíc.
+            {t('pricing.desc')}
           </div>
           <div className="l-incl">
-            <span><Chk />Oznámení s notifikacemi</span>
-            <span><Chk />Předpisy, QR platby, upomínky</span>
-            <span><Chk />Schůze a hlasování podle podílů</span>
-            <span><Chk />Závady s fotkou a průběhem</span>
-            <span><Chk />Dokumenty s právy podle rolí</span>
-            <span><Chk />Služby Tasker s ověřenými pracovníky</span>
+            <span><Chk />{t('pricing.i1')}</span>
+            <span><Chk />{t('pricing.i2')}</span>
+            <span><Chk />{t('pricing.i3')}</span>
+            <span><Chk />{t('pricing.i4')}</span>
+            <span><Chk />{t('pricing.i5')}</span>
+            <span><Chk />{t('pricing.i6')}</span>
           </div>
           <div className="l-guar">
             <Glyph d={G.shield} size={18} stroke="#12901E" />
             <div>
-              <b>Garance:</b> prvních {OFFER.freeMonths} zdarma, bez karty a bez závazku. Nastavení do {OFFER.launch} uděláme my.
-              Když se dům nechytne, zrušíte to jednou zprávou a data vám vyexportujeme a smažeme.
+              <b>{t('pricing.guarLabel')}</b> {t('pricing.guarBody', { months: freeMonthsLabel, launch: launchLabel })}
             </div>
           </div>
           <button className="l-btn l-primary" style={{ width: '100%', marginTop: 20, padding: 14 }} onClick={() => go('kontakt')}>
-            Chci ukázku zdarma
+            {t('pricing.cta')}
           </button>
         </div>
         <p className="l-under">
-          Developer nebo investor? Portfolio a předání novostavby řešíme na míru —{' '}
-          <button onClick={() => go('kontakt')}>domluvit podmínky</button>.
+          {t('pricing.underPre')}{' '}
+          <button onClick={() => go('kontakt')}>{t('pricing.underLink')}</button>.
         </p>
-        <p className="l-fine">Ceny jsou bez DPH. Domy do pilotního programu spouštíme postupně, ať má každý plnou podporu.</p>
+        <p className="l-fine">{t('pricing.fine')}</p>
       </section>
 
       {/* 07 faq: six questions, two columns */}
       <section className="l-sec" id="faq">
-        <div className="l-num">07 · Časté dotazy</div>
-        <h2 className="an">Na co se výbory ptají, než řeknou ano</h2>
+        <div className="l-num">{t('faq.num')}</div>
+        <h2 className="an">{t('faq.title')}</h2>
         <div className="l-faq">
           <div>
             {faqs.slice(0, 3).map((f, i) => (
@@ -655,8 +655,8 @@ export default function MarketingPage() {
           </div>
         </div>
         <p className="l-faq-note">
-          Otázka na cenu je zodpovězená v <button onClick={() => go('cenik')}>ceníku</button>, na konkurenci v sekci{' '}
-          <button onClick={() => go('moat')}>Tohle nikdo jiný nemá</button>. Cokoliv dalšího:{' '}
+          {t('faq.notePre')} <button onClick={() => go('cenik')}>{t('faq.noteCenik')}</button>{t('faq.noteMid')}{' '}
+          <button onClick={() => go('moat')}>{t('faq.noteMoat')}</button>{t('faq.noteEnd')}{' '}
           <a href={'mailto:' + CONTACT_EMAIL}>{CONTACT_EMAIL}</a>.
         </p>
       </section>
@@ -665,63 +665,59 @@ export default function MarketingPage() {
       <section className="l-close" id="kontakt">
         <div className="l-close-in">
           <div>
-            <h2 className="an">Pošlete kontakt, zbytek zařídíme</h2>
+            <h2 className="an">{t('contact.title')}</h2>
             <p className="l-sub">
-              Do 24 hodin v pracovní dny se ozveme a ukážeme vám aplikaci na skutečném domě.
-              Když dává smysl, do {OFFER.launch} spustíme tu vaši.
+              {t('contact.sub', { launch: launchLabel })}
             </p>
             <div className="l-close-steps an">
-              <div><i>1</i><span><b>Krátký hovor</b> — projdeme váš dům a co vás pálí, 15 minut</span></div>
-              <div><i>2</i><span><b>Ukázka na živém domě</b> — aplikace tak, jak běží v pilotu</span></div>
-              <div><i>3</i><span><b>Spuštění do {OFFER.launch}</b> — pošlete jednotky, my připravíme dům a kódy</span></div>
+              <div><i>1</i><span><b>{t('contact.step1')}</b> — {t('contact.step1d')}</span></div>
+              <div><i>2</i><span><b>{t('contact.step2')}</b> — {t('contact.step2d')}</span></div>
+              <div><i>3</i><span><b>{t('contact.step3', { launch: launchLabel })}</b> — {t('contact.step3d')}</span></div>
             </div>
-            <p className="l-close-mail">Nebo rovnou: <a href={'mailto:' + CONTACT_EMAIL}>{CONTACT_EMAIL}</a></p>
+            <p className="l-close-mail">{t('contact.orMail')} <a href={'mailto:' + CONTACT_EMAIL}>{CONTACT_EMAIL}</a></p>
           </div>
 
           <div className="l-form an" style={{ ['--d' as string]: '.1s' }}>
             {cState === 'done' ? (
               <div className="l-done">
                 <span className="ic"><Chk w={22} /></span>
-                <p><b>Děkujeme, jste v pořadí.</b><br />Ozveme se do 24 hodin v pracovní dny a domluvíme ukázku pro váš dům.</p>
+                <p><b>{t('contact.doneTitle')}</b><br />{t('contact.doneBody')}</p>
               </div>
             ) : (
               <>
                 <div className="l-f2">
                   <div className="l-field">
-                    <label htmlFor="l-name">Jméno a příjmení</label>
+                    <label htmlFor="l-name">{t('contact.labelName')}</label>
                     <input id="l-name" value={cName} onChange={(e) => setCName(e.target.value)} placeholder="Jan Novák" />
                   </div>
                   <div className="l-field">
-                    <label htmlFor="l-phone">Telefon</label>
+                    <label htmlFor="l-phone">{t('contact.labelPhone')}</label>
                     <input id="l-phone" value={cPhone} onChange={(e) => setCPhone(e.target.value)} placeholder="+420 ..." />
                   </div>
                 </div>
                 <div className="l-field" style={{ marginTop: 12 }}>
-                  <label htmlFor="l-mail">E-mail</label>
+                  <label htmlFor="l-mail">{t('contact.labelEmail')}</label>
                   <input id="l-mail" type="email" value={cEmail} onChange={(e) => setCEmail(e.target.value)} placeholder="vas@email.cz" />
                 </div>
                 <div className="l-field" style={{ marginTop: 12 }}>
-                  <label htmlFor="l-size">Velikost domu</label>
+                  <label htmlFor="l-size">{t('contact.labelSize')}</label>
                   <select id="l-size" value={cSize} onChange={(e) => setCSize(e.target.value)}>
-                    <option>do 20 jednotek</option>
-                    <option>20 až 50 jednotek</option>
-                    <option>50 a více jednotek</option>
-                    <option>více domů / portfolio</option>
+                    {SIZE_KEYS.map((k) => <option key={k} value={k}>{t('contact.sizeOpts.' + k)}</option>)}
                   </select>
                 </div>
                 <div className="l-field" style={{ marginTop: 12 }}>
-                  <label htmlFor="l-msg">Zpráva (nepovinné)</label>
-                  <textarea id="l-msg" rows={2} value={cMsg} onChange={(e) => setCMsg(e.target.value)} placeholder="Krátce o vašem domě a co vás pálí nejvíc..." />
+                  <label htmlFor="l-msg">{t('contact.labelMsg')}</label>
+                  <textarea id="l-msg" rows={2} value={cMsg} onChange={(e) => setCMsg(e.target.value)} placeholder={t('contact.msgPlaceholder')} />
                 </div>
                 {cState === 'err' && (
-                  <p className="l-err">Vyplňte prosím jméno a e-mail. Pokud odeslání selhalo, napište nám přímo na {CONTACT_EMAIL}.</p>
+                  <p className="l-err">{t('contact.errRequired', { email: CONTACT_EMAIL })}</p>
                 )}
                 <button className="l-btn l-dark" onClick={sendContact} disabled={cState === 'busy'}>
-                  {cState === 'busy' ? 'Odesílám...' : 'Chci ukázku zdarma'}
+                  {cState === 'busy' ? t('contact.sending') : t('contact.cta')}
                 </button>
                 <p className="l-form-note">
-                  Ozveme se do 24 hodin v pracovní dny. Žádný spam, žádné závazky. Odesláním souhlasíte se{' '}
-                  <Link to="/ochrana-udaju">zpracováním údajů</Link>.
+                  {t('contact.formNote')}{' '}
+                  <Link to="/ochrana-udaju">{t('contact.formNoteLink')}</Link>.
                 </p>
               </>
             )}
@@ -735,23 +731,23 @@ export default function MarketingPage() {
           <div className="l-foot-brand">
             <img src={mark} alt="" />
             <b>Tasker Living</b>
-            <small>Součást Tasker</small>
+            <small>{t('shell:brand.tagline')}</small>
           </div>
           <div className="l-foot-links">
-            <button onClick={() => go('prohlidka')}>Prohlídka</button>
-            <button onClick={() => go('cenik')}>Ceník</button>
+            <button onClick={() => go('prohlidka')}>{t('nav.prohlidka')}</button>
+            <button onClick={() => go('cenik')}>{t('nav.cenik')}</button>
             <a href="https://tasker.cz" target="_blank" rel="noreferrer">tasker.cz</a>
-            <Link to="/ochrana-udaju">Ochrana údajů</Link>
-            <Link to="/podminky">Podmínky</Link>
+            <Link to="/ochrana-udaju">{t('footer.protection')}</Link>
+            <Link to="/podminky">{t('footer.terms')}</Link>
           </div>
-          <span className="l-copy">© 2026 · Vyrobeno v Praze</span>
+          <span className="l-copy">{t('footer.copy')}</span>
         </div>
       </footer>
 
       {/* 2b: sticky bottom CTA bar on mobile */}
       <div className={'l-sticky' + (sticky ? ' show' : '')}>
-        <button className="l-btn l-ghost" onClick={enterDemo}>Demo</button>
-        <button className="l-btn l-primary" onClick={() => go('kontakt')}>Ukázka zdarma</button>
+        <button className="l-btn l-ghost" onClick={enterDemo}>{t('nav.demo')}</button>
+        <button className="l-btn l-primary" onClick={() => go('kontakt')}>{t('nav.cta')}</button>
       </div>
     </div>
   )

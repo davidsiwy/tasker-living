@@ -39,5 +39,13 @@
     "vybor": "Výbor SVJ",
     "developer": "Developer",
     "investor": "Investor"
+  },
+  "units": {
+    "months_one": "{{count}} měsíc",
+    "months_few": "{{count}} měsíce",
+    "months_other": "{{count}} měsíců",
+    "hours_one": "{{count}} hodinu",
+    "hours_few": "{{count}} hodiny",
+    "hours_other": "{{count}} hodin"
   }
 }

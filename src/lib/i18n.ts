@@ -28,6 +28,9 @@ import deShell from '../locales/de/shell.json'
 import csAuth from '../locales/cs/auth.json'
 import enAuth from '../locales/en/auth.json'
 import deAuth from '../locales/de/auth.json'
+import csMarketing from '../locales/cs/marketing.json'
+import enMarketing from '../locales/en/marketing.json'
+import deMarketing from '../locales/de/marketing.json'
 import csLegal from '../locales/cs/legal.json'
 import enLegal from '../locales/en/legal.json'
 import deLegal from '../locales/de/legal.json'
@@ -41,14 +44,14 @@ i18n
   .use(initReactI18next)
   .init({
     resources: {
-      cs: { common: csCommon, shell: csShell, auth: csAuth, legal: csLegal },
-      en: { common: enCommon, shell: enShell, auth: enAuth, legal: enLegal },
-      de: { common: deCommon, shell: deShell, auth: deAuth, legal: deLegal },
+      cs: { common: csCommon, shell: csShell, auth: csAuth, marketing: csMarketing, legal: csLegal },
+      en: { common: enCommon, shell: enShell, auth: enAuth, marketing: enMarketing, legal: enLegal },
+      de: { common: deCommon, shell: deShell, auth: deAuth, marketing: deMarketing, legal: deLegal },
     },
     fallbackLng: 'cs',
     supportedLngs: SUPPORTED_LANGS as unknown as string[],
     defaultNS: 'common',
-    ns: ['common', 'shell', 'auth', 'legal'],
+    ns: ['common', 'shell', 'auth', 'marketing', 'legal'],
     interpolation: { escapeValue: false },
     detection: {
       order: ['localStorage', 'navigator'],
