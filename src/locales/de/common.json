@@ -77,5 +77,13 @@
     "paid": "Bezahlt",
     "awaiting": "Wartet auf Bestätigung",
     "unpaid": "Überfällig"
+  },
+  "complaintType": {
+    "noise": "Lärm",
+    "mess": "Unordnung",
+    "smoking": "Rauchen",
+    "parking": "Parken",
+    "pets": "Haustiere",
+    "other": "Sonstiges"
   }
 }

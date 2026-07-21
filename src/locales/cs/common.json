@@ -80,5 +80,13 @@
     "paid": "Zaplaceno",
     "awaiting": "Čeká na potvrzení",
     "unpaid": "Po splatnosti"
+  },
+  "complaintType": {
+    "noise": "Hluk",
+    "mess": "Nepořádek",
+    "smoking": "Kouření",
+    "parking": "Parkování",
+    "pets": "Zvířata",
+    "other": "Jiné"
   }
 }

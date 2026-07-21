@@ -75,6 +75,14 @@ export const FAULT_CAT_KEYS: Record<string, string> = {
 export const catLabel = (cat: string, t: (k: string) => string): string =>
   FAULT_CAT_KEYS[cat] ? t(`common:faultCat.${FAULT_CAT_KEYS[cat]}`) : cat
 
+// Šest pevných typů stížností — hodnota uložená v datech zůstává česky,
+// stejný důvod a stejný vzor jako u FAULT_CAT_KEYS výše.
+export const COMPLAINT_TYPE_KEYS: Record<string, string> = {
+  'Hluk': 'noise', 'Nepořádek': 'mess', 'Kouření': 'smoking', 'Parkování': 'parking', 'Zvířata': 'pets', 'Jiné': 'other',
+}
+export const complaintTypeLabel = (ty: string, t: (k: string) => string): string =>
+  COMPLAINT_TYPE_KEYS[ty] ? t(`common:complaintType.${COMPLAINT_TYPE_KEYS[ty]}`) : ty
+
 // Stejný vzor jako faultStatusLabel — 'paid'/'awaiting'/'unpaid' jsou
 // hodnoty ChargeStatus používané k porovnávání napříč appkou (Dashboard,
 // Sprava, Platby), tohle je jen sdílené zobrazovací mapování, aby se
