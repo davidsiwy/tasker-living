@@ -50,7 +50,8 @@
   "faultStatus": {
     "faultReported": "Gemeldet",
     "faultInProgress": "In Bearbeitung",
-    "faultResolved": "Erledigt"
+    "faultResolved": "Erledigt",
+    "vendorAssigned": "Dienstleister beauftragt"
   },
   "dm": {
     "greeting": "Hallo, hier ist {{name}}. Schreiben Sie gerne jederzeit.",
@@ -60,5 +61,14 @@
     "reply3": "Super, danke!",
     "reply4": "Verstanden, ich schaue es mir an.",
     "reply5": "OK, bis dann."
+  },
+  "faultCat": {
+    "lighting": "Beleuchtung",
+    "elevator": "Aufzug",
+    "water": "Wasser",
+    "heating": "Heizung",
+    "doorsLocks": "Türen & Schlösser",
+    "cleaning": "Reinigung",
+    "other": "Sonstiges"
   }
 }

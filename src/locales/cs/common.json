@@ -52,7 +52,8 @@
   "faultStatus": {
     "faultReported": "Nahlášeno",
     "faultInProgress": "V řešení",
-    "faultResolved": "Vyřešeno"
+    "faultResolved": "Vyřešeno",
+    "vendorAssigned": "Přiřazen dodavatel"
   },
   "dm": {
     "greeting": "Dobrý den, tady {{name}}. Klidně napište.",
@@ -62,5 +63,14 @@
     "reply3": "Super, díky!",
     "reply4": "Rozumím, mrknu na to.",
     "reply5": "OK, uvidíme se."
+  },
+  "faultCat": {
+    "lighting": "Osvětlení",
+    "elevator": "Výtah",
+    "water": "Voda",
+    "heating": "Topení",
+    "doorsLocks": "Dveře a zámky",
+    "cleaning": "Úklid",
+    "other": "Jiné"
   }
 }

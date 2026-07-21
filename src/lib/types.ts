@@ -59,6 +59,21 @@ export type FaultStatus = 'Nahlášeno' | 'V řešení' | 'Vyřešeno'
 // AdminPage, hledáním a (až se převede) FaultsPage.
 export const faultStatusLabel = (s: string, t: (k: string) => string): string =>
   s === 'Vyřešeno' ? t('common:faultStatus.faultResolved') : s === 'V řešení' ? t('common:faultStatus.faultInProgress') : t('common:faultStatus.faultReported')
+
+// Časová osa závady má navíc krok "Přiřazen dodavatel", který není součástí
+// FaultStatus (ten má jen 3 hodnoty) — použije se pro zobrazení jednotlivých
+// kroků v historii, faultStatusLabel zůstává pro samotný current stav.
+export const faultEventLabel = (s: string, t: (k: string) => string): string =>
+  s === 'Přiřazen dodavatel' ? t('common:faultStatus.vendorAssigned') : faultStatusLabel(s, t)
+
+// Sedm pevných kategorií závad — hodnota uložená v datech zůstává česky
+// (viz faultStatusLabel výše), tohle je jen zobrazovací mapování.
+export const FAULT_CAT_KEYS: Record<string, string> = {
+  'Osvětlení': 'lighting', 'Výtah': 'elevator', 'Voda': 'water', 'Topení': 'heating',
+  'Dveře a zámky': 'doorsLocks', 'Úklid': 'cleaning', 'Jiné': 'other',
+}
+export const catLabel = (cat: string, t: (k: string) => string): string =>
+  FAULT_CAT_KEYS[cat] ? t(`common:faultCat.${FAULT_CAT_KEYS[cat]}`) : cat
 export interface FaultEvent { status: string; at: string; note?: string }
 export interface Fault { id: string; cat: string; loc: string; desc: string; status: FaultStatus; date: string; by: string; photos?: string[]; vendor?: string; timeline?: FaultEvent[] }
 

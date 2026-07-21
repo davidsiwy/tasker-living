@@ -50,7 +50,8 @@
   "faultStatus": {
     "faultReported": "Reported",
     "faultInProgress": "In progress",
-    "faultResolved": "Resolved"
+    "faultResolved": "Resolved",
+    "vendorAssigned": "Contractor assigned"
   },
   "dm": {
     "greeting": "Hi, it's {{name}}. Feel free to write anytime.",
@@ -60,5 +61,14 @@
     "reply3": "Great, thanks!",
     "reply4": "Got it, I’ll take a look.",
     "reply5": "OK, see you around."
+  },
+  "faultCat": {
+    "lighting": "Lighting",
+    "elevator": "Elevator",
+    "water": "Water",
+    "heating": "Heating",
+    "doorsLocks": "Doors & locks",
+    "cleaning": "Cleaning",
+    "other": "Other"
   }
 }
