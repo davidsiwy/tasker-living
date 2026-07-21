@@ -25,7 +25,8 @@
     "sendFailed": "Odeslání selhalo",
     "deleteFailed": "Smazání selhalo",
     "loadFailed": "Načtení selhalo",
-    "generic": "Něco se nepovedlo"
+    "generic": "Něco se nepovedlo",
+    "unitNotFound": "Jednotka {{unit}} v domě neexistuje"
   },
   "time": {
     "today": "Dnes",
@@ -52,5 +53,14 @@
     "faultReported": "Nahlášeno",
     "faultInProgress": "V řešení",
     "faultResolved": "Vyřešeno"
+  },
+  "dm": {
+    "greeting": "Dobrý den, tady {{name}}. Klidně napište.",
+    "defaultNeighbor": "soused",
+    "reply1": "Díky za zprávu, ozvu se.",
+    "reply2": "Jasně, dám vědět.",
+    "reply3": "Super, díky!",
+    "reply4": "Rozumím, mrknu na to.",
+    "reply5": "OK, uvidíme se."
   }
 }

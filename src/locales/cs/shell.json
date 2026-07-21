@@ -34,7 +34,12 @@
     "kindDocument": "Dokumenty",
     "kindPost": "Oznámení",
     "kindFault": "Závady",
-    "kindUnit": "Jednotky"
+    "kindUnit": "Jednotky",
+    "unitPrefix": "byt {{unit}}",
+    "docFallback": "Dokument",
+    "postPrefix": "Oznámení",
+    "faultPrefix": "Závada",
+    "vacantUnit": "volná jednotka"
   },
   "brand": {
     "name": "Tasker Living",

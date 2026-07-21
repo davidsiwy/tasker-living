@@ -52,6 +52,13 @@ export interface FeedPost {
 }
 
 export type FaultStatus = 'Nahlášeno' | 'V řešení' | 'Vyřešeno'
+
+// Zobrazitelný popisek pro FaultStatus. Hodnota samotná (f.status) zůstává
+// česky napříč appkou — je to porovnávaná data, ne text pro čtenáře — tahle
+// funkce jen mapuje na přeložený štítek při vykreslení. Sdíleno mezi
+// AdminPage, hledáním a (až se převede) FaultsPage.
+export const faultStatusLabel = (s: string, t: (k: string) => string): string =>
+  s === 'Vyřešeno' ? t('common:faultStatus.faultResolved') : s === 'V řešení' ? t('common:faultStatus.faultInProgress') : t('common:faultStatus.faultReported')
 export interface FaultEvent { status: string; at: string; note?: string }
 export interface Fault { id: string; cat: string; loc: string; desc: string; status: FaultStatus; date: string; by: string; photos?: string[]; vendor?: string; timeline?: FaultEvent[] }
 

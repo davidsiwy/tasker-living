@@ -34,7 +34,12 @@
     "kindDocument": "Dokumente",
     "kindPost": "Ankündigungen",
     "kindFault": "Mängel",
-    "kindUnit": "Einheiten"
+    "kindUnit": "Einheiten",
+    "unitPrefix": "Einheit {{unit}}",
+    "docFallback": "Dokument",
+    "postPrefix": "Ankündigung",
+    "faultPrefix": "Mangel",
+    "vacantUnit": "freie Einheit"
   },
   "brand": {
     "name": "Tasker Living",

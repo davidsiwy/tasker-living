@@ -34,7 +34,12 @@
     "kindDocument": "Documents",
     "kindPost": "Announcements",
     "kindFault": "Issues",
-    "kindUnit": "Units"
+    "kindUnit": "Units",
+    "unitPrefix": "unit {{unit}}",
+    "docFallback": "Document",
+    "postPrefix": "Announcement",
+    "faultPrefix": "Issue",
+    "vacantUnit": "vacant unit"
   },
   "brand": {
     "name": "Tasker Living",

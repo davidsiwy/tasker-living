@@ -7,6 +7,7 @@ import type {
   Neighbor, AppNotification, ComplaintItem, MyProfile, Role, ReadRow, CalEvent, FundEntry, ReserveFund,
 } from './types'
 import { supabase, isSupabaseConfigured } from './supabase'
+import i18n from './i18n'
 
 function clone<T>(x: T): T { return JSON.parse(JSON.stringify(x)) }
 const wait = (ms = 160) => new Promise((r) => setTimeout(r, ms))
@@ -641,7 +642,7 @@ export const api = {
     if (!isSupabaseConfigured) { await wait(120); return 1 }
     const sb = supabase!
     const { data: u, error: uErr } = await sb.from('units').select('id').eq('building_id', buildingId).eq('label', unitLabel).maybeSingle()
-    if (uErr || !u) throw new Error('Jednotka ' + unitLabel + ' v domě neexistuje')
+    if (uErr || !u) throw new Error(i18n.t('common:errors.unitNotFound', { unit: unitLabel }))
     const { data, error } = await sb.rpc('notify_unit', { p_unit: (u as any).id, p_icon: 'stiznosti', p_title: 'Upozornění výboru', p_sub: 'Na váš byt byla evidována stížnost. Prosíme o ohleduplnost k sousedům.' })
     if (error) throw error
     return data as number

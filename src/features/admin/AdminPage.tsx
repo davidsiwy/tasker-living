@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { api, currentPeriod, periodLabel } from '../../lib/api'
 import { can } from '../../lib/types'
 import type { Role, Fault, UnitFull, Charge, FundEntry } from '../../lib/types'
-import { czPlural } from '../../lib/types'
+import { czPlural, faultStatusLabel } from '../../lib/types'
 import { adminApi } from '../../lib/adminApi'
 import type { LiveMember, LiveCode, LiveUnit } from '../../lib/adminApi'
 import * as A from '../../lib/adminData'
@@ -20,12 +20,6 @@ type Toast = (m: string) => void
 type T = (k: string, o?: Record<string, unknown>) => string
 
 const TAB_IDS = ['prehled', 'jednotky', 'lide', 'finance', 'fond', 'udrzba', 'schuze', 'nastenka', 'dokumenty', 'nastaveni']
-
-// Zobrazitelný popisek pro FaultStatus. Datová hodnota (f.status) zůstává
-// česky napříč celou appkou (je to porovnávaná hodnota, ne text pro čtenáře) —
-// tahle funkce jen mapuje na přeložený štítek při vykreslení.
-const faultStatusLabel = (s: string, t: T) =>
-  s === 'Vyřešeno' ? t('common:faultStatus.faultResolved') : s === 'V řešení' ? t('common:faultStatus.faultInProgress') : t('common:faultStatus.faultReported')
 
 export default function AdminPage() {
   const { t } = useTranslation(['admin', 'common'])
@@ -279,7 +273,7 @@ function Units({ toast, bid }: { toast: Toast; bid: string }) {
 
 /* ---------------- Lidé (live) ---------------- */
 function People({ toast }: { toast: Toast }) {
-  const { t } = useTranslation(['admin', 'common'])
+  const { t, i18n } = useTranslation(['admin', 'common'])
   const { user } = useSession()
   const bid = user?.buildingId || 'demo'
   const [members, setMembers] = useState<LiveMember[]>([])
@@ -300,7 +294,7 @@ function People({ toast }: { toast: Toast }) {
   async function gen() {
     setBusy(true)
     try {
-      const code = await adminApi.createCode(bid, newRole, newRole === 'rezident' && newUnit ? newUnit : null, 'TLV')
+      const code = await adminApi.createCode(bid, newRole, newRole === 'rezident' && newUnit ? newUnit : null, 'TLV', i18n.language)
       toast(t('admin:people.toastCodeCreated', { code })); await reload()
     } catch (e: any) { toast(t('admin:people.genericError', { err: e.message || e })) } finally { setBusy(false) }
   }

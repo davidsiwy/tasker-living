@@ -25,7 +25,8 @@
     "sendFailed": "Send failed",
     "deleteFailed": "Delete failed",
     "loadFailed": "Couldn't load",
-    "generic": "Something went wrong"
+    "generic": "Something went wrong",
+    "unitNotFound": "Unit {{unit}} doesn’t exist in this building"
   },
   "time": {
     "today": "Today",
@@ -50,5 +51,14 @@
     "faultReported": "Reported",
     "faultInProgress": "In progress",
     "faultResolved": "Resolved"
+  },
+  "dm": {
+    "greeting": "Hi, it's {{name}}. Feel free to write anytime.",
+    "defaultNeighbor": "your neighbor",
+    "reply1": "Thanks for the message, I’ll get back to you.",
+    "reply2": "Sure, I’ll let you know.",
+    "reply3": "Great, thanks!",
+    "reply4": "Got it, I’ll take a look.",
+    "reply5": "OK, see you around."
   }
 }

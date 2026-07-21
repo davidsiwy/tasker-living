@@ -95,7 +95,7 @@ function HeaderSearch({ buildingId, isCommittee }: { buildingId: string; isCommi
   }, [])
   useEffect(() => { setOpen(false) }, [loc.pathname])
 
-  const results = idx ? runSearch(idx, q) : []
+  const results = idx ? runSearch(idx, q, t) : []
   const grouped: Partial<Record<SearchHit['kind'], SearchHit[]>> = {}
   for (const r of results) (grouped[r.kind] = grouped[r.kind] || []).push(r)
   const order: SearchHit['kind'][] = ['neighbor', 'post', 'fault', 'document', 'unit']

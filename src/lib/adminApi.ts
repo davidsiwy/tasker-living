@@ -10,7 +10,7 @@ export interface LiveMember { membershipId: string; userId: string; name: string
 export interface LiveCode { code: string; role: Role; unit: string; used: boolean; created: string }
 export interface LiveUnit { id: string; label: string }
 
-const czDate = (iso: string) => new Date(iso).toLocaleDateString('cs-CZ')
+const czDate = (iso: string, lng = 'cs') => new Date(iso).toLocaleDateString(lng)
 const wait = (ms = 150) => new Promise((r) => setTimeout(r, ms))
 
 // demo fallbacks shaped like the live rows
@@ -70,9 +70,9 @@ export const adminApi = {
     }))
   },
 
-  async createCode(buildingId: string, role: Role, unitId: string | null, prefix = 'TL-VP'): Promise<string> {
+  async createCode(buildingId: string, role: Role, unitId: string | null, prefix = 'TL-VP', lng = 'cs'): Promise<string> {
     const code = prefix + '-' + Math.random().toString(36).slice(2, 6).toUpperCase()
-    if (!isSupabaseConfigured) { await wait(); demoCodes = [{ code, role, unit: 'nepřiřazeno', used: false, created: 'dnes' }, ...demoCodes]; return code }
+    if (!isSupabaseConfigured) { await wait(); demoCodes = [{ code, role, unit: '', used: false, created: czDate(new Date().toISOString(), lng) }, ...demoCodes]; return code }
     const { error } = await supabase!.from('access_codes').insert({ code, building_id: buildingId, role, unit_id: unitId })
     if (error) throw error
     return code

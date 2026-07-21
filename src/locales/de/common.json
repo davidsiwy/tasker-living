@@ -25,7 +25,8 @@
     "sendFailed": "Senden fehlgeschlagen",
     "deleteFailed": "Löschen fehlgeschlagen",
     "loadFailed": "Laden fehlgeschlagen",
-    "generic": "Etwas ist schiefgelaufen"
+    "generic": "Etwas ist schiefgelaufen",
+    "unitNotFound": "Einheit {{unit}} existiert in diesem Haus nicht"
   },
   "time": {
     "today": "Heute",
@@ -50,5 +51,14 @@
     "faultReported": "Gemeldet",
     "faultInProgress": "In Bearbeitung",
     "faultResolved": "Erledigt"
+  },
+  "dm": {
+    "greeting": "Hallo, hier ist {{name}}. Schreiben Sie gerne jederzeit.",
+    "defaultNeighbor": "Ihr Nachbar",
+    "reply1": "Danke für die Nachricht, ich melde mich.",
+    "reply2": "Klar, ich sage Bescheid.",
+    "reply3": "Super, danke!",
+    "reply4": "Verstanden, ich schaue es mir an.",
+    "reply5": "OK, bis dann."
   }
 }

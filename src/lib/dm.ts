@@ -1,21 +1,25 @@
 // Direct messages between neighbours. Real via the messages table with realtime
 // delivery when Supabase is configured, in-memory in the public demo.
 import { supabase, isSupabaseConfigured } from './supabase'
+import i18n from './i18n'
 
 export interface DM { id: string; from: 'me' | 'them'; text: string; at: string }
 const rid = () => 'd' + Math.random().toString(36).slice(2, 8)
-const fmt = (iso?: string) => new Date(iso || Date.now()).toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' })
+const fmt = (iso?: string) => new Date(iso || Date.now()).toLocaleTimeString(i18n.language, { hour: '2-digit', minute: '2-digit' })
 
 // ---- demo store ----
 const store: Record<string, DM[]> = {}
-const REPLIES = ['Díky za zprávu, ozvu se.', 'Jasně, dám vědět.', 'Super, díky!', 'Rozumím, mrknu na to.', 'OK, uvidíme se.']
+const replies = () => [
+  i18n.t('common:dm.reply1'), i18n.t('common:dm.reply2'), i18n.t('common:dm.reply3'),
+  i18n.t('common:dm.reply4'), i18n.t('common:dm.reply5'),
+]
 
 export const dm = {
   configured: isSupabaseConfigured,
 
   async thread(otherUserId: string, otherName?: string): Promise<DM[]> {
     if (!isSupabaseConfigured) {
-      if (!store[otherUserId]) store[otherUserId] = [{ id: rid(), from: 'them', text: `Dobrý den, tady ${otherName || 'soused'}. Klidně napište.`, at: fmt() }]
+      if (!store[otherUserId]) store[otherUserId] = [{ id: rid(), from: 'them', text: i18n.t('common:dm.greeting', { name: otherName || i18n.t('common:dm.defaultNeighbor') }), at: fmt() }]
       return store[otherUserId].slice()
     }
     const sb = supabase!
@@ -33,7 +37,7 @@ export const dm = {
       const t = store[otherUserId] || (store[otherUserId] = [])
       const msg: DM = { id: rid(), from: 'me', text, at: fmt() }
       t.push(msg)
-      setTimeout(() => { t.push({ id: rid(), from: 'them', text: REPLIES[Math.floor(Math.random() * REPLIES.length)], at: fmt() }) }, 800)
+      setTimeout(() => { const r = replies(); t.push({ id: rid(), from: 'them', text: r[Math.floor(Math.random() * r.length)], at: fmt() }) }, 800)
       return msg
     }
     const sb = supabase!
