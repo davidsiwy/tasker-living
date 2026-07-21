@@ -258,7 +258,7 @@ export default function MarketingPage() {
             <button onClick={() => go('faq')}>{t('nav.faq')}</button>
           </div>
           <div className="l-nav-right">
-            <LanguageSwitcher />
+            <LanguageSwitcher variant="select" compact className="l-lang" />
             <button className="l-nav-demo" onClick={enterDemo}>{t('nav.demo')}</button>
             <button className="l-btn l-primary l-sm" onClick={() => go('kontakt')}>{t('nav.cta')}</button>
           </div>

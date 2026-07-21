@@ -257,7 +257,7 @@ export default function AppShell() {
             <span className="s-crumb">{today}</span>
           </div>
           <HeaderSearch buildingId={user.buildingId} isCommittee={isAdmin} />
-          <LanguageSwitcher variant="select" className="s-btn s-ghost sm s-lang" />
+          <LanguageSwitcher variant="select" compact className="s-btn s-ghost sm s-lang" />
           {isDemo && (
             <select
               className="s-btn s-ghost sm"

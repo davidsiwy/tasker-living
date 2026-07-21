@@ -613,3 +613,4 @@
   font-family:var(--mono, inherit);letter-spacing:.02em;color:var(--ink-3);cursor:pointer}
 .lang-pill.on{background:#fff;color:var(--ink);box-shadow:0 1px 3px rgba(18,22,29,.12)}
 .lang-select{border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-size:12.5px;background:#fff;color:var(--ink)}
+.lang-select.compact{width:auto;min-width:50px;padding:6px 8px;text-align:center;text-align-last:center}

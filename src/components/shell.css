@@ -737,7 +737,7 @@
 }
 
 /* Jazyk v hlavičce appky — vždy viditelný, i na mobilu, ale úzký */
-.sh .s-lang{max-width:64px;padding:8px 6px;font-size:11.5px;text-overflow:ellipsis;overflow:hidden;white-space:nowrap}
+.sh .s-lang{width:52px;flex:none;padding:8px 4px;font-size:11.5px;text-align:center;text-align-last:center}
 @media(max-width:480px){
   .sh .s-top{flex-wrap:wrap}
   .sh .s-top h1{font-size:14.5px}

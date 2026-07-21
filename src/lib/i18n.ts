@@ -62,8 +62,14 @@ i18n
     defaultNS: 'common',
     ns: ['common', 'shell', 'auth', 'marketing', 'legal', 'dashboard', 'admin', 'bank'],
     interpolation: { escapeValue: false },
+    // Detekce jen z uloženého vyberu (localStorage) — NE z jazyka prohlížeče.
+    // Tenhle produkt je česky napřed; hodně lidí má OS/prohlížeč v angličtině
+    // i když jsou Češi, takže navigator-detekce by je nesprávně přepnula do
+    // AJ hned napoprvé. Bez uloženého výběru vždy padá na fallbackLng ('cs').
+    // Skutečné přihlášené účty navíc mají svou volbu uloženou v profiles.language
+    // (viz session.tsx), která se aplikuje zvlášť po přihlášení.
     detection: {
-      order: ['localStorage', 'navigator'],
+      order: ['localStorage'],
       caches: ['localStorage'],
       lookupLocalStorage: 'tl-lang',
     },

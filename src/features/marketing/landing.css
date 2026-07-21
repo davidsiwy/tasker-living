@@ -74,6 +74,7 @@
 .lp2 .l-nav-links button:hover{background:var(--l-chip);color:var(--l-ink)}
 .lp2 .l-nav-right{margin-left:auto;display:flex;align-items:center;gap:18px}
 .lp2 .l-nav-demo{background:none;border:none;font:inherit;font-weight:700;font-size:14px;color:var(--l-ink);cursor:pointer}
+.lp2 .l-lang{flex:none;border-color:var(--l-line);color:var(--l-ink-2);font-weight:700}
 .lp2 .l-nav-demo:hover{color:var(--l-green-ink)}
 
 /* ---------------- hero */
@@ -416,6 +417,11 @@
 @media(max-width:420px){
   .lp2 .l-proof .l-pgrid{grid-template-columns:1fr}
   .lp2 .l-slots span{min-width:0}
+  .lp2 .l-nav-in{gap:8px}
+  .lp2 .l-brand small{display:none}
+  .lp2 .l-lang{padding:6px 5px;font-size:11px;min-width:0}
+  .lp2 .l-nav-right{gap:8px}
+  .lp2 .l-nav-right .l-btn.l-sm{padding:8px 12px;font-size:12.5px}
 }
 
 /* ---------------- reduced motion */
