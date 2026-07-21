@@ -5,6 +5,7 @@ import { useSession } from '../state/session'
 import { can } from '../lib/types'
 import type { Role } from '../lib/types'
 import { api } from '../lib/api'
+import { LanguageSwitcher } from './LanguageSwitcher'
 import { buildSearchIndex, runSearch } from '../lib/search'
 import type { SearchHit, SearchIndex } from '../lib/search'
 import mark from '../assets/mark.png'
@@ -256,6 +257,7 @@ export default function AppShell() {
             <span className="s-crumb">{today}</span>
           </div>
           <HeaderSearch buildingId={user.buildingId} isCommittee={isAdmin} />
+          <LanguageSwitcher variant="select" className="s-btn s-ghost sm s-lang" />
           {isDemo && (
             <select
               className="s-btn s-ghost sm"

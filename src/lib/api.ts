@@ -16,9 +16,11 @@ const czDateTime = (iso: string) => new Date(iso).toLocaleDateString('cs-CZ') + 
 export const currentPeriod = () => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') }
 export const prevPeriod = (p: string) => { const [y, m] = p.split('-').map(Number); const d = new Date(y, m - 2, 1); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') }
 export const nextPeriod = (p: string) => { const [y, m] = p.split('-').map(Number); const d = new Date(y, m, 1); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') }
-export const periodLabel = (p: string) => {
-  const [y, m] = p.split('-'); const names = ['leden','únor','březen','duben','květen','červen','červenec','srpen','září','říjen','listopad','prosinec']
-  return (names[Number(m) - 1] || m) + ' ' + y
+export const periodLabel = (p: string, lng: string = 'cs') => {
+  const [y, m] = p.split('-')
+  const d = new Date(Number(y), Number(m) - 1, 1)
+  const month = new Intl.DateTimeFormat(lng, { month: 'long' }).format(d)
+  return month + ' ' + y
 }
 
 interface Author { name: string; handle: string; role?: string }

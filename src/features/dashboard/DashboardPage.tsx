@@ -1,31 +1,28 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useSession } from '../../state/session'
 import { api, currentPeriod, periodLabel } from '../../lib/api'
 import type { Charge, Fault, VoteData, Neighbor } from '../../lib/types'
-import { reminderWord } from '../../lib/types'
 import { SIcon } from '../../components/AppShell'
 import ResidentHome from './ResidentHome'
 import { useToast } from '../../components/Toast'
 
-const money = (n: number) => n.toLocaleString('cs-CZ') + ' Kč'
-const hi = () => {
-  const h = new Date().getHours()
-  return h < 10 ? 'Dobré ráno' : h < 18 ? 'Dobrý den' : 'Dobrý večer'
-}
-const STATE: Record<string, { l: string; c: string }> = {
-  paid: { l: 'Zaplaceno', c: 'ok' },
-  awaiting: { l: 'Čeká', c: 'neutral' },
-  unpaid: { l: 'Po splatnosti', c: 'warn' },
-}
+const money = (n: number, lng: string) => n.toLocaleString(lng) + ' Kč'
 
 // Přehled výboru (handoff 3b): ranní kontrola domu za dvě minuty.
 // Nahoře co potřebuje rozhodnutí, pod tím co běží samo.
 export default function DashboardPage() {
+  const { t, i18n } = useTranslation(['dashboard', 'common'])
   const { user } = useSession()
   const nav = useNavigate()
   const toast = useToast()
   const period = currentPeriod()
+  const STATE: Record<string, { l: string; c: string }> = {
+    paid: { l: t('dashboard:committee.statePaid'), c: 'ok' },
+    awaiting: { l: t('dashboard:committee.stateAwaiting'), c: 'neutral' },
+    unpaid: { l: t('dashboard:committee.stateOverdue'), c: 'warn' },
+  }
 
   const [charges, setCharges] = useState<Charge[]>([])
   const [faults, setFaults] = useState<Fault[]>([])
@@ -89,25 +86,23 @@ export default function DashboardPage() {
     try {
       for (const c of m.overdue) await api.remindCharge(c.id)
       setReminded(true)
-      toast(`Upomínky odeslány (${m.overdue.length})`)
-    } catch { toast('Upomínky se nepodařilo odeslat') } finally { setBusy(false) }
+      toast(t('dashboard:committee.toastRemindersSent', { count: m.overdue.length }))
+    } catch { toast(t('dashboard:committee.toastRemindFailed')) } finally { setBusy(false) }
   }
 
   const first = user.name.split(' ')[0]
   const attention = m.overdue.length > 0 || (v?.open && v.missing > 0) || m.unassigned.length > 0
+  const hour = new Date().getHours()
+  const hi = hour < 10 ? t('dashboard:greeting.morning') : hour < 18 ? t('dashboard:greeting.day') : t('dashboard:greeting.evening')
 
   return (
     <>
       <div className="d-hi">
         <div>
-          <h2>{hi()}, {first}.</h2>
-          <p>
-            {attention
-              ? 'Tohle dnes potřebuje vaši pozornost — všechno ostatní běží samo.'
-              : 'Dnes nic nečeká na rozhodnutí. Dům běží sám.'}
-          </p>
+          <h2>{hi}, {first}.</h2>
+          <p>{attention ? t('dashboard:committee.attentionNeeded') : t('dashboard:committee.allClear')}</p>
         </div>
-        <span className="d-live"><i className="pulse" />ŽIVĚ · {periodLabel(period).toUpperCase()}</span>
+        <span className="d-live"><i className="pulse" />{t('dashboard:committee.live')} · {periodLabel(period, i18n.language).toUpperCase()}</span>
       </div>
 
       {/* co potřebuje rozhodnutí — každá karta má právě jednu akci */}
@@ -116,14 +111,17 @@ export default function DashboardPage() {
           <div className="d-act warn-l an">
             <div className="h">
               <span className="ic w"><SIcon n="card" /></span>
-              <b>{m.overdue.length} {m.overdue.length === 1 ? 'platba' : m.overdue.length < 5 ? 'platby' : 'plateb'} po splatnosti</b>
+              <b>{t('dashboard:committee.overdueTitle', { count: m.overdue.length })}</b>
             </div>
             <p>
-              {m.overdue.slice(0, 3).map((c) => c.unitLabel).join(', ')}
-              {m.overdue.length > 3 ? ' a další' : ''}, celkem {money(m.overdueSum)}. Text upomínky je připravený.
+              {t('dashboard:committee.overdueBody', {
+                units: m.overdue.slice(0, 3).map((c) => c.unitLabel).join(', '),
+                more: m.overdue.length > 3 ? t('dashboard:committee.moreUnits') : '',
+                sum: money(m.overdueSum, i18n.language),
+              })}
             </p>
             <button className="s-btn s-primary sm" onClick={remindAll} disabled={busy || reminded}>
-              {reminded ? 'Upomínky odeslány' : busy ? 'Odesílám…' : `Poslat ${m.overdue.length} ${reminderWord(m.overdue.length)}`}
+              {reminded ? t('dashboard:committee.remindSent') : busy ? t('dashboard:committee.sending') : t('dashboard:committee.sendReminders', { count: m.overdue.length })}
             </button>
           </div>
         )}
@@ -132,11 +130,11 @@ export default function DashboardPage() {
           <div className="d-act purple-l an" style={{ ['--d' as string]: '.07s' }}>
             <div className="h">
               <span className="ic p"><SIcon n="vote" /></span>
-              <b>Hlasování ještě běží</b>
+              <b>{t('dashboard:committee.voteRunning')}</b>
             </div>
-            <p>{v.q}: {v.yes} % pro, {v.silent} % podílů zatím nehlasovalo.</p>
+            <p>{t('dashboard:committee.voteLine', { q: v.q, yes: v.yes, silent: v.silent })}</p>
             <button className="s-btn s-dark sm" onClick={() => nav('/app/schuze')}>
-              Připomenout {v.missing} nehlasujícím
+              {t('dashboard:committee.remindNonVoters', { count: v.missing })}
             </button>
           </div>
         )}
@@ -145,10 +143,10 @@ export default function DashboardPage() {
           <div className="d-act green-l an" style={{ ['--d' as string]: '.14s' }}>
             <div className="h">
               <span className="ic g"><SIcon n="wrench" /></span>
-              <b>Nová závada od {m.unassigned[0].by}</b>
+              <b>{t('dashboard:committee.newFaultTitle', { by: m.unassigned[0].by })}</b>
             </div>
-            <p>„{m.unassigned[0].desc}“ · {m.unassigned[0].loc} · {m.unassigned[0].date}. Čeká na přiřazení.</p>
-            <button className="s-btn s-dark sm" onClick={() => nav('/app/zavady')}>Přiřadit dodavatele</button>
+            <p>{t('dashboard:committee.newFaultBody', { desc: m.unassigned[0].desc, loc: m.unassigned[0].loc, date: m.unassigned[0].date })}</p>
+            <button className="s-btn s-dark sm" onClick={() => nav('/app/zavady')}>{t('dashboard:committee.assignVendor')}</button>
           </div>
         )}
 
@@ -156,9 +154,9 @@ export default function DashboardPage() {
           <div className="d-act green-l an">
             <div className="h">
               <span className="ic g"><SIcon n="vote" /></span>
-              <b>Nic nečeká</b>
+              <b>{t('dashboard:committee.nothingWaiting')}</b>
             </div>
-            <p>Žádné platby po splatnosti, žádná nepřiřazená závada, žádné hlasování bez odezvy.</p>
+            <p>{t('dashboard:committee.nothingWaitingBody')}</p>
           </div>
         )}
       </div>
@@ -166,34 +164,34 @@ export default function DashboardPage() {
       {/* co běží samo */}
       <div className="d-kpis">
         <div className="d-kpi an">
-          <div className="k">Vybráno v {periodLabel(period).toLowerCase()}</div>
+          <div className="k">{t('dashboard:committee.collectedIn', { period: periodLabel(period, i18n.language) })}</div>
           <b className="g">{m.pct} %</b>
           <div className="bar"><i style={{ width: `${m.pct}%` }} /></div>
         </div>
         <div className="d-kpi an" style={{ ['--d' as string]: '.06s' }}>
-          <div className="k">Připojené byty</div>
+          <div className="k">{t('dashboard:committee.connectedUnits')}</div>
           <b>{m.joined} / {m.units || '—'}</b>
           <div className="bar"><i className="ink" style={{ width: `${m.joinedPct}%`, ['--d' as string]: '.1s' }} /></div>
         </div>
         <div className="d-kpi an" style={{ ['--d' as string]: '.12s' }}>
-          <div className="k">Otevřené závady</div>
+          <div className="k">{t('dashboard:committee.openFaults')}</div>
           <b>{m.open.length}</b>
-          <span className="note">{m.unassigned.length > 0 ? `${m.unassigned.length} čeká na přiřazení` : 'všechny mají dodavatele'}</span>
+          <span className="note">{m.unassigned.length > 0 ? t('dashboard:committee.waitingAssign', { count: m.unassigned.length }) : t('dashboard:committee.allAssigned')}</span>
         </div>
         <div className="d-kpi an" style={{ ['--d' as string]: '.18s' }}>
-          <div className="k">Předpisy · {periodLabel(period)}</div>
+          <div className="k">{t('dashboard:committee.chargesFor', { period: periodLabel(period, i18n.language) })}</div>
           <b>{charges.length} / {m.units || charges.length}</b>
-          <span className="note">celkem {money(m.total)}</span>
+          <span className="note">{t('dashboard:committee.totalOf', { sum: money(m.total, i18n.language) })}</span>
         </div>
       </div>
 
       <div className="d-grid">
         <div className="s-card an" style={{ overflow: 'hidden' }}>
           <div className="d-ch">
-            <b>Platby · {periodLabel(period)}</b>
-            <button className="d-link" onClick={() => nav('/app/najmy')}>Všechny platby →</button>
+            <b>{t('dashboard:committee.paymentsFor', { period: periodLabel(period, i18n.language) })}</b>
+            <button className="d-link" onClick={() => nav('/app/najmy')}>{t('dashboard:committee.allPayments')}</button>
           </div>
-          {charges.length === 0 && <div className="d-empty">Za toto období zatím nejsou vystavené předpisy.</div>}
+          {charges.length === 0 && <div className="d-empty">{t('dashboard:committee.noChargesYet')}</div>}
           {[...charges]
             .sort((a, b) => (a.status === 'unpaid' ? -1 : 0) - (b.status === 'unpaid' ? -1 : 0))
             .slice(0, 5)
@@ -201,16 +199,16 @@ export default function DashboardPage() {
               <div className={'d-row' + (c.status === 'unpaid' ? ' due' : '')} key={c.id}>
                 <b className="u">{c.unitLabel}</b>
                 <span className="what">{c.label}</span>
-                <span className="amt">{money(c.amount)}</span>
+                <span className="amt">{money(c.amount, i18n.language)}</span>
                 <span className={'s-badge ' + STATE[c.status].c}>{STATE[c.status].l}</span>
               </div>
             ))}
           {m.overdue.length > 0 && (
             <div className="d-foot">
               <button className="s-btn s-dark sm" onClick={remindAll} disabled={busy || reminded}>
-                {reminded ? 'Odesláno' : `Poslat ${m.overdue.length} ${reminderWord(m.overdue.length)}`}
+                {reminded ? t('dashboard:committee.sentPlain') : t('dashboard:committee.sendReminders', { count: m.overdue.length })}
               </button>
-              <span className="m">jedním klikem, text je předpřipravený</span>
+              <span className="m">{t('dashboard:committee.reminderNote')}</span>
             </div>
           )}
         </div>
@@ -221,7 +219,7 @@ export default function DashboardPage() {
               <div className="h">
                 <b>{v.q}</b>
                 <span className={'s-badge ' + (v.quorumOk ? 'ok' : 'warn')}>
-                  {v.quorumOk ? 'Usnášeníschopné' : 'Zatím bez kvóra'}
+                  {v.quorumOk ? t('dashboard:committee.quorumOk') : t('dashboard:committee.quorumMissing')}
                 </span>
               </div>
               <div className="d-dual">
@@ -229,11 +227,11 @@ export default function DashboardPage() {
                 <i style={{ width: `${v.no}%`, background: '#B26A00', ['--d' as string]: '.4s' }} />
               </div>
               <div className="d-legend">
-                <span><b>{v.yes} %</b> pro</span>
-                <span>{v.no} % proti</span>
-                <span>{v.silent} % nehlasovalo</span>
+                <span><b>{v.yes} %</b> {t('dashboard:committee.for')}</span>
+                <span>{v.no} % {t('dashboard:committee.against')}</span>
+                <span>{v.silent} % {t('dashboard:committee.silent')}</span>
                 <span className="s-mono" style={{ marginLeft: 'auto', color: '#B26A00', fontWeight: 600, fontSize: 10 }}>
-                  {v.open ? 'HLASOVÁNÍ BĚŽÍ' : 'UZAVŘENO'}
+                  {v.open ? t('dashboard:committee.voteRunningTag') : t('dashboard:committee.voteClosedTag')}
                 </span>
               </div>
             </div>
@@ -241,16 +239,16 @@ export default function DashboardPage() {
 
           <div className="d-mini an" style={{ ['--d' as string]: '.07s' }}>
             <div className="h">
-              <b>Otevřené závady</b>
-              <button className="d-link" onClick={() => nav('/app/zavady')}>Vše →</button>
+              <b>{t('dashboard:committee.openFaultsTitle')}</b>
+              <button className="d-link" onClick={() => nav('/app/zavady')}>{t('dashboard:committee.seeAll')}</button>
             </div>
-            {m.open.length === 0 && <p style={{ fontSize: 12, color: '#8b93a0', marginTop: 10 }}>Žádná otevřená závada. Poslední byla vyřešena bez připomínek.</p>}
+            {m.open.length === 0 && <p style={{ fontSize: 12, color: '#8b93a0', marginTop: 10 }}>{t('dashboard:committee.noFaultsOpen')}</p>}
             {m.open.slice(0, 3).map((f) => (
               <div className="d-fault" key={f.id}>
                 <span className="ic"><SIcon n="wrench" s={15} /></span>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <b>{f.desc}</b>
-                  <span>{f.by} · {f.date} · {f.vendor ? f.vendor : 'nepřiřazeno'}</span>
+                  <span>{f.by} · {f.date} · {f.vendor ? f.vendor : t('dashboard:committee.unassigned')}</span>
                 </div>
               </div>
             ))}
@@ -259,10 +257,10 @@ export default function DashboardPage() {
           <div className="d-svc an" style={{ ['--d' as string]: '.14s' }}>
             <div className="h">
               <SIcon n="spark" s={15} />
-              <b>Služby Tasker pro dům</b>
+              <b>{t('dashboard:committee.svcTitle')}</b>
             </div>
-            <p>Úklid společných prostor, mytí oken nebo drobná oprava od ověřeného pracovníka. Dispečink potvrdí termín.</p>
-            <button className="s-btn s-primary sm" onClick={() => nav('/app/sluzby')}>Objednat za dům</button>
+            <p>{t('dashboard:committee.svcBody')}</p>
+            <button className="s-btn s-primary sm" onClick={() => nav('/app/sluzby')}>{t('dashboard:committee.svcCta')}</button>
           </div>
         </div>
       </div>
