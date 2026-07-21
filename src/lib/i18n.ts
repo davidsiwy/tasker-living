@@ -52,6 +52,9 @@ import deFaults from '../locales/de/faults.json'
 import csRent from '../locales/cs/rent.json'
 import enRent from '../locales/en/rent.json'
 import deRent from '../locales/de/rent.json'
+import csMeetings from '../locales/cs/meetings.json'
+import enMeetings from '../locales/en/meetings.json'
+import deMeetings from '../locales/de/meetings.json'
 
 export const SUPPORTED_LANGS = ['cs', 'en', 'de'] as const
 export type Lang = typeof SUPPORTED_LANGS[number]
@@ -62,14 +65,14 @@ i18n
   .use(initReactI18next)
   .init({
     resources: {
-      cs: { common: csCommon, shell: csShell, auth: csAuth, marketing: csMarketing, legal: csLegal, dashboard: csDashboard, admin: csAdmin, bank: csBank, settings: csSettings, faults: csFaults, rent: csRent },
-      en: { common: enCommon, shell: enShell, auth: enAuth, marketing: enMarketing, legal: enLegal, dashboard: enDashboard, admin: enAdmin, bank: enBank, settings: enSettings, faults: enFaults, rent: enRent },
-      de: { common: deCommon, shell: deShell, auth: deAuth, marketing: deMarketing, legal: deLegal, dashboard: deDashboard, admin: deAdmin, bank: deBank, settings: deSettings, faults: deFaults, rent: deRent },
+      cs: { common: csCommon, shell: csShell, auth: csAuth, marketing: csMarketing, legal: csLegal, dashboard: csDashboard, admin: csAdmin, bank: csBank, settings: csSettings, faults: csFaults, rent: csRent, meetings: csMeetings },
+      en: { common: enCommon, shell: enShell, auth: enAuth, marketing: enMarketing, legal: enLegal, dashboard: enDashboard, admin: enAdmin, bank: enBank, settings: enSettings, faults: enFaults, rent: enRent, meetings: enMeetings },
+      de: { common: deCommon, shell: deShell, auth: deAuth, marketing: deMarketing, legal: deLegal, dashboard: deDashboard, admin: deAdmin, bank: deBank, settings: deSettings, faults: deFaults, rent: deRent, meetings: deMeetings },
     },
     fallbackLng: 'cs',
     supportedLngs: SUPPORTED_LANGS as unknown as string[],
     defaultNS: 'common',
-    ns: ['common', 'shell', 'auth', 'marketing', 'legal', 'dashboard', 'admin', 'bank', 'settings', 'faults', 'rent'],
+    ns: ['common', 'shell', 'auth', 'marketing', 'legal', 'dashboard', 'admin', 'bank', 'settings', 'faults', 'rent', 'meetings'],
     interpolation: { escapeValue: false },
     // Detekce jen z uloženého vyberu (localStorage) — NE z jazyka prohlížeče.
     // Tenhle produkt je česky napřed; hodně lidí má OS/prohlížeč v angličtině
