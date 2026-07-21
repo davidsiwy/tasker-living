@@ -37,6 +37,12 @@ import deLegal from '../locales/de/legal.json'
 import csDashboard from '../locales/cs/dashboard.json'
 import enDashboard from '../locales/en/dashboard.json'
 import deDashboard from '../locales/de/dashboard.json'
+import csAdmin from '../locales/cs/admin.json'
+import enAdmin from '../locales/en/admin.json'
+import deAdmin from '../locales/de/admin.json'
+import csBank from '../locales/cs/bank.json'
+import enBank from '../locales/en/bank.json'
+import deBank from '../locales/de/bank.json'
 
 export const SUPPORTED_LANGS = ['cs', 'en', 'de'] as const
 export type Lang = typeof SUPPORTED_LANGS[number]
@@ -47,14 +53,14 @@ i18n
   .use(initReactI18next)
   .init({
     resources: {
-      cs: { common: csCommon, shell: csShell, auth: csAuth, marketing: csMarketing, legal: csLegal, dashboard: csDashboard },
-      en: { common: enCommon, shell: enShell, auth: enAuth, marketing: enMarketing, legal: enLegal, dashboard: enDashboard },
-      de: { common: deCommon, shell: deShell, auth: deAuth, marketing: deMarketing, legal: deLegal, dashboard: deDashboard },
+      cs: { common: csCommon, shell: csShell, auth: csAuth, marketing: csMarketing, legal: csLegal, dashboard: csDashboard, admin: csAdmin, bank: csBank },
+      en: { common: enCommon, shell: enShell, auth: enAuth, marketing: enMarketing, legal: enLegal, dashboard: enDashboard, admin: enAdmin, bank: enBank },
+      de: { common: deCommon, shell: deShell, auth: deAuth, marketing: deMarketing, legal: deLegal, dashboard: deDashboard, admin: deAdmin, bank: deBank },
     },
     fallbackLng: 'cs',
     supportedLngs: SUPPORTED_LANGS as unknown as string[],
     defaultNS: 'common',
-    ns: ['common', 'shell', 'auth', 'marketing', 'legal', 'dashboard'],
+    ns: ['common', 'shell', 'auth', 'marketing', 'legal', 'dashboard', 'admin', 'bank'],
     interpolation: { escapeValue: false },
     detection: {
       order: ['localStorage', 'navigator'],

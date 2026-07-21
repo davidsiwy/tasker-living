@@ -47,5 +47,10 @@
     "hours_one": "{{count}} hodinu",
     "hours_few": "{{count}} hodiny",
     "hours_other": "{{count}} hodin"
+  },
+  "faultStatus": {
+    "faultReported": "Nahlášeno",
+    "faultInProgress": "V řešení",
+    "faultResolved": "Vyřešeno"
   }
 }

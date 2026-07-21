@@ -45,5 +45,10 @@
     "months_other": "{{count}} Monate",
     "hours_one": "{{count}} Stunde",
     "hours_other": "{{count}} Stunden"
+  },
+  "faultStatus": {
+    "faultReported": "Gemeldet",
+    "faultInProgress": "In Bearbeitung",
+    "faultResolved": "Erledigt"
   }
 }
