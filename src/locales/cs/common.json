@@ -1,0 +1,43 @@
+{
+  "actions": {
+    "cancel": "Zrušit",
+    "save": "Uložit",
+    "saving": "Ukládám…",
+    "send": "Odeslat",
+    "sending": "Odesílám…",
+    "delete": "Smazat",
+    "edit": "Upravit",
+    "close": "Zavřít",
+    "open": "Otevřít",
+    "add": "Přidat",
+    "confirm": "Potvrdit",
+    "back": "Zpět",
+    "next": "Další",
+    "yes": "Ano",
+    "no": "Ne",
+    "search": "Hledat",
+    "loading": "Načítání",
+    "workingOnIt": "Pracuji…",
+    "logout": "Odhlásit se"
+  },
+  "errors": {
+    "saveFailed": "Uložení selhalo",
+    "sendFailed": "Odeslání selhalo",
+    "deleteFailed": "Smazání selhalo",
+    "loadFailed": "Načtení selhalo",
+    "generic": "Něco se nepovedlo"
+  },
+  "time": {
+    "today": "Dnes",
+    "now": "teď",
+    "minutesAgo": "{{count}} min",
+    "hoursAgo": "{{count}} h",
+    "daysAgo": "{{count}} d"
+  },
+  "roles": {
+    "rezident": "Rezident",
+    "vybor": "Výbor SVJ",
+    "developer": "Developer",
+    "investor": "Investor"
+  }
+}

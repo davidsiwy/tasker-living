@@ -1,0 +1,48 @@
+{
+  "updated": "Poslední aktualizace: {{date}}",
+  "backToSite": "Zpět na web",
+  "footer": "© 2026 Tasker Living. Součást rodiny Tasker.",
+  "translationNotice": "",
+  "privacy": {
+    "title": "Zásady ochrany osobních údajů",
+    "intro": "Tyto zásady popisují, jak aplikace a web Tasker Living nakládají s osobními údaji. Správcem osobních údajů je {{operator}}. Kontakt pro záležitosti ochrany údajů: {{contact}}.",
+    "h1": "Jaké údaje zpracováváme",
+    "p1": "Při registraci do aplikace zpracováváme jméno a příjmení, e-mail, heslo (uložené výhradně v zabezpečené podobě), přiřazení k domu a jednotce a roli v domě. Dobrovolně můžete doplnit telefonní číslo pro adresář sousedů; jeho viditelnost pro sousedy si zapínáte a vypínáte sami. Při používání aplikace vznikají údaje o obsahu, který vytvoříte: příspěvky na nástěnce, komentáře, nahlášené závady včetně fotografií, zprávy sousedům, hlasování, stížnosti, objednávky služeb a platební předpisy. Z kontaktního formuláře na webu zpracováváme jméno, e-mail, telefon a obsah zprávy.",
+    "h2": "Proč a na jakém základě",
+    "p2": "Údaje zpracováváme pro poskytování služby (plnění smlouvy): provoz nástěnky, evidence závad, plateb, schůzí, hlasování a dalších funkcí domu. Stížnosti evidujeme k číslu bytu, nikoli ke jménu ohlašovatele, právě kvůli ochraně soukromí sousedů. Kontaktní formulář zpracováváme na základě vaší žádosti o nabídku (jednání o smlouvě). Provozní a bezpečnostní záznamy vedeme na základě oprávněného zájmu na zabezpečení služby.",
+    "h3": "Kdo má k údajům přístup",
+    "p3": "Data ukládáme u společnosti Supabase v datovém centru v Evropské unii (Frankfurt nad Mohanem, Německo). Obsah v rámci domu vidí pouze členové vašeho domu podle rolí a nastavení viditelnosti; přehled stížností vidí pouze výbor a správce. Provozovatel platformy má přístup pro technickou správu a podporu. Údaje nepředáváme třetím stranám pro marketing.",
+    "h4": "Jak dlouho údaje uchováváme",
+    "p4": "Údaje uchováváme po dobu trvání členství v domě a poté po dobu nezbytnou pro vypořádání právních povinností. Po odebrání z domu nebo smazání účtu obsah vázaný na účet mažeme nebo anonymizujeme, nejpozději do 30 dnů, s výjimkou záznamů, které je nutné uchovat ze zákona.",
+    "h5": "Vaše práva",
+    "p5": "Máte právo na přístup ke svým údajům, jejich opravu, výmaz, omezení zpracování, přenositelnost a právo vznést námitku. Žádosti vyřizujeme na {{contact}}. Máte také právo podat stížnost u Úřadu pro ochranu osobních údajů (uoou.gov.cz).",
+    "h6": "Zabezpečení",
+    "p6": "Přístup k datům je chráněn přihlášením a oprávněními na úrovni jednotlivých řádků databáze. Komunikace probíhá šifrovaně (HTTPS). Dokumenty domu se otevírají časově omezenými podepsanými odkazy."
+  },
+  "terms": {
+    "title": "Podmínky užití",
+    "intro": "Tyto podmínky upravují používání webu a aplikace Tasker Living, kterou provozuje {{operator}} (dále jen provozovatel).",
+    "h1": "Služba",
+    "p1": "Tasker Living je aplikace pro komunikaci a správu bytového domu: nástěnka, závady, platby, schůze a hlasování, dokumenty, kontakty a objednávání služeb Tasker. Přístup do domu získáváte přístupovým kódem od výboru, správce nebo developera. Za správnost údajů o domě, jednotkách a předpisech plateb odpovídá subjekt, který dům spravuje.",
+    "h2": "Účet a pravidla chování",
+    "p2": "Účet je osobní a jste odpovědní za ochranu svých přihlašovacích údajů. V aplikaci je zakázáno zveřejňovat obsah protiprávní, urážlivý nebo porušující práva třetích osob. Výbor a správce mohou nevhodný obsah odstranit a provozovatel může při závažném porušení účet zablokovat.",
+    "h3": "Platby",
+    "p3": "Aplikace zobrazuje platební předpisy a QR kódy pro platbu na účet domu, který nastavil výbor nebo správce. Provozovatel není stranou platebního vztahu mezi rezidentem a domem a nenese odpovědnost za správnost účtu zadaného správou domu. Objednávky služeb Tasker se řídí podmínkami platformy Tasker.",
+    "h4": "Dostupnost a odpovědnost",
+    "p4": "Službu poskytujeme tak, jak je. Vyvíjíme přiměřené úsilí o její dostupnost a zabezpečení, negarantujeme však nepřetržitý provoz. Provozovatel neodpovídá za škody vzniklé nesprávnými údaji vloženými uživateli ani za rozhodnutí učiněná na základě obsahu v aplikaci. Hlasování v aplikaci je podkladem pro rozhodování společenství; jeho právní účinky se řídí stanovami a zákonem.",
+    "h5": "Změny podmínek",
+    "p5": "Podmínky můžeme přiměřeně měnit; o podstatných změnách informujeme v aplikaci. Pokračováním v používání služby změny přijímáte. Tyto podmínky se řídí právem České republiky."
+  },
+  "cookies": {
+    "title": "Cookies",
+    "intro": "Web a aplikace Tasker Living používají pouze technické uložení dat nezbytné pro fungování služby.",
+    "h1": "Co ukládáme",
+    "p1": "Po přihlášení ukládáme do úložiště prohlížeče přihlašovací relaci (token), aby zůstalo přihlášení zachované mezi návštěvami. Toto uložení je nezbytné pro fungování aplikace a nelze jej vypnout, dokud jste přihlášeni; smaže se odhlášením.",
+    "h2": "Co neukládáme",
+    "p2": "Nepoužíváme marketingové ani sledovací cookies třetích stran a nenasazujeme reklamní systémy. Pokud v budoucnu přidáme analytiku návštěvnosti, budeme o tom informovat zde a tam, kde to vyžaduje zákon, si vyžádáme souhlas.",
+    "h3": "Kontakt",
+    "p3": "S dotazy k soukromí se obraťte na {{contact}}. Souvislosti zpracování osobních údajů popisují zásady ochrany osobních údajů.",
+    "p3link": "zásady ochrany osobních údajů",
+    "noBanner": "Web funguje i bez jakéhokoliv souhlasu s cookies, žádný banner nepotřebujete odklikávat."
+  }
+}

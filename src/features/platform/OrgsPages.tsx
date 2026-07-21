@@ -6,6 +6,7 @@ import { roleNames } from '../../lib/types'
 import type { Role, UnitFull } from '../../lib/types'
 import { platformApi, operatorApi } from '../../lib/platformApi'
 import type { OpCharge, PlatformBuilding, UnitRow } from '../../lib/platformApi'
+import { czPlural } from '../../lib/types'
 import { adminApi } from '../../lib/adminApi'
 import { BankCard } from '../../components/BankCard'
 import { api, currentPeriod, periodLabel, prevPeriod, nextPeriod } from '../../lib/api'
@@ -221,7 +222,7 @@ export function OrgDetailPage() {
       </div>
 
       <div className="card" style={{ marginTop: 16, padding: 0 }}>
-        <div className="card-h" style={{ padding: '16px 18px 0' }}><h3>Členové</h3><span className="adm-mini">{members.length} osob</span></div>
+        <div className="card-h" style={{ padding: '16px 18px 0' }}><h3>Členové</h3><span className="adm-mini">{members.length} {czPlural(members.length, 'osoba', 'osoby', 'osob')}</span></div>
         <div style={{ overflowX: 'auto' }}>
           <table className="tbl tbl-cards">
             <thead><tr><th>Jméno</th><th>Jednotka</th><th>Role</th><th></th></tr></thead>

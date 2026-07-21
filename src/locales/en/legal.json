@@ -1,0 +1,48 @@
+{
+  "updated": "Last updated: {{date}}",
+  "backToSite": "Back to site",
+  "footer": "© 2026 Tasker Living. Part of the Tasker family.",
+  "translationNotice": "This is a translation provided for your convenience. In case of any discrepancy, the Czech version is legally authoritative.",
+  "privacy": {
+    "title": "Privacy Policy",
+    "intro": "This policy describes how the Tasker Living app and website handle personal data. The data controller is {{operator}}. Contact for data protection matters: {{contact}}.",
+    "h1": "What data we process",
+    "p1": "When you register for the app, we process your first and last name, email, password (stored exclusively in secured form), your building and unit assignment, and your role in the building. You may optionally add a phone number for the neighbor directory; you control its visibility to neighbors yourself. Using the app generates data about the content you create: noticeboard posts, comments, reported issues including photos, messages to neighbors, votes, complaints, service orders, and payment charges. From the website's contact form we process your name, email, phone, and message content.",
+    "h2": "Why, and on what basis",
+    "p2": "We process data to provide the service (contract performance): running the noticeboard, and tracking issues, payments, meetings, votes, and other building functions. We record complaints against the unit number, not the reporter's name, specifically to protect neighbors' privacy. We process the contact form based on your request for a quote (contract negotiation). We keep operational and security logs based on our legitimate interest in securing the service.",
+    "h3": "Who has access to the data",
+    "p3": "We store data with Supabase in a data center in the European Union (Frankfurt am Main, Germany). Content within a building is visible only to members of that building according to role and visibility settings; the complaints overview is visible only to the committee and manager. The platform operator has access for technical administration and support. We do not pass data to third parties for marketing.",
+    "h4": "How long we keep data",
+    "p4": "We keep data for the duration of your membership in the building, and afterward for as long as necessary to settle legal obligations. After removal from the building or account deletion, we delete or anonymize account-linked content within 30 days at the latest, except for records that must be kept by law.",
+    "h5": "Your rights",
+    "p5": "You have the right to access your data, correct it, have it erased, restrict its processing, port it, and object to its processing. Send requests to {{contact}}. You also have the right to file a complaint with the Czech Office for Personal Data Protection (uoou.gov.cz).",
+    "h6": "Security",
+    "p6": "Access to data is protected by login and row-level database permissions. Communication is encrypted (HTTPS). Building documents open via time-limited signed links."
+  },
+  "terms": {
+    "title": "Terms of Use",
+    "intro": "These terms govern the use of the Tasker Living website and app, operated by {{operator}} (the \"operator\").",
+    "h1": "The service",
+    "p1": "Tasker Living is an app for communicating with and managing a residential building: a noticeboard, issue tracking, payments, meetings and voting, documents, contacts, and ordering Tasker services. You get access to a building with an access code from the committee, manager, or developer. The entity that manages the building is responsible for the accuracy of building, unit, and payment charge data.",
+    "h2": "Account and conduct",
+    "p2": "Your account is personal, and you're responsible for protecting your login credentials. Publishing unlawful or abusive content, or content that violates third-party rights, is prohibited in the app. The committee and manager may remove inappropriate content, and the operator may suspend an account for serious violations.",
+    "h3": "Payments",
+    "p3": "The app displays payment charges and QR codes for paying into the building account set by the committee or manager. The operator is not a party to the payment relationship between a resident and the building, and is not responsible for the accuracy of an account entered by the building's management. Orders for Tasker services are governed by the Tasker platform's own terms.",
+    "h4": "Availability and liability",
+    "p4": "We provide the service as is. We make reasonable efforts toward its availability and security but do not guarantee uninterrupted operation. The operator is not liable for damages arising from incorrect data entered by users, nor for decisions made based on content in the app. Votes cast in the app form the basis for the association's decisions; their legal effect is governed by the bylaws and applicable law.",
+    "h5": "Changes to these terms",
+    "p5": "We may reasonably amend these terms; we'll notify you in the app of material changes. Continuing to use the service means you accept the changes. These terms are governed by the law of the Czech Republic."
+  },
+  "cookies": {
+    "title": "Cookies",
+    "intro": "The Tasker Living website and app use only the technical storage necessary for the service to function.",
+    "h1": "What we store",
+    "p1": "After login, we store a login session (token) in your browser's storage so you stay logged in between visits. This storage is necessary for the app to function and can't be turned off while you're logged in; it's cleared when you log out.",
+    "h2": "What we don't store",
+    "p2": "We don't use third-party marketing or tracking cookies, and we don't run advertising systems. If we add visitor analytics in the future, we'll disclose it here and, where required by law, ask for your consent.",
+    "h3": "Contact",
+    "p3": "For privacy questions, contact {{contact}}. The details of personal data processing are described in our",
+    "p3link": "privacy policy",
+    "noBanner": "The website works without any cookie consent — there's no banner to click through."
+  }
+}

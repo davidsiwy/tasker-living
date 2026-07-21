@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useSession } from '../../state/session'
 import { api, currentPeriod, periodLabel } from '../../lib/api'
 import type { Charge, Fault, VoteData, Neighbor } from '../../lib/types'
+import { reminderWord } from '../../lib/types'
 import { SIcon } from '../../components/AppShell'
 import ResidentHome from './ResidentHome'
 import { useToast } from '../../components/Toast'
@@ -122,7 +123,7 @@ export default function DashboardPage() {
               {m.overdue.length > 3 ? ' a další' : ''}, celkem {money(m.overdueSum)}. Text upomínky je připravený.
             </p>
             <button className="s-btn s-primary sm" onClick={remindAll} disabled={busy || reminded}>
-              {reminded ? 'Upomínky odeslány' : busy ? 'Odesílám…' : `Poslat ${m.overdue.length} upomínky`}
+              {reminded ? 'Upomínky odeslány' : busy ? 'Odesílám…' : `Poslat ${m.overdue.length} ${reminderWord(m.overdue.length)}`}
             </button>
           </div>
         )}
@@ -207,7 +208,7 @@ export default function DashboardPage() {
           {m.overdue.length > 0 && (
             <div className="d-foot">
               <button className="s-btn s-dark sm" onClick={remindAll} disabled={busy || reminded}>
-                {reminded ? 'Odesláno' : `Poslat ${m.overdue.length} upomínky`}
+                {reminded ? 'Odesláno' : `Poslat ${m.overdue.length} ${reminderWord(m.overdue.length)}`}
               </button>
               <span className="m">jedním klikem, text je předpřipravený</span>
             </div>

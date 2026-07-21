@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import { HashRouter } from 'react-router-dom'
 import App from './App'
 import './index.css'
+import './lib/i18n'
 import { SessionProvider } from './state/session'
 import { ToastProvider } from './components/Toast'
 

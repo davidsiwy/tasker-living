@@ -1,0 +1,43 @@
+{
+  "nav": {
+    "prehled": "Overview",
+    "domu": "Home",
+    "nastenka": "Announcements",
+    "najmy": "Payments",
+    "schuze": "Meetings & Voting",
+    "kalendar": "Calendar",
+    "zavady": "Issues",
+    "stiznosti": "Concerns",
+    "dokumenty": "Documents",
+    "sprava": "Building Management",
+    "kontakty": "Neighbors",
+    "sluzby": "Tasker Services",
+    "nastaveni": "Settings",
+    "sectionManage": "Building",
+    "sectionPlatform": "Platform",
+    "backToConsole": "Back to console"
+  },
+  "header": {
+    "menu": "Menu",
+    "role": "Role",
+    "notifications": "Notifications",
+    "searchPlaceholder": "Search the building…",
+    "searchClear": "Clear search",
+    "searchOpen": "Search",
+    "searchCloseAria": "Close search"
+  },
+  "search": {
+    "hint": "Type at least 2 characters. Searches across neighbors, announcements, issues and documents.",
+    "loading": "Loading the building index…",
+    "noResults": "No results for \"{{query}}\".",
+    "kindNeighbor": "Neighbors",
+    "kindDocument": "Documents",
+    "kindPost": "Announcements",
+    "kindFault": "Issues",
+    "kindUnit": "Units"
+  },
+  "brand": {
+    "name": "Tasker Living",
+    "tagline": "Part of Tasker"
+  }
+}

@@ -6,6 +6,7 @@ import type { Role, AppNotification } from '../lib/types'
 import * as M from '../lib/mockData'
 import { api } from '../lib/api'
 import { supabase, isSupabaseConfigured } from '../lib/supabase'
+import i18n from '../lib/i18n'
 
 export interface SessionUser {
   userId: string; name: string; handle: string; initials: string
@@ -51,7 +52,9 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 
   async function loadMembership(uid: string) {
     const sb = supabase!
-    const { data: prof } = await sb.from('profiles').select('full_name').eq('id', uid).maybeSingle()
+    const { data: prof } = await sb.from('profiles').select('full_name, language').eq('id', uid).maybeSingle()
+    const savedLang = (prof as any)?.language as string | undefined
+    if (savedLang && i18n.language !== savedLang) i18n.changeLanguage(savedLang)
     const { data: pa } = await sb.rpc('is_platform_admin')
     const admin = pa === true
     setIsPlatformAdmin(admin)

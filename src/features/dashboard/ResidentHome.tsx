@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { feed, api } from '../../lib/api'
-import type { Charge, Fault, VoteData, FeedPost } from '../../lib/types'
+import type { Charge, Fault, VoteData, FeedPost, ReserveFund } from '../../lib/types'
 import { useSession } from '../../state/session'
 import { QrPlatba, PayModal } from '../../components/QrPlatba'
 import type { PayItem } from '../../components/QrPlatba'
@@ -26,6 +26,7 @@ export default function ResidentHome() {
   const [posts, setPosts] = useState<FeedPost[]>([])
   const [faults, setFaults] = useState<Fault[]>([])
   const [vote, setVote] = useState<VoteData | null>(null)
+  const [fund, setFund] = useState<ReserveFund | null>(null)
   const [settings, setSettings] = useState({ account: '', recipient: '' })
   const [modal, setModal] = useState<PayItem | null>(null)
 
@@ -37,6 +38,7 @@ export default function ResidentHome() {
     api.getFaults(bid).then(setFaults).catch(() => {})
     api.getVote(bid).then(setVote).catch(() => {})
     api.getBuildingSettings(bid).then(setSettings).catch(() => {})
+    api.getReserveFund(bid).then((f) => setFund(f.visible ? f : null)).catch(() => setFund(null))
   }, [user?.buildingId, user?.unitId])
 
   const next = useMemo(() => charges.find((c) => c.status !== 'paid') || null, [charges])
@@ -104,6 +106,34 @@ export default function ResidentHome() {
           </div>
           <p>Úklid, drobná oprava nebo mytí oken od ověřeného pracovníka na pár kliknutí.</p>
         </button>
+
+        {fund && (
+          <div className="r-tile r-fund an" style={{ ['--d' as string]: '.09s' }}>
+            <div className="th">
+              <span className="ic" style={{ background: 'var(--s-green-050)', color: 'var(--s-green-ink)' }}><SIcon n="fund" s={16} /></span>
+              <b>Fond oprav</b>
+            </div>
+            <div className="r-fund-bal">{money(fund.balance)}</div>
+            {fund.target ? (
+              <>
+                <div className="bar" style={{ marginTop: 8 }}>
+                  <i style={{ width: `${Math.max(0, Math.min(100, Math.round((fund.balance / fund.target) * 100)))}%` }} />
+                </div>
+                <p>{Math.round((fund.balance / fund.target) * 100)} % z cíle {money(fund.target)}</p>
+              </>
+            ) : (
+              <p>Aktuální zůstatek fondu domu.</p>
+            )}
+            {fund.entries[0] && (
+              <div className="r-fund-last">
+                <span>{fund.entries[0].note}</span>
+                <b style={{ color: fund.entries[0].amount >= 0 ? 'var(--s-green-ink)' : 'var(--s-warn)' }}>
+                  {fund.entries[0].amount >= 0 ? '+' : ''}{money(fund.entries[0].amount)}
+                </b>
+              </div>
+            )}
+          </div>
+        )}
 
         {vote?.open && (
           <button className="r-tile an" style={{ ['--d' as string]: '.16s', gridColumn: '1 / -1' }} onClick={() => nav('/app/schuze')}>

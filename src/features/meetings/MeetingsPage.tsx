@@ -263,13 +263,13 @@ ${t.roster.map((r) => {
                 <div className="d-foot">
                   {vote!.open && t.silent.length > 0 && (
                     <button className="s-btn s-dark sm" onClick={remindSilent} disabled={remindBusy}>
-                      {remindBusy ? 'Odesílám…' : `Připomenout ${t.silent.length} nehlasujícím`}
+                      {remindBusy ? 'Odesílám…' : `Připomenout ${t.silent.length} ${t.silent.length === 1 ? 'nehlasujícímu' : 'nehlasujícím'}`}
                     </button>
                   )}
                   <button className="s-btn s-ghost sm" onClick={zapis}>Stáhnout průběžný zápis</button>
                   {vote!.open && <button className="s-btn s-ghost sm" onClick={close}>Uzavřít hlasování</button>}
                   <span className="m" style={{ marginLeft: 'auto' }}>
-                    {t.proxies} {t.proxies === 1 ? 'plná moc evidována' : 'plných mocí evidováno'}
+                    {t.proxies} {t.proxies === 1 ? 'plná moc evidována' : t.proxies >= 2 && t.proxies <= 4 ? 'plné moci evidovány' : 'plných mocí evidováno'}
                   </span>
                 </div>
               )}

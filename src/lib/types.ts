@@ -19,6 +19,16 @@ export const audienceLabel = (a: string): string =>
   a === 'all' ? 'Celý dům' : a === 'owners' ? 'Vlastníci' : a === 'garages' ? 'Garáže'
   : a.startsWith('entrance:') ? 'Vchod ' + a.slice(9) : a
 
+// Skloňování "upomínka" v akuzativu podle počtu (1 / 2–4 / 5+), sdílené napříč
+// stránkami — dřív si to Platby a Přehled řešily každá po svém a Přehled to
+// mělo špatně u 1 a u 5+.
+export const reminderWord = (n: number): string => czPlural(n, 'upomínku', 'upomínky', 'upomínek')
+
+// Obecné skloňování počtu v češtině podle pravidla 1 / 2–4 / 5+ (a 0, které se
+// chová jako 5+). Použití: czPlural(n, 'byt', 'byty', 'bytů').
+export const czPlural = (n: number, one: string, few: string, many: string): string =>
+  n === 1 ? one : n >= 2 && n <= 4 ? few : many
+
 export type ReadState = 'read' | 'delivered' | 'unconnected'
 export interface ReadRow { unitId: string; unitLabel: string; state: ReadState; readAt: string | null }
 
@@ -50,6 +60,9 @@ export interface UnitFull { id: string; label: string; floor: string; tenant: st
 export type ChargeStatus = 'unpaid' | 'awaiting' | 'paid'
 export interface Charge { id: string; unitId: string; unitLabel: string; label: string; amount: number; vs: string; period: string; due: string; status: ChargeStatus }
 export interface BuildingSettings { account: string; recipient: string }
+
+export interface FundEntry { id: string; date: string; amount: number; note: string }
+export interface ReserveFund { visible: boolean; target: number | null; balance: number; entries: FundEntry[] }
 
 // legacy demo shape used by the developer/investor mock table
 export interface Unit { id: string; floor: string; tenant: string; rent: number; vs: string; paid: boolean; due: string; end: string; endSoon: boolean }

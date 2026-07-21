@@ -1,0 +1,43 @@
+{
+  "actions": {
+    "cancel": "Abbrechen",
+    "save": "Speichern",
+    "saving": "Wird gespeichert…",
+    "send": "Senden",
+    "sending": "Wird gesendet…",
+    "delete": "Löschen",
+    "edit": "Bearbeiten",
+    "close": "Schließen",
+    "open": "Öffnen",
+    "add": "Hinzufügen",
+    "confirm": "Bestätigen",
+    "back": "Zurück",
+    "next": "Weiter",
+    "yes": "Ja",
+    "no": "Nein",
+    "search": "Suchen",
+    "loading": "Wird geladen",
+    "workingOnIt": "Einen Moment…",
+    "logout": "Abmelden"
+  },
+  "errors": {
+    "saveFailed": "Speichern fehlgeschlagen",
+    "sendFailed": "Senden fehlgeschlagen",
+    "deleteFailed": "Löschen fehlgeschlagen",
+    "loadFailed": "Laden fehlgeschlagen",
+    "generic": "Etwas ist schiefgelaufen"
+  },
+  "time": {
+    "today": "Heute",
+    "now": "gerade eben",
+    "minutesAgo": "{{count}} Min",
+    "hoursAgo": "{{count}} Std",
+    "daysAgo": "{{count}} Tg"
+  },
+  "roles": {
+    "rezident": "Bewohner",
+    "vybor": "Beirat",
+    "developer": "Bauträger",
+    "investor": "Investor"
+  }
+}

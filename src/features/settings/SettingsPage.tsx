@@ -6,6 +6,7 @@ import { roleNames } from '../../lib/types'
 import type { Role } from '../../lib/types'
 import { useToast } from '../../components/Toast'
 import { SIcon } from '../../components/AppShell'
+import { LanguageSwitcher } from '../../components/LanguageSwitcher'
 import { backendAvailable, exitDemo } from '../../lib/supabase'
 import { prefs, setPref, reminderRules, notifyConfigured, type Channel } from '../../lib/notify'
 
@@ -92,6 +93,14 @@ export default function SettingsPage() {
               <button className={'a-tog' + (share ? ' on' : '')} onClick={() => setShare(!share)} aria-pressed={share} aria-label="Sdílení kontaktu" />
             </div>
             <button className="s-btn s-primary sm" onClick={saveContact} disabled={busy}>Uložit</button>
+          </div>
+
+          <div className="st-card an" style={{ ['--d' as string]: '.04s' }}>
+            <b>Jazyk aplikace</b>
+            <p style={{ fontSize: 12.5, color: 'var(--ink-2)', margin: '6px 0 12px', lineHeight: 1.5 }}>
+              Jazyk je nastavený jen pro váš účet. Výbor může mít aplikaci česky, vy klidně anglicky nebo německy — nad stejnými daty domu.
+            </p>
+            <LanguageSwitcher variant="select" />
           </div>
 
           {!isDemo && (

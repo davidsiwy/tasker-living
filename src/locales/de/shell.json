@@ -1,0 +1,43 @@
+{
+  "nav": {
+    "prehled": "Übersicht",
+    "domu": "Start",
+    "nastenka": "Ankündigungen",
+    "najmy": "Zahlungen",
+    "schuze": "Versammlungen & Abstimmungen",
+    "kalendar": "Kalender",
+    "zavady": "Mängel",
+    "stiznosti": "Anliegen",
+    "dokumenty": "Dokumente",
+    "sprava": "Hausverwaltung",
+    "kontakty": "Nachbarn",
+    "sluzby": "Tasker-Services",
+    "nastaveni": "Einstellungen",
+    "sectionManage": "Haus",
+    "sectionPlatform": "Plattform",
+    "backToConsole": "Zurück zur Konsole"
+  },
+  "header": {
+    "menu": "Menü",
+    "role": "Rolle",
+    "notifications": "Benachrichtigungen",
+    "searchPlaceholder": "Im Haus suchen…",
+    "searchClear": "Suche löschen",
+    "searchOpen": "Suchen",
+    "searchCloseAria": "Suche schließen"
+  },
+  "search": {
+    "hint": "Mindestens 2 Zeichen eingeben. Durchsucht Nachbarn, Ankündigungen, Mängel und Dokumente.",
+    "loading": "Hausindex wird geladen…",
+    "noResults": "Keine Treffer für „{{query}}“.",
+    "kindNeighbor": "Nachbarn",
+    "kindDocument": "Dokumente",
+    "kindPost": "Ankündigungen",
+    "kindFault": "Mängel",
+    "kindUnit": "Einheiten"
+  },
+  "brand": {
+    "name": "Tasker Living",
+    "tagline": "Teil von Tasker"
+  }
+}

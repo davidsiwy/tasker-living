@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { api, currentPeriod, periodLabel } from '../../lib/api'
 import { can, roleNames } from '../../lib/types'
-import type { Role, Fault, UnitFull, Charge } from '../../lib/types'
+import type { Role, Fault, UnitFull, Charge, FundEntry } from '../../lib/types'
+import { czPlural } from '../../lib/types'
 import { adminApi } from '../../lib/adminApi'
 import type { LiveMember, LiveCode, LiveUnit } from '../../lib/adminApi'
 import * as A from '../../lib/adminData'
@@ -18,14 +19,16 @@ type Toast = (m: string) => void
 
 const TABS = [
   { id: 'prehled', label: 'Přehled' }, { id: 'jednotky', label: 'Jednotky' }, { id: 'lide', label: 'Lidé' },
-  { id: 'finance', label: 'Finance' }, { id: 'udrzba', label: 'Údržba' }, { id: 'schuze', label: 'Schůze' },
+  { id: 'finance', label: 'Finance' }, { id: 'fond', label: 'Fond oprav' }, { id: 'udrzba', label: 'Údržba' }, { id: 'schuze', label: 'Schůze' },
   { id: 'nastenka', label: 'Nástěnka' }, { id: 'dokumenty', label: 'Dokumenty' }, { id: 'nastaveni', label: 'Nastavení' },
 ]
 
 export default function AdminPage() {
   const { user, isDemo } = useSession()
   const toast = useToast()
-  const [tab, setTab] = useState('prehled')
+  const [params] = useSearchParams()
+  const initialTab = params.get('tab')
+  const [tab, setTab] = useState(TABS.some((t) => t.id === initialTab) ? initialTab! : 'prehled')
 
   if (!user || !can(user.role as Role, 'admin')) {
     return (
@@ -58,6 +61,7 @@ export default function AdminPage() {
         {tab === 'jednotky' && <Units toast={toast} bid={bid} />}
         {tab === 'lide' && <People toast={toast} />}
         {tab === 'finance' && <Finance toast={toast} bid={bid} />}
+        {tab === 'fond' && <ReserveFundTab toast={toast} bid={bid} />}
         {tab === 'udrzba' && <Maintenance toast={toast} bid={bid} isDemo={isDemo} />}
         {tab === 'schuze' && <MeetingsAdmin />}
         {tab === 'nastenka' && <Board />}
@@ -105,7 +109,7 @@ function Overview({ toast, bid }: { toast: Toast; bid: string }) {
   ]
   const alerts: { c: string; t: string; s: string }[] = []
   if (unpaid.length) alerts.push({ c: 'warn', t: `${unpaid.length} předpisů nezaplaceno`, s: unpaid.map((c) => c.unitLabel).join(', ') })
-  if (noVendor.length) alerts.push({ c: 'warn', t: `${noVendor.length} závad bez dodavatele`, s: noVendor.map((f) => f.cat).join(', ') })
+  if (noVendor.length) alerts.push({ c: 'warn', t: `${noVendor.length} ${czPlural(noVendor.length, 'závada', 'závady', 'závad')} bez dodavatele`, s: noVendor.map((f) => f.cat).join(', ') })
   if (ending.length) alerts.push({ c: 'warn', t: `Končící smlouvy do 60 dní`, s: ending.map((u) => `${u.label} (${u.leaseEnd})`).join(', ') })
   if (!charges.length && occupied.some((u) => u.rent > 0)) alerts.push({ c: 'warn', t: 'Předpisy za tento měsíc nejsou vystavené', s: 'Vygenerujte je v záložce Finance' })
   if (codesFree) alerts.push({ c: 'ok', t: `${codesFree} přístupových kódů čeká na použití`, s: 'Rozešlete je rezidentům, záložka Lidé' })
@@ -308,7 +312,7 @@ function People({ toast }: { toast: Toast }) {
   return (
     <div className="ad-2">
       <div className="s-card" style={{ overflow: 'hidden' }}>
-        <div className="ad-hd"><b>Obyvatelé a členové</b><span className="s-mono" style={{ fontSize: 11, color: 'var(--s-muted)' }}>{members.length} osob</span></div>
+        <div className="ad-hd"><b>Obyvatelé a členové</b><span className="s-mono" style={{ fontSize: 11, color: 'var(--s-muted)' }}>{members.length} {czPlural(members.length, 'osoba', 'osoby', 'osob')}</span></div>
         <div style={{ overflowX: 'auto' }}>
           <table className="ad-tbl">
             <thead><tr><th>Jméno</th><th>Jednotka</th><th>Role</th><th></th></tr></thead>
@@ -527,6 +531,131 @@ function DocumentsAdmin() {
   return <AdminPointer nav={nav} icon="doc" title="Dokumenty mají vlastní sekci" desc="Kategorie, viditelnost po rolích a podepsané odkazy najdete v sekci Dokumenty." to="/app/dokumenty" label="Otevřít Dokumenty" />
 }
 
+/* ---------------- Fond oprav ---------------- */
+function ReserveFundTab({ toast, bid }: { toast: Toast; bid: string }) {
+  const [visible, setVisible] = useState(false)
+  const [target, setTarget] = useState('')
+  const [balance, setBalance] = useState(0)
+  const [entries, setEntries] = useState<FundEntry[]>([])
+  const [loading, setLoading] = useState(true)
+  const [busy, setBusy] = useState(false)
+  const [kind, setKind] = useState<'in' | 'out'>('in')
+  const [amount, setAmount] = useState('')
+  const [note, setNote] = useState('')
+  const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10))
+
+  async function reload() {
+    try {
+      const f = await api.getReserveFund(bid)
+      setVisible(f.visible); setTarget(f.target != null ? String(f.target) : ''); setBalance(f.balance); setEntries(f.entries)
+    } catch (e: any) { toast('Načtení selhalo: ' + (e.message || e)) } finally { setLoading(false) }
+  }
+  useEffect(() => { reload() }, [bid])
+
+  async function saveSettings(nextVisible: boolean) {
+    setBusy(true)
+    try {
+      await api.setReserveFundSettings(bid, { visible: nextVisible, target: target.trim() ? Number(target) : null })
+      setVisible(nextVisible)
+      toast(nextVisible ? 'Rezidenti teď fond vidí' : 'Fond je pro rezidenty skrytý')
+    } catch (e: any) { toast(e.message || 'Uložení selhalo') } finally { setBusy(false) }
+  }
+  async function saveTarget() {
+    setBusy(true)
+    try { await api.setReserveFundSettings(bid, { visible, target: target.trim() ? Number(target) : null }); toast('Cíl uložen') }
+    catch (e: any) { toast(e.message || 'Uložení selhalo') } finally { setBusy(false) }
+  }
+
+  async function addEntry() {
+    const n = Number(amount.replace(',', '.'))
+    if (!n || n <= 0) { toast('Zadejte částku'); return }
+    if (busy) return
+    setBusy(true)
+    try {
+      await api.addReserveEntry(bid, { date, amount: kind === 'in' ? n : -n, note: note.trim() || (kind === 'in' ? 'Příspěvek do fondu' : 'Výdaj z fondu') })
+      setAmount(''); setNote('')
+      await reload()
+      toast('Zápis přidán')
+    } catch (e: any) { toast(e.message || 'Přidání selhalo') } finally { setBusy(false) }
+  }
+
+  async function removeEntry(id: string) {
+    if (!window.confirm('Smazat tento zápis? Změní se tím zůstatek fondu.')) return
+    try { await api.deleteReserveEntry(id); await reload(); toast('Zápis smazán') }
+    catch (e: any) { toast(e.message || 'Smazání selhalo') }
+  }
+
+  const targetNum = target.trim() ? Number(target) : null
+  const pct = targetNum ? Math.max(0, Math.min(100, Math.round((balance / targetNum) * 100))) : null
+
+  if (loading) return <p className="spin">Načítání</p>
+
+  return (
+    <>
+      <div className="d-kpis" style={{ gridTemplateColumns: 'repeat(3,1fr)', marginTop: 0 }}>
+        <div className="d-kpi"><div className="k">Zůstatek fondu</div><b className="g">{money(balance)}</b></div>
+        <div className="d-kpi"><div className="k">Cíl</div><b>{targetNum ? money(targetNum) : 'nenastaven'}</b></div>
+        <div className="d-kpi"><div className="k">Naplněno</div><b>{pct != null ? `${pct} %` : '—'}</b></div>
+      </div>
+
+      <div className="s-card" style={{ padding: '18px 20px', marginTop: 14 }}>
+        <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+          <span style={{ width: 40, height: 40, borderRadius: 11, background: 'var(--s-green-050)', color: 'var(--s-green-ink)', display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none' }}><SIcon n="fund" /></span>
+          <div style={{ flex: 1, minWidth: 240 }}>
+            <b style={{ fontSize: 14, fontWeight: 800, display: 'block' }}>Vidí to rezidenti?</b>
+            <p style={{ fontSize: 12.5, color: 'var(--s-ink-2)', lineHeight: 1.55, margin: '6px 0 0' }}>
+              Zapnete transparentnost, kdo si přeje. Rezidenti pak na Domů uvidí zůstatek fondu a poslední pohyby, bez kontaktů na výbor a bez čísla účtu.
+            </p>
+          </div>
+          <button className={'s-btn sm ' + (visible ? 's-dark' : 's-primary')} disabled={busy} onClick={() => saveSettings(!visible)}>
+            {visible ? 'Skrýt rezidentům' : 'Zobrazit rezidentům'}
+          </button>
+        </div>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 14, flexWrap: 'wrap' }}>
+          <label htmlFor="rf-target" style={{ fontSize: 12, fontWeight: 700, color: 'var(--s-ink-2)' }}>Cílová částka (nepovinné)</label>
+          <input id="rf-target" className="s-mono" style={{ maxWidth: 160 }} placeholder="např. 400000" value={target}
+            onChange={(e) => setTarget(e.target.value.replace(/[^\d]/g, ''))} />
+          <button className="s-btn s-ghost sm" disabled={busy} onClick={saveTarget}>Uložit cíl</button>
+        </div>
+      </div>
+
+      <div className="s-card" style={{ padding: '18px 20px', marginTop: 14 }}>
+        <b style={{ fontSize: 14, fontWeight: 800, display: 'block', marginBottom: 12 }}>Nový zápis</b>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'flex-end' }}>
+          <div className="a-chips">
+            <button className={'a-chip' + (kind === 'in' ? ' on' : '')} onClick={() => setKind('in')}>Příjem</button>
+            <button className={'a-chip' + (kind === 'out' ? ' on' : '')} onClick={() => setKind('out')}>Výdaj</button>
+          </div>
+          <input className="s-mono" style={{ maxWidth: 140 }} placeholder="Částka Kč" value={amount} onChange={(e) => setAmount(e.target.value.replace(/[^\d,.]/g, ''))} />
+          <input type="date" style={{ maxWidth: 160 }} value={date} onChange={(e) => setDate(e.target.value)} />
+          <input style={{ flex: 1, minWidth: 200 }} placeholder={kind === 'in' ? 'Poznámka, např. Příspěvek červenec' : 'Poznámka, např. Oprava střechy'} value={note} onChange={(e) => setNote(e.target.value)} />
+          <button className="s-btn s-primary sm" disabled={busy} onClick={addEntry}>Přidat zápis</button>
+        </div>
+      </div>
+
+      <div className="s-card" style={{ overflow: 'hidden', marginTop: 14 }}>
+        <div className="ad-hd"><b>Historie</b><span className="s-mono" style={{ fontSize: 11, color: 'var(--s-muted)' }}>{entries.length} {czPlural(entries.length, 'zápis', 'zápisy', 'zápisů')}</span></div>
+        {entries.map((e) => (
+          <div className="ad-code" key={e.id}>
+            <span className="ic open" style={{ color: e.amount >= 0 ? 'var(--s-green-ink)' : 'var(--s-warn)' }}>
+              <SIcon n={e.amount >= 0 ? 'plus' : 'fund'} s={15} />
+            </span>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <b style={{ fontFamily: 'inherit', fontSize: 13, fontWeight: 700, letterSpacing: 0 }}>{e.note}</b>
+              <span>{new Date(e.date).toLocaleDateString('cs-CZ')}</span>
+            </div>
+            <b className="s-mono" style={{ fontSize: 13, color: e.amount >= 0 ? 'var(--s-green-ink)' : 'var(--s-warn)' }}>
+              {e.amount >= 0 ? '+' : ''}{money(e.amount)}
+            </b>
+            <button className="s-btn s-ghost sm" style={{ marginLeft: 8 }} onClick={() => removeEntry(e.id)}>Smazat</button>
+          </div>
+        ))}
+        {entries.length === 0 && <div className="ad-empty">Zatím žádné zápisy. Přidejte první příspěvek nebo výdaj výše.</div>}
+      </div>
+    </>
+  )
+}
+
 function BuildingSettingsTab({ toast, bid, isDemo, buildingName }: { toast: Toast; bid: string; isDemo: boolean; buildingName: string }) {
   const [exp, setExp] = useState('')
   async function doExport() {
@@ -556,7 +685,6 @@ function BuildingSettingsTab({ toast, bid, isDemo, buildingName }: { toast: Toas
   }
 
   const integrations = [
-    { id: 'fio', name: 'Fio banka', desc: 'Automatické párování plateb podle VS', tag: 'Připravujeme' },
     { id: 'stripe', name: 'Platby kartou', desc: 'Strhávání nájmu kartou a Apple Pay', tag: 'Připravujeme' },
     { id: 'email', name: 'E-mailové notifikace', desc: 'Upomínky a oznámení i mimo aplikaci', tag: 'Připravujeme' },
   ]

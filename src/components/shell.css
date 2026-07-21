@@ -65,8 +65,12 @@
 .sh .s-top h1{font-size:16.5px;font-weight:800;letter-spacing:-.01em;margin:0;display:inline}
 .sh .s-crumb{font-family:var(--s-mono);font-size:10.5px;color:var(--s-muted);margin-left:12px}
 .sh .s-search{margin-left:auto;display:flex;align-items:center;gap:9px;width:300px;padding:9px 14px;
-  border:1px solid var(--s-line);border-radius:11px;background:var(--s-paper);font-size:13px;color:var(--s-muted)}
+  border:1px solid var(--s-line);border-radius:11px;background:var(--s-paper);font-size:13px;color:var(--s-muted);
+  position:relative}
 .sh .s-search input{flex:1;border:none;background:none;outline:none;font-size:13px;min-width:0}
+.sh .s-search-x{border:none;background:none;color:var(--s-muted);font-size:16px;line-height:1;cursor:pointer;padding:0 2px;flex:none}
+.sh .s-search-btn{display:none;width:38px;height:38px;border-radius:11px;border:1px solid var(--s-line);
+  background:#fff;color:var(--s-ink-2);align-items:center;justify-content:center;flex:none}
 .sh .s-bell{position:relative;width:38px;height:38px;border-radius:11px;border:1px solid var(--s-line);
   background:#fff;color:var(--s-ink-2);display:flex;align-items:center;justify-content:center;cursor:pointer;flex:none}
 .sh .s-bell:hover{background:var(--s-paper)}
@@ -188,6 +192,7 @@
     border-radius:11px;border:1px solid var(--s-line);background:#fff;color:var(--s-ink);cursor:pointer}
   .sh .s-top{padding:11px 16px;gap:12px}
   .sh .s-search{display:none}
+  .sh .s-search-btn{display:flex}
   .sh .s-view{padding:18px 16px 28px}
   .sh .s-main{height:100dvh}
   .sh .d-kpis{grid-template-columns:1fr}
@@ -199,11 +204,27 @@
 }
 
 /* =========================================================================
-   Oznámení (handoff 4a) — composer vlevo, odeslaná s čteností vpravo
+   Oznámení (přepracováno na kompaktní feed): jeden centrovaný sloupec,
+   composer sbalený do řádku, příspěvky pod sebou s tenkými oddělovači
+   a řádkem akcí (lajk / komentáře / čtenost) místo velkých boxů.
    ========================================================================= */
-.sh .a-grid{display:grid;grid-template-columns:.95fr 1.05fr;gap:14px;align-items:start}
-.sh .a-comp{background:#fff;border:1px solid var(--s-line);border-radius:14px;padding:18px 20px}
-.sh .a-comp>b{font-size:14px;font-weight:800}
+.sh .a-feed{max-width:600px;margin:0 auto}
+.sh .a-ava{width:40px;height:40px;border-radius:50%;background:var(--s-green-050);color:var(--s-green-ink);
+  display:flex;align-items:center;justify-content:center;font-family:var(--s-mono);font-size:12.5px;font-weight:700;flex:none}
+.sh .a-ava.dark{background:var(--s-ink);color:#fff}
+.sh .a-ava.sm{width:28px;height:28px;font-size:10.5px}
+
+.sh .a-comp{background:#fff;border:1px solid var(--s-line);border-radius:14px;padding:14px 16px;margin-bottom:2px}
+.sh .a-comp-collapsed{display:flex;align-items:center;gap:11px;width:100%;border:none;background:none;
+  padding:0;cursor:pointer;text-align:left;font-family:inherit}
+.sh .a-comp-collapsed .ph{flex:1;font-size:13.5px;color:var(--s-muted);
+  border:1px solid var(--s-line-2);border-radius:999px;padding:10px 16px;background:var(--s-paper)}
+.sh .a-comp-collapsed:hover .ph{background:var(--s-chip)}
+.sh .a-comp-hd{display:flex;align-items:center;gap:11px;margin-bottom:2px}
+.sh .a-comp-hd b{font-size:14px;font-weight:800;flex:1}
+.sh .a-comp-x{border:none;background:var(--s-paper);width:28px;height:28px;border-radius:50%;font-size:16px;
+  color:var(--s-ink-2);cursor:pointer;flex:none}
+.sh .a-comp-info p{font-size:12.5px;color:var(--s-ink-2);line-height:1.55;margin:8px 0 0}
 .sh .a-f{margin-top:12px}
 .sh .a-f label{display:block;font-size:11.5px;font-weight:700;color:var(--s-ink-2);margin-bottom:5px}
 .sh .a-f input,.sh .a-f textarea{width:100%;padding:11px 13px;border:1px solid var(--s-line-2);border-radius:11px;
@@ -227,34 +248,52 @@
 .sh .a-tog.on::after{left:19px}
 .sh .a-send{display:flex;gap:10px;margin-top:14px;align-items:center;flex-wrap:wrap}
 .sh .a-thumb{position:relative;margin-top:10px;border-radius:11px;overflow:hidden;border:1px solid var(--s-line)}
-.sh .a-thumb img{width:100%;max-height:160px;object-fit:cover;display:block}
+.sh .a-thumb img{width:100%;max-height:220px;object-fit:cover;display:block}
 .sh .a-thumb button{position:absolute;top:8px;right:8px;width:26px;height:26px;border-radius:50%;border:none;
   background:rgba(18,22,29,.72);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center}
 
-.sh .a-list{display:grid;gap:10px}
-.sh .a-item{background:#fff;border:1px solid var(--s-line);border-radius:14px;padding:16px 18px;
-  border-left:3px solid transparent;transition:box-shadow .18s ease}
-.sh .a-item:hover{box-shadow:0 12px 28px -16px rgba(18,22,29,.2)}
-.sh .a-item.ozn{border-left-color:var(--s-green)}
-.sh .a-h{display:flex;align-items:center;justify-content:space-between;gap:8px}
-.sh .a-h b{font-size:13.5px;font-weight:800;min-width:0}
-.sh .a-aud{font-family:var(--s-mono);font-size:9.5px;font-weight:600;color:var(--s-ink-2);
-  background:var(--s-chip);border-radius:999px;padding:3px 9px;flex:none;text-transform:uppercase}
-.sh .a-meta{font-size:11.5px;color:var(--s-muted);display:block;margin-top:3px}
-.sh .a-body{font-size:12.5px;color:var(--s-ink-2);line-height:1.5;margin-top:7px}
-.sh .a-read{display:flex;align-items:center;gap:10px;margin-top:10px}
-.sh .a-read .l{font-size:11px;font-weight:700;color:var(--s-ink-2);flex:none}
-.sh .a-read b{font-family:var(--s-mono);font-size:11px;font-weight:600;color:var(--s-green-ink);flex:none}
+.sh .a-list{background:#fff;border:1px solid var(--s-line);border-radius:14px;overflow:hidden;margin-top:10px}
+.sh .a-item{display:flex;gap:11px;padding:14px 16px;border-top:1px solid var(--s-line-soft);
+  transition:background .5s ease}
+.sh .a-item:first-child{border-top:none}
+.sh .a-item.flash{background:var(--s-green-050)}
+.sh .a-body-col{flex:1;min-width:0}
+.sh .a-h{display:flex;align-items:baseline;gap:5px;flex-wrap:wrap}
+.sh .a-author{font-size:13.5px;font-weight:800;min-width:0}
+.sh .a-official{font-family:var(--s-mono);font-size:9px;font-weight:700;color:var(--s-ink-2);
+  background:var(--s-chip);border-radius:999px;padding:2px 7px;text-transform:uppercase;letter-spacing:.03em}
+.sh .a-dot{color:var(--s-muted);font-size:12px}
+.sh .a-time{font-size:12px;color:var(--s-muted)}
+.sh .a-aud{font-family:var(--s-mono);font-size:9px;font-weight:600;color:var(--s-ink-2);
+  background:var(--s-chip);border-radius:999px;padding:2px 8px;margin-left:auto;flex:none;text-transform:uppercase}
+.sh .a-title{font-size:13.5px;font-weight:800;margin-top:3px}
+.sh .a-text{font-size:13px;color:var(--s-ink-2);line-height:1.5;margin-top:3px;white-space:pre-wrap}
 .sh .a-note{font-size:11.5px;color:var(--s-muted);padding:0 4px}
 .sh .a-acts{display:flex;gap:8px;margin-top:11px;flex-wrap:wrap;align-items:center}
 
-/* detail čtenosti po bytech (7e) */
-.sh .a-units{margin-top:11px;border:1px solid var(--s-line);border-radius:11px;overflow:hidden}
+.sh .a-actrow{display:flex;align-items:center;gap:4px;margin-top:9px;margin-left:-8px}
+.sh .a-act{display:flex;align-items:center;gap:5px;border:none;background:none;color:var(--s-muted);
+  font-size:12px;font-family:var(--s-mono);font-weight:600;padding:6px 8px;border-radius:8px;cursor:pointer}
+.sh .a-act:hover{background:var(--s-paper);color:var(--s-ink-2)}
+.sh .a-act.liked{color:#E0245E}
+
+/* detail čtenosti po bytech */
+.sh .a-units{margin-top:8px;border:1px solid var(--s-line);border-radius:11px;overflow:hidden}
 .sh .a-unit{display:flex;align-items:center;gap:12px;padding:9px 14px;font-size:12px;border-top:1px solid var(--s-line-soft)}
 .sh .a-unit:first-child{border-top:none}
 .sh .a-unit b{font-family:var(--s-mono);font-weight:600;width:52px;flex:none}
 .sh .a-unit .s-badge{width:118px;text-align:center}
-@media(max-width:1080px){ .sh .a-grid{grid-template-columns:1fr} }
+
+/* komentáře */
+.sh .a-comments{margin-top:9px;padding-top:9px;border-top:1px solid var(--s-line-soft)}
+.sh .a-comment{display:flex;gap:9px;margin-bottom:10px}
+.sh .a-ctext{font-size:12.5px;color:var(--s-ink-2);line-height:1.45;margin-top:1px}
+.sh .a-cnew{display:flex;align-items:center;gap:9px;margin-top:6px}
+.sh .a-cnew input{flex:1;border:1px solid var(--s-line-2);border-radius:999px;padding:8px 14px;
+  font-size:12.5px;font-family:inherit;outline:none}
+.sh .a-cnew input:focus{border-color:var(--s-green);box-shadow:0 0 0 3px rgba(6,196,10,.14)}
+
+@media(max-width:640px){ .sh .a-feed{max-width:none} }
 
 /* =========================================================================
    Platby (handoff 4b) — KPI, filtry, tabulka, detail bytu s QR
@@ -660,3 +699,39 @@
 .sh .ag-ev .kd{width:9px;height:9px;border-radius:50%;flex:none;margin-top:4px}
 .sh .ag-empty{padding:26px 14px;text-align:center;color:var(--s-muted);font-size:12.5px}
 @media(max-width:960px){ .sh .cal-grid{grid-template-columns:1fr} }
+
+/* Fond oprav — karta na Domů rezidenta */
+.sh .r-fund{cursor:default}
+.sh .r-fund:hover{transform:none;box-shadow:none;border-color:var(--s-line)}
+.sh .r-fund-bal{font-size:22px;font-weight:800;letter-spacing:-.02em;margin-top:10px}
+.sh .r-fund-last{display:flex;justify-content:space-between;gap:10px;margin-top:11px;padding-top:11px;
+  border-top:1px solid var(--s-line-soft);font-size:11.5px;color:var(--s-ink-2)}
+.sh .r-fund-last b{font-family:var(--s-mono);font-size:12px;font-weight:700;flex:none}
+
+/* Vyhledávání — výsledky (dropdown na desktopu, overlay na mobilu sdílí stejné třídy) */
+.sh .s-search-panel{background:#fff;border:1px solid var(--s-line);border-radius:13px;
+  box-shadow:0 20px 44px -18px rgba(18,22,29,.28);overflow:hidden auto}
+.sh .s-search .s-search-panel{position:absolute;top:calc(100% + 8px);left:0;right:0;max-height:420px;z-index:40}
+.sh .s-search-empty{padding:16px 16px;font-size:12.5px;color:var(--s-muted);line-height:1.5}
+.sh .s-search-grp{padding:6px 0}
+.sh .s-search-grp+.s-search-grp{border-top:1px solid var(--s-line-soft)}
+.sh .s-search-lbl{font-family:var(--s-mono);font-size:9.5px;font-weight:700;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--s-muted);padding:8px 14px 4px}
+.sh .s-search-hit{display:flex;align-items:center;gap:10px;width:100%;padding:8px 14px;border:none;
+  background:none;text-align:left;cursor:pointer;color:var(--s-ink)}
+.sh .s-search-hit:hover{background:var(--s-paper)}
+.sh .s-search-hit .i{width:26px;height:26px;border-radius:8px;background:var(--s-green-050);color:var(--s-green-ink);
+  display:flex;align-items:center;justify-content:center;flex:none}
+.sh .s-search-hit .t{display:flex;flex-direction:column;min-width:0;gap:1px}
+.sh .s-search-hit .t b{font-size:12.5px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sh .s-search-hit .t span{font-size:11px;color:var(--s-muted)}
+
+.sh .s-search-ov{display:none}
+@media(max-width:860px){
+  .sh .s-search-ov{display:flex;flex-direction:column;position:fixed;inset:0;z-index:70;background:#fff}
+  .sh .s-search-ovbar{display:flex;align-items:center;gap:10px;padding:13px 16px;border-bottom:1px solid var(--s-line);flex:none;color:var(--s-muted)}
+  .sh .s-search-ovbar input{flex:1;border:none;outline:none;font-size:15px;color:var(--s-ink);min-width:0}
+  .sh .s-search-ovbar button{border:none;background:var(--s-paper);width:30px;height:30px;border-radius:50%;
+    font-size:17px;color:var(--s-ink-2);flex:none}
+  .sh .s-search-ov .s-search-panel{border:none;border-radius:0;box-shadow:none;flex:1;max-height:none}
+}

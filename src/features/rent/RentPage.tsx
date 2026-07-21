@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { bank } from '../../lib/bank'
 import { api, currentPeriod, periodLabel } from '../../lib/api'
 import type { Charge, BuildingSettings, ChargeStatus } from '../../lib/types'
-import { can } from '../../lib/types'
+import { can, reminderWord, czPlural } from '../../lib/types'
 import { useSession } from '../../state/session'
 import { useToast } from '../../components/Toast'
 import { QrPlatba, PayModal } from '../../components/QrPlatba'
@@ -223,7 +223,7 @@ export default function RentPage() {
           <div className="k">Po splatnosti</div>
           <b style={{ color: 'var(--s-warn)' }}>{money(m.overdueSum)}</b>
           <span className="note">
-            {m.overdue.length === 0 ? 'nikdo nedluží' : `${m.overdue.length} bytů · upomínky připraveny`}
+            {m.overdue.length === 0 ? 'nikdo nedluží' : `${m.overdue.length} ${czPlural(m.overdue.length, 'byt', 'byty', 'bytů')} · upomínky připraveny`}
           </span>
         </div>
         <div className="d-kpi an" style={{ ['--d' as string]: '.14s' }}>
@@ -270,7 +270,7 @@ export default function RentPage() {
             <div className="d-foot">
               {m.overdue.length > 0 && (
                 <button className="s-btn s-dark sm" onClick={remindAll} disabled={busy}>
-                  Poslat {m.overdue.length} {m.overdue.length === 1 ? 'upomínku' : 'upomínky'}
+                  Poslat {m.overdue.length} {reminderWord(m.overdue.length)}
                 </button>
               )}
               <button className="s-btn s-ghost sm" onClick={exportCsv}>Export pro účetní (CSV)</button>

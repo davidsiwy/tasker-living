@@ -1,0 +1,43 @@
+{
+  "nav": {
+    "prehled": "Přehled",
+    "domu": "Domů",
+    "nastenka": "Oznámení",
+    "najmy": "Platby",
+    "schuze": "Schůze a hlasování",
+    "kalendar": "Kalendář",
+    "zavady": "Závady",
+    "stiznosti": "Soužití",
+    "dokumenty": "Dokumenty",
+    "sprava": "Správa domu",
+    "kontakty": "Sousedé",
+    "sluzby": "Služby Tasker",
+    "nastaveni": "Nastavení",
+    "sectionManage": "Správa domu",
+    "sectionPlatform": "Platforma",
+    "backToConsole": "Zpět do konzole"
+  },
+  "header": {
+    "menu": "Menu",
+    "role": "Role",
+    "notifications": "Notifikace",
+    "searchPlaceholder": "Hledat v domě…",
+    "searchClear": "Vymazat hledání",
+    "searchOpen": "Hledat",
+    "searchCloseAria": "Zavřít hledání"
+  },
+  "search": {
+    "hint": "Pište aspoň 2 znaky. Hledá napříč sousedy, oznámeními, závadami a dokumenty.",
+    "loading": "Načítám index domu…",
+    "noResults": "Nic jsme nenašli pro „{{query}}“.",
+    "kindNeighbor": "Sousedé",
+    "kindDocument": "Dokumenty",
+    "kindPost": "Oznámení",
+    "kindFault": "Závady",
+    "kindUnit": "Jednotky"
+  },
+  "brand": {
+    "name": "Tasker Living",
+    "tagline": "Součást Tasker"
+  }
+}

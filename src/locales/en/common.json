@@ -1,0 +1,43 @@
+{
+  "actions": {
+    "cancel": "Cancel",
+    "save": "Save",
+    "saving": "Saving…",
+    "send": "Send",
+    "sending": "Sending…",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close",
+    "open": "Open",
+    "add": "Add",
+    "confirm": "Confirm",
+    "back": "Back",
+    "next": "Next",
+    "yes": "Yes",
+    "no": "No",
+    "search": "Search",
+    "loading": "Loading",
+    "workingOnIt": "Working…",
+    "logout": "Log out"
+  },
+  "errors": {
+    "saveFailed": "Save failed",
+    "sendFailed": "Send failed",
+    "deleteFailed": "Delete failed",
+    "loadFailed": "Couldn't load",
+    "generic": "Something went wrong"
+  },
+  "time": {
+    "today": "Today",
+    "now": "just now",
+    "minutesAgo": "{{count}} min",
+    "hoursAgo": "{{count}} h",
+    "daysAgo": "{{count}} d"
+  },
+  "roles": {
+    "rezident": "Resident",
+    "vybor": "Committee",
+    "developer": "Developer",
+    "investor": "Investor"
+  }
+}

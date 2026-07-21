@@ -606,3 +606,10 @@
 .op-brand{display:flex;align-items:center;gap:9px;padding:2px 6px 6px}
 .op-brand b{font-family:var(--fd);font-weight:800;font-size:16px;letter-spacing:-.01em;color:var(--ink)}
 .op-brand-dot{width:11px;height:11px;border-radius:3px;background:var(--green);box-shadow:0 0 0 3px var(--green-050)}
+
+/* Language switcher */
+.lang-pills{display:inline-flex;gap:4px;background:var(--paper);border:1px solid var(--line);border-radius:999px;padding:3px}
+.lang-pill{border:none;background:none;padding:5px 11px;border-radius:999px;font-size:11.5px;font-weight:700;
+  font-family:var(--mono, inherit);letter-spacing:.02em;color:var(--ink-3);cursor:pointer}
+.lang-pill.on{background:#fff;color:var(--ink);box-shadow:0 1px 3px rgba(18,22,29,.12)}
+.lang-select{border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-size:12.5px;background:#fff;color:var(--ink)}

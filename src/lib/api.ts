@@ -4,7 +4,7 @@ import * as M from './mockData'
 import type {
   FeedPost, FeedComment, FeedType, Fault, FaultStatus, UnitFull, Charge, ChargeStatus,
   BuildingSettings, Service, Booking, Meeting, DocItem, VoteChoice, VoteData,
-  Neighbor, AppNotification, ComplaintItem, MyProfile, Role, ReadRow, CalEvent,
+  Neighbor, AppNotification, ComplaintItem, MyProfile, Role, ReadRow, CalEvent, FundEntry, ReserveFund,
 } from './types'
 import { supabase, isSupabaseConfigured } from './supabase'
 
@@ -158,6 +158,21 @@ const db = {
   units: null as UnitFull[] | null,
   poll: { id: 'demo', q: M.voteQuestion, quorum: M.voteQuorum, open: true },
   myProfile: { email: 'demo@tasker.cz', phone: '+420 604 111 222', shareContact: true } as MyProfile,
+  fund: {
+    visible: true,
+    target: 400000 as number | null,
+    entries: [
+      { id: 'f1', date: '2026-07-15', amount: 15000, note: 'Měsíční příspěvek do fondu' },
+      { id: 'f2', date: '2026-06-15', amount: 15000, note: 'Měsíční příspěvek do fondu' },
+      { id: 'f3', date: '2026-05-15', amount: 15000, note: 'Měsíční příspěvek do fondu' },
+      { id: 'f4', date: '2026-04-22', amount: -38000, note: 'Oprava výtahu C, čerpadlo' },
+      { id: 'f5', date: '2026-04-15', amount: 15000, note: 'Měsíční příspěvek do fondu' },
+      { id: 'f6', date: '2026-03-15', amount: 15000, note: 'Měsíční příspěvek do fondu' },
+      { id: 'f7', date: '2026-02-15', amount: 15000, note: 'Měsíční příspěvek do fondu' },
+      { id: 'f8', date: '2026-01-15', amount: 15000, note: 'Měsíční příspěvek do fondu' },
+      { id: 'f9', date: '2025-06-01', amount: 285000, note: 'Počáteční zůstatek fondu při zavedení aplikace' },
+    ] as FundEntry[],
+  },
 }
 
 function demoUnits(): UnitFull[] {
@@ -358,6 +373,50 @@ export const api = {
   async saveBuildingSettings(buildingId: string, s: BuildingSettings): Promise<void> {
     if (!isSupabaseConfigured) { await wait(80); return }
     const { error } = await supabase!.from('buildings').update({ bank_account: s.account || null, bank_recipient: s.recipient || null }).eq('id', buildingId)
+    if (error) throw error
+  },
+
+  // ------- fond oprav -------
+  // Viditelnost je volba výboru/developera (výchozí vypnuto). Výbor vidí a spravuje
+  // vždy; residentům se karta ukáže jen když je zapnutá — o to se stará volající stránka.
+  async getReserveFund(buildingId: string): Promise<ReserveFund> {
+    if (!isSupabaseConfigured) {
+      await wait(70)
+      const f = db.fund
+      const entries = [...f.entries].sort((a, b) => b.date.localeCompare(a.date))
+      return { visible: f.visible, target: f.target, balance: entries.reduce((s, e) => s + e.amount, 0), entries }
+    }
+    const [{ data: settings }, { data: rows, error }] = await Promise.all([
+      supabase!.from('reserve_fund_settings').select('visible_to_residents, target_amount').eq('building_id', buildingId).maybeSingle(),
+      supabase!.from('reserve_fund_entries').select('id, entry_date, amount, note').eq('building_id', buildingId).order('entry_date', { ascending: false }).limit(200),
+    ])
+    if (error) throw error
+    const entries: FundEntry[] = (rows || []).map((r: any) => ({ id: r.id, date: r.entry_date, amount: Number(r.amount), note: r.note || '' }))
+    return {
+      visible: Boolean((settings as any)?.visible_to_residents),
+      target: (settings as any)?.target_amount != null ? Number((settings as any).target_amount) : null,
+      balance: entries.reduce((s, e) => s + e.amount, 0),
+      entries,
+    }
+  },
+
+  async setReserveFundSettings(buildingId: string, s: { visible: boolean; target: number | null }): Promise<void> {
+    if (!isSupabaseConfigured) { await wait(70); db.fund.visible = s.visible; db.fund.target = s.target; return }
+    const { error } = await supabase!.from('reserve_fund_settings')
+      .upsert({ building_id: buildingId, visible_to_residents: s.visible, target_amount: s.target }, { onConflict: 'building_id' })
+    if (error) throw error
+  },
+
+  async addReserveEntry(buildingId: string, e: { date: string; amount: number; note: string }): Promise<void> {
+    if (!isSupabaseConfigured) { await wait(70); db.fund.entries.unshift({ id: rid(), date: e.date, amount: e.amount, note: e.note }); return }
+    const { error } = await supabase!.from('reserve_fund_entries')
+      .insert({ building_id: buildingId, entry_date: e.date, amount: e.amount, note: e.note || null })
+    if (error) throw error
+  },
+
+  async deleteReserveEntry(id: string): Promise<void> {
+    if (!isSupabaseConfigured) { await wait(60); db.fund.entries = db.fund.entries.filter((x) => x.id !== id); return }
+    const { error } = await supabase!.from('reserve_fund_entries').delete().eq('id', id)
     if (error) throw error
   },
 
@@ -627,6 +686,25 @@ export const api = {
     if (patch.phone !== undefined) upd.phone = patch.phone || null
     if (patch.shareContact !== undefined) upd.share_contact = patch.shareContact
     const { error } = await sb.from('profiles').update(upd).eq('id', auth.user?.id)
+    if (error) throw error
+  },
+
+  // ------- jazyk rozhraní (per-resident, ne za dům) -------
+  async getMyLanguage(): Promise<string | null> {
+    if (!isSupabaseConfigured) return null // demo: řídí to jen i18next-browser-languagedetector v prohlížeči
+    const sb = supabase!
+    const { data: auth } = await sb.auth.getUser()
+    if (!auth.user) return null
+    const { data } = await sb.from('profiles').select('language').eq('id', auth.user.id).maybeSingle()
+    return (data as any)?.language || null
+  },
+
+  async setMyLanguage(lang: string): Promise<void> {
+    if (!isSupabaseConfigured) return // demo: uloží se jen lokálně přes i18next detektor, viz LanguageSwitcher
+    const sb = supabase!
+    const { data: auth } = await sb.auth.getUser()
+    if (!auth.user) return
+    const { error } = await sb.from('profiles').update({ language: lang }).eq('id', auth.user.id)
     if (error) throw error
   },
 

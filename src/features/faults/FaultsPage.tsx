@@ -86,7 +86,7 @@ export default function FaultsPage() {
           <p>
             {manage
               ? unassigned > 0
-                ? `${unassigned} ${unassigned === 1 ? 'závada čeká' : 'závad čeká'} na přiřazení dodavatele.`
+                ? `${unassigned} ${unassigned === 1 ? 'závada čeká' : unassigned <= 4 ? 'závady čekají' : 'závad čeká'} na přiřazení dodavatele.`
                 : 'Každá otevřená závada má odpovědného a termín.'
               : 'Vyfoťte a odešlete. Pak jen sledujete, co se s tím děje.'}
           </p>

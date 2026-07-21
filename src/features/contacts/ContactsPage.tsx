@@ -76,7 +76,7 @@ export default function ContactsPage() {
           <span className="ic"><SIcon n="people" /></span>
           <div style={{ flex: 1 }}>
             <b>Moje viditelnost v adresáři</b>
-            <span>{meShares ? 'sousedé vidí vaše jméno a telefon' : 'vaše číslo je skryté, zprávy vám přijít můžou'}</span>
+            <span>{meShares ? 'sousedé vidí vaše jméno a telefon' : 'vaše číslo je skryté, zprávy vám ale i tak mohou přijít'}</span>
           </div>
           <button className={'a-tog' + (meShares ? ' on' : '')} onClick={toggleMe} aria-pressed={meShares} aria-label="Viditelnost" />
         </div>

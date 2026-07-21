@@ -1,30 +1,33 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useSession } from '../state/session'
-import { roleNames, can } from '../lib/types'
+import { can } from '../lib/types'
 import type { Role } from '../lib/types'
 import { api } from '../lib/api'
+import { buildSearchIndex, runSearch } from '../lib/search'
+import type { SearchHit, SearchIndex } from '../lib/search'
 import mark from '../assets/mark.png'
 import './shell.css'
 
 // Sidebar podle handoffu 3b: SPRÁVA DOMU + PLATFORMA, aktivní položka zelená.
-// id = existující routa, label = pojmenování z handoffu.
-type Item = { id: string; label: string; icon: string; cap?: Role[] }
+// id = existující routa a zároveň klíč do shell:nav.<id> pro popisek.
+type Item = { id: string; icon: string; cap?: Role[] }
 const MANAGE: Item[] = [
-  { id: 'prehled', label: 'Přehled', icon: 'grid' },
-  { id: 'nastenka', label: 'Oznámení', icon: 'bell' },
-  { id: 'najmy', label: 'Platby', icon: 'card' },
-  { id: 'schuze', label: 'Schůze a hlasování', icon: 'vote' },
-  { id: 'kalendar', label: 'Kalendář', icon: 'cal' },
-  { id: 'zavady', label: 'Závady', icon: 'wrench' },
-  { id: 'stiznosti', label: 'Soužití', icon: 'shield' },
-  { id: 'dokumenty', label: 'Dokumenty', icon: 'doc' },
-  { id: 'sprava', label: 'Správa domu', icon: 'sliders', cap: ['vybor','developer'] },
-  { id: 'kontakty', label: 'Sousedé', icon: 'people' },
+  { id: 'prehled', icon: 'grid' },
+  { id: 'nastenka', icon: 'bell' },
+  { id: 'najmy', icon: 'card' },
+  { id: 'schuze', icon: 'vote' },
+  { id: 'kalendar', icon: 'cal' },
+  { id: 'zavady', icon: 'wrench' },
+  { id: 'stiznosti', icon: 'shield' },
+  { id: 'dokumenty', icon: 'doc' },
+  { id: 'sprava', icon: 'sliders', cap: ['vybor','developer'] },
+  { id: 'kontakty', icon: 'people' },
 ]
 const PLATFORM: Item[] = [
-  { id: 'sluzby', label: 'Služby Tasker', icon: 'spark' },
-  { id: 'nastaveni', label: 'Nastavení', icon: 'gear' },
+  { id: 'sluzby', icon: 'spark' },
+  { id: 'nastaveni', icon: 'gear' },
 ]
 
 const P: Record<string, string> = {
@@ -45,20 +48,127 @@ const P: Record<string, string> = {
   phone: '<path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 2 .7 2.9a2 2 0 0 1-.5 2.1L8 10a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.5c.9.3 1.9.6 2.9.7a2 2 0 0 1 1.7 2z"/>',
   chat: '<path d="M21 11.5a8.4 8.4 0 0 1-8.5 8.3 8.9 8.9 0 0 1-3.8-.8L3 20l1-5.5a8.2 8.2 0 0 1-.9-3A8.4 8.4 0 0 1 11.5 3 8.4 8.4 0 0 1 21 11.5z"/>',
   out: '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/>',
+  fund: '<rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="3"/><path d="M6 9v.01M18 15v.01"/>',
+  heart: '<path d="M20.8 4.9a5.5 5.5 0 0 0-7.8 0L12 5.9l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21.5l7.8-7.8 1-1a5.5 5.5 0 0 0 0-7.8z"/>',
+  plus: '<path d="M12 5v14M5 12h14"/>',
 }
-export function SIcon({ n, s = 16 }: { n: string; s?: number }) {
+export function SIcon({ n, s = 16, filled = false }: { n: string; s?: number; filled?: boolean }) {
   return (
-    <svg viewBox="0 0 24 24" style={{ width: s, height: s, flex: 'none' }} fill="none" stroke="currentColor"
+    <svg viewBox="0 0 24 24" style={{ width: s, height: s, flex: 'none' }} fill={filled ? 'currentColor' : 'none'} stroke="currentColor"
       strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"
       dangerouslySetInnerHTML={{ __html: P[n] || P.doc }} />
   )
 }
 
-const TITLES: Record<string, string> = Object.fromEntries(
-  [...MANAGE, ...PLATFORM].map((i) => [i.id, i.label]),
-)
+// Skutečné vyhledávání napříč domem: sousedé, dokumenty, oznámení, závady
+// (a u výboru/developera jednotky). Index se natáhne líně při prvním otevření
+// a dál se filtruje jen v paměti, takže psaní je okamžité. Jeden wrapper s
+// display:contents drží desktopový dropdown i mobilní overlay pod jedním
+// ref, ať klik kamkoli dovnitř nezavře panel jako klik mimo.
+function HeaderSearch({ buildingId, isCommittee }: { buildingId: string; isCommittee: boolean }) {
+  const { t } = useTranslation('shell')
+  const KIND_LABEL: Record<SearchHit['kind'], string> = {
+    neighbor: t('search.kindNeighbor'), document: t('search.kindDocument'), post: t('search.kindPost'),
+    fault: t('search.kindFault'), unit: t('search.kindUnit'),
+  }
+  const nav = useNavigate()
+  const loc = useLocation()
+  const [q, setQ] = useState('')
+  const [open, setOpen] = useState(false)
+  const [idx, setIdx] = useState<SearchIndex | null>(null)
+  const [loadingIdx, setLoadingIdx] = useState(false)
+  const wrapRef = useRef<HTMLDivElement>(null)
+
+  async function ensureIndex() {
+    if (idx || loadingIdx) return
+    setLoadingIdx(true)
+    try { setIdx(await buildSearchIndex(buildingId, isCommittee)) } finally { setLoadingIdx(false) }
+  }
+
+  useEffect(() => {
+    function onDoc(e: MouseEvent) { if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) setOpen(false) }
+    function onKey(e: KeyboardEvent) { if (e.key === 'Escape') setOpen(false) }
+    document.addEventListener('mousedown', onDoc)
+    document.addEventListener('keydown', onKey)
+    return () => { document.removeEventListener('mousedown', onDoc); document.removeEventListener('keydown', onKey) }
+  }, [])
+  useEffect(() => { setOpen(false) }, [loc.pathname])
+
+  const results = idx ? runSearch(idx, q) : []
+  const grouped: Partial<Record<SearchHit['kind'], SearchHit[]>> = {}
+  for (const r of results) (grouped[r.kind] = grouped[r.kind] || []).push(r)
+  const order: SearchHit['kind'][] = ['neighbor', 'post', 'fault', 'document', 'unit']
+
+  async function go(hit: SearchHit) {
+    setOpen(false); setQ('')
+    if (hit.kind === 'document' && hit.doc) {
+      try { const url = await api.openDocument(hit.doc); if (url) window.open(url, '_blank') } catch { /* otevřeme aspoň seznam */ }
+      nav('/app/dokumenty'); return
+    }
+    if (hit.kind === 'neighbor') nav('/app/kontakty')
+    else if (hit.kind === 'post') nav('/app/nastenka?post=' + hit.id)
+    else if (hit.kind === 'fault') nav('/app/zavady')
+    else if (hit.kind === 'unit') nav('/app/sprava?tab=jednotky')
+  }
+
+  const panel = (
+    <div className="s-search-panel">
+      {loadingIdx && <div className="s-search-empty">{t('search.loading')}</div>}
+      {!loadingIdx && q.trim().length < 2 && (
+        <div className="s-search-empty">{t('search.hint')}</div>
+      )}
+      {!loadingIdx && q.trim().length >= 2 && results.length === 0 && (
+        <div className="s-search-empty">{t('search.noResults', { query: q })}</div>
+      )}
+      {order.map((k) => {
+        const g = grouped[k]
+        if (!g || !g.length) return null
+        return (
+          <div className="s-search-grp" key={k}>
+            <div className="s-search-lbl">{KIND_LABEL[k]}</div>
+            {g.map((r) => (
+              <button key={r.id} className="s-search-hit" onClick={() => go(r)}>
+                <span className="i"><SIcon n={r.icon} s={14} /></span>
+                <span className="t"><b>{r.title}</b><span>{r.subtitle}</span></span>
+              </button>
+            ))}
+          </div>
+        )
+      })}
+    </div>
+  )
+
+  return (
+    <div ref={wrapRef} style={{ display: 'contents' }}>
+      <div className="s-search">
+        <SIcon n="search" s={15} />
+        <input placeholder={t('header.searchPlaceholder')} aria-label={t('header.searchPlaceholder')} value={q}
+          onFocus={() => { setOpen(true); ensureIndex() }}
+          onChange={(e) => { setQ(e.target.value); setOpen(true) }} />
+        {q && <button className="s-search-x" onClick={() => setQ('')} aria-label={t('header.searchClear')}>×</button>}
+        {open && panel}
+      </div>
+
+      <button className="s-search-btn" aria-label={t('header.searchOpen')} onClick={() => { setOpen(true); ensureIndex() }}>
+        <SIcon n="search" s={17} />
+      </button>
+      {open && (
+        <div className="s-search-ov">
+          <div className="s-search-ovbar">
+            <SIcon n="search" s={16} />
+            <input autoFocus placeholder={t('header.searchPlaceholder')} aria-label={t('header.searchPlaceholder')} value={q}
+              onChange={(e) => setQ(e.target.value)} />
+            <button onClick={() => { setOpen(false); setQ('') }} aria-label={t('header.searchCloseAria')}>×</button>
+          </div>
+          {panel}
+        </div>
+      )}
+    </div>
+  )
+}
 
 export default function AppShell() {
+  const { t, i18n } = useTranslation('shell')
   const { user, isDemo, isPlatformAdmin, setRole, notifications, signOut } = useSession()
   const nav = useNavigate()
   const loc = useLocation()
@@ -66,6 +176,7 @@ export default function AppShell() {
   const [complaints, setComplaints] = useState(0)
   const [faults, setFaults] = useState(0)
   const manage = user ? can(user.role as Role, 'complaint_log') : false
+  const roleLabel = (r: Role) => t(`common:roles.${r}`)
 
   useEffect(() => {
     if (!user) return
@@ -80,20 +191,21 @@ export default function AppShell() {
   if (!user) return null
 
   const isAdmin = can(user.role as Role, 'admin')
+  const isHomeRole = user.role === 'rezident' || user.role === 'investor'
   const items = MANAGE.filter((i) => (i.cap ? i.cap.includes(user.role as Role) : true) && (i.id !== 'sprava' || isAdmin))
-    .map((i) => (i.id === 'prehled' && (user.role === 'rezident' || user.role === 'investor') ? { ...i, label: 'Domů' } : i))
   const countFor = (id: string) =>
     id === 'zavady' && faults > 0 ? faults : id === 'stiznosti' && manage && complaints > 0 ? complaints : 0
 
   const section = loc.pathname.split('/')[2] || 'prehled'
-  const today = new Date().toLocaleDateString('cs-CZ', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+  const today = new Date().toLocaleDateString(i18n.language, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
 
   async function logout() { await signOut(); nav('/') }
 
+  const navLabel = (i: Item) => (i.id === 'prehled' && isHomeRole ? t('nav.domu') : t(`nav.${i.id}`))
   const link = (i: Item) => (
     <NavLink key={i.id} to={`/app/${i.id}`} className={({ isActive }) => 's-item' + (isActive ? ' active' : '')}>
       <span className="s-i"><SIcon n={i.icon} /></span>
-      <span className="l">{i.label}</span>
+      <span className="l">{navLabel(i)}</span>
       {countFor(i.id) > 0 && <span className="n">{countFor(i.id)}</span>}
     </NavLink>
   )
@@ -104,25 +216,25 @@ export default function AppShell() {
       <aside className={'s-side' + (open ? ' open' : '')}>
         <div className="s-brand">
           <img src={mark} alt="" />
-          <div><b>Tasker Living</b><small>Součást Tasker</small></div>
+          <div><b>{t('brand.name')}</b><small>{t('brand.tagline')}</small></div>
         </div>
 
         <div className="s-house">
           <span className="ini">{user.buildingName.split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase()}</span>
           <div style={{ flex: 1, minWidth: 0 }}>
             <b>{user.buildingName}</b>
-            <span>{roleNames[user.role as Role]}</span>
+            <span>{roleLabel(user.role as Role)}</span>
           </div>
         </div>
 
-        <div className="s-lbl">Správa domu</div>
+        <div className="s-lbl">{t('nav.sectionManage')}</div>
         {items.map(link)}
 
-        <div className="s-lbl plat">Platforma</div>
+        <div className="s-lbl plat">{t('nav.sectionPlatform')}</div>
         {PLATFORM.map(link)}
         {isPlatformAdmin && (
           <NavLink to="/operator" className="s-item">
-            <span className="s-i"><SIcon n="grid" /></span><span className="l">Zpět do konzole</span>
+            <span className="s-i"><SIcon n="grid" /></span><span className="l">{t('nav.backToConsole')}</span>
           </NavLink>
         )}
 
@@ -130,34 +242,31 @@ export default function AppShell() {
           <span className="ava">{user.initials}</span>
           <div style={{ flex: 1, minWidth: 0 }}>
             <b>{user.name}</b>
-            <span>{roleNames[user.role as Role]}</span>
+            <span>{roleLabel(user.role as Role)}</span>
           </div>
-          <button onClick={logout} title="Odhlásit se"><SIcon n="out" s={15} /></button>
+          <button onClick={logout} title={t('common:actions.logout')}><SIcon n="out" s={15} /></button>
         </div>
       </aside>
 
       <div className="s-main">
         <header className="s-top">
-          <button className="s-burger" onClick={() => setOpen(true)} aria-label="Menu"><SIcon n="menu" s={18} /></button>
+          <button className="s-burger" onClick={() => setOpen(true)} aria-label={t('header.menu')}><SIcon n="menu" s={18} /></button>
           <div style={{ minWidth: 0 }}>
-            <h1>{section === 'prehled' && (user.role === 'rezident' || user.role === 'investor') ? 'Domů' : (TITLES[section] || 'Přehled')}</h1>
+            <h1>{section === 'prehled' && isHomeRole ? t('nav.domu') : t(`nav.${section}`, t('nav.prehled'))}</h1>
             <span className="s-crumb">{today}</span>
           </div>
-          <div className="s-search">
-            <SIcon n="search" s={15} />
-            <input placeholder="Hledat v domě…" aria-label="Hledat v domě" />
-          </div>
+          <HeaderSearch buildingId={user.buildingId} isCommittee={isAdmin} />
           {isDemo && (
             <select
               className="s-btn s-ghost sm"
               value={user.role}
               onChange={(e) => setRole(e.target.value as Role)}
-              aria-label="Role"
+              aria-label={t('header.role')}
             >
-              {(Object.keys(roleNames) as Role[]).map((r) => <option key={r} value={r}>{roleNames[r]}</option>)}
+              {(['rezident', 'vybor', 'developer', 'investor'] as Role[]).map((r) => <option key={r} value={r}>{roleLabel(r)}</option>)}
             </select>
           )}
-          <button className="s-bell" aria-label="Notifikace" onClick={() => nav('/app/nastenka')}>
+          <button className="s-bell" aria-label={t('header.notifications')} onClick={() => nav('/app/nastenka')}>
             <SIcon n="bell" />{notifications.length > 0 && <i />}
           </button>
         </header>

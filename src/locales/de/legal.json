@@ -1,0 +1,48 @@
+{
+  "updated": "Letzte Aktualisierung: {{date}}",
+  "backToSite": "Zurück zur Website",
+  "footer": "© 2026 Tasker Living. Teil der Tasker-Familie.",
+  "translationNotice": "Dies ist eine Übersetzung zu Ihrer Orientierung. Bei Abweichungen ist die tschechische Fassung rechtlich maßgeblich.",
+  "privacy": {
+    "title": "Datenschutzerklärung",
+    "intro": "Diese Erklärung beschreibt, wie die App und Website Tasker Living mit personenbezogenen Daten umgehen. Verantwortlicher für die Datenverarbeitung ist {{operator}}. Kontakt für Datenschutzfragen: {{contact}}.",
+    "h1": "Welche Daten wir verarbeiten",
+    "p1": "Bei der Registrierung in der App verarbeiten wir Vor- und Nachname, E-Mail, Passwort (ausschließlich in gesicherter Form gespeichert), die Zuordnung zu Haus und Einheit sowie Ihre Rolle im Haus. Optional können Sie eine Telefonnummer für das Nachbarschaftsverzeichnis hinterlegen; deren Sichtbarkeit für Nachbarn schalten Sie selbst ein oder aus. Bei der Nutzung der App entstehen Daten zu Inhalten, die Sie erstellen: Beiträge am Schwarzen Brett, Kommentare, gemeldete Mängel samt Fotos, Nachrichten an Nachbarn, Abstimmungen, Beschwerden, Serviceaufträge und Zahlungsvorschreibungen. Aus dem Kontaktformular der Website verarbeiten wir Name, E-Mail, Telefon und Nachrichteninhalt.",
+    "h2": "Warum und auf welcher Grundlage",
+    "p2": "Wir verarbeiten Daten zur Erbringung der Dienstleistung (Vertragserfüllung): Betrieb des Schwarzen Bretts sowie Erfassung von Mängeln, Zahlungen, Versammlungen, Abstimmungen und weiteren Hausfunktionen. Beschwerden erfassen wir zur Einheitsnummer, nicht zum Namen der meldenden Person, um die Privatsphäre der Nachbarn zu schützen. Das Kontaktformular verarbeiten wir auf Grundlage Ihrer Angebotsanfrage (Vertragsverhandlung). Betriebs- und Sicherheitsprotokolle führen wir aufgrund unseres berechtigten Interesses an der Absicherung des Dienstes.",
+    "h3": "Wer Zugriff auf die Daten hat",
+    "p3": "Wir speichern Daten bei Supabase in einem Rechenzentrum in der Europäischen Union (Frankfurt am Main, Deutschland). Inhalte innerhalb eines Hauses sehen nur Mitglieder dieses Hauses gemäß Rolle und Sichtbarkeitseinstellungen; die Beschwerdeübersicht sehen nur Beirat und Verwaltung. Der Plattformbetreiber hat Zugriff zu Zwecken der technischen Verwaltung und des Supports. Wir geben keine Daten zu Marketingzwecken an Dritte weiter.",
+    "h4": "Wie lange wir Daten speichern",
+    "p4": "Wir speichern Daten für die Dauer Ihrer Mitgliedschaft im Haus und danach so lange, wie es zur Erfüllung rechtlicher Pflichten erforderlich ist. Nach Entfernung aus dem Haus oder Löschung des Kontos löschen oder anonymisieren wir kontogebundene Inhalte spätestens innerhalb von 30 Tagen, mit Ausnahme von Aufzeichnungen, die gesetzlich aufbewahrt werden müssen.",
+    "h5": "Ihre Rechte",
+    "p5": "Sie haben das Recht auf Auskunft über Ihre Daten, deren Berichtigung, Löschung, Einschränkung der Verarbeitung und Übertragbarkeit sowie ein Widerspruchsrecht. Anfragen richten Sie an {{contact}}. Sie haben zudem das Recht, Beschwerde beim tschechischen Amt für Datenschutz (Úřad pro ochranu osobních údajů, uoou.gov.cz) einzureichen.",
+    "h6": "Sicherheit",
+    "p6": "Der Datenzugriff ist durch Anmeldung und Berechtigungen auf Ebene einzelner Datenbankzeilen geschützt. Die Kommunikation erfolgt verschlüsselt (HTTPS). Hausdokumente werden über zeitlich begrenzte, signierte Links geöffnet."
+  },
+  "terms": {
+    "title": "Nutzungsbedingungen",
+    "intro": "Diese Bedingungen regeln die Nutzung der Website und App Tasker Living, betrieben von {{operator}} (im Folgenden „Betreiber\").",
+    "h1": "Der Dienst",
+    "p1": "Tasker Living ist eine App zur Kommunikation und Verwaltung eines Wohnhauses: Schwarzes Brett, Mängelerfassung, Zahlungen, Versammlungen und Abstimmungen, Dokumente, Kontakte sowie die Bestellung von Tasker-Services. Den Zugang zu einem Haus erhalten Sie über einen Zugangscode von Beirat, Verwaltung oder Bauträger. Für die Richtigkeit der Angaben zu Haus, Einheiten und Zahlungsvorschreibungen ist die Stelle verantwortlich, die das Haus verwaltet.",
+    "h2": "Konto und Verhaltensregeln",
+    "p2": "Das Konto ist persönlich, und Sie sind für den Schutz Ihrer Zugangsdaten verantwortlich. In der App ist die Veröffentlichung rechtswidriger, beleidigender oder Rechte Dritter verletzender Inhalte untersagt. Beirat und Verwaltung können unangemessene Inhalte entfernen, und der Betreiber kann ein Konto bei schwerwiegenden Verstößen sperren.",
+    "h3": "Zahlungen",
+    "p3": "Die App zeigt Zahlungsvorschreibungen und QR-Codes für Zahlungen auf das vom Beirat oder der Verwaltung festgelegte Hauskonto an. Der Betreiber ist nicht Partei des Zahlungsverhältnisses zwischen Bewohner und Haus und haftet nicht für die Richtigkeit eines von der Hausverwaltung hinterlegten Kontos. Bestellungen von Tasker-Services unterliegen den eigenen Bedingungen der Tasker-Plattform.",
+    "h4": "Verfügbarkeit und Haftung",
+    "p4": "Wir erbringen den Dienst wie besehen (as is). Wir bemühen uns angemessen um dessen Verfügbarkeit und Sicherheit, garantieren jedoch keinen unterbrechungsfreien Betrieb. Der Betreiber haftet nicht für Schäden aus fehlerhaften, von Nutzern eingegebenen Daten, noch für Entscheidungen, die auf Grundlage von Inhalten in der App getroffen werden. Abstimmungen in der App bilden die Grundlage für Beschlüsse der Gemeinschaft; ihre Rechtswirkung richtet sich nach der Satzung und dem Gesetz.",
+    "h5": "Änderungen der Bedingungen",
+    "p5": "Wir können diese Bedingungen in angemessenem Umfang ändern; über wesentliche Änderungen informieren wir in der App. Mit der weiteren Nutzung des Dienstes akzeptieren Sie die Änderungen. Diese Bedingungen unterliegen dem Recht der Tschechischen Republik."
+  },
+  "cookies": {
+    "title": "Cookies",
+    "intro": "Die Website und App Tasker Living verwenden ausschließlich technisch notwendige Speicherung, die für den Betrieb des Dienstes erforderlich ist.",
+    "h1": "Was wir speichern",
+    "p1": "Nach der Anmeldung speichern wir eine Anmeldesitzung (Token) im Browser-Speicher, damit Sie zwischen Besuchen angemeldet bleiben. Diese Speicherung ist für die Funktion der App notwendig und kann nicht deaktiviert werden, solange Sie angemeldet sind; sie wird bei der Abmeldung gelöscht.",
+    "h2": "Was wir nicht speichern",
+    "p2": "Wir verwenden keine Marketing- oder Tracking-Cookies Dritter und setzen keine Werbesysteme ein. Sollten wir künftig eine Besucheranalyse hinzufügen, informieren wir Sie hier darüber und holen, wo gesetzlich vorgeschrieben, Ihre Einwilligung ein.",
+    "h3": "Kontakt",
+    "p3": "Bei Fragen zum Datenschutz wenden Sie sich an {{contact}}. Details zur Verarbeitung personenbezogener Daten finden Sie in unserer",
+    "p3link": "Datenschutzerklärung",
+    "noBanner": "Die Website funktioniert auch ohne jegliche Cookie-Zustimmung — es gibt kein Banner zum Wegklicken."
+  }
+}
