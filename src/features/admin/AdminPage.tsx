@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { api, currentPeriod, periodLabel } from '../../lib/api'
 import { can } from '../../lib/types'
 import type { Role, Fault, UnitFull, Charge, FundEntry } from '../../lib/types'
-import { czPlural, faultStatusLabel } from '../../lib/types'
+import { czPlural, faultStatusLabel, chargeStatusLabel } from '../../lib/types'
 import { adminApi } from '../../lib/adminApi'
 import type { LiveMember, LiveCode, LiveUnit } from '../../lib/adminApi'
 import * as A from '../../lib/adminData'
@@ -446,7 +446,7 @@ function Finance({ toast, bid }: { toast: Toast; bid: string }) {
                   <td className="mono">{money(c.amount, i18n.language)}</td>
                   <td className="mono">{c.vs}</td>
                   <td>{c.due}</td>
-                  <td>{c.status === 'paid' ? <span className="s-badge ok">{t('admin:finance.statusPaid')}</span> : c.status === 'awaiting' ? <span className="s-badge warn">{t('admin:finance.statusAwaiting')}</span> : <span className="s-badge warn">{t('admin:finance.statusUnpaid')}</span>}</td>
+                  <td>{c.status === 'paid' ? <span className="s-badge ok">{chargeStatusLabel(c.status, t)}</span> : <span className="s-badge warn">{chargeStatusLabel(c.status, t)}</span>}</td>
                   <td className="rt">
                     {c.status !== 'paid' && <button className="s-btn s-dark sm" onClick={() => setStatus(c, 'paid')}>{t('admin:finance.confirmPayment')}</button>}
                     {c.status === 'unpaid' && <button className="s-btn s-ghost sm" style={{ marginLeft: 6 }} onClick={() => remind(c)}>{t('admin:finance.remind')}</button>}

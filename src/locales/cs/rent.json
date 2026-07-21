@@ -1,0 +1,60 @@
+{
+  "resident": {
+    "yourPayments": "Vaše platby · byt {{unit}}",
+    "toPay": "{{count}} k zaplacení",
+    "allPaid": "Vše uhrazeno",
+    "openInBank": "Otevřít v bankovní aplikaci",
+    "payDirect": "platíte přímo domu — peníze nejdou přes Tasker",
+    "noAccountYet": "Výbor zatím nenastavil účet domu. Po zaplacení převodem to označte tlačítkem níže a výbor platbu potvrdí.",
+    "iPaid": "Zaplatil jsem",
+    "nothingDue": "Nic nečeká. Až výbor vystaví další předpis, přijde vám notifikace a QR najdete tady.",
+    "history": "Historie",
+    "noChargesYet": "Zatím žádné předpisy.",
+    "histPaid": "zaplaceno", "histAwaiting": "čeká na potvrzení", "histToPay": "k zaplacení"
+  },
+  "committee": {
+    "title": "Platby · {{period}}",
+    "subtitle": "Peníze jdou přímo na účet domu. Vy jen vystavíte předpis a potvrdíte, co dorazilo.",
+    "issue": "Vystavit předpisy",
+    "collectedIn": "Vybráno v {{period}}",
+    "overdueLabel": "Po splatnosti",
+    "noOneOwes": "nikdo nedluží",
+    "unitsReady": "{{units}} · upomínky připraveny",
+    "chargesFor": "Předpisy · {{period}}",
+    "totalAwaiting": "celkem {{sum}} · {{count}} čeká na potvrzení",
+    "filterAll": "Vše", "filterPaid": "Zaplacené", "filterUnpaid": "Po splatnosti", "filterAwaiting": "Čeká",
+    "emptyNoCharges": "Za toto období zatím nejsou vystavené předpisy. Vystavíte je tlačítkem nahoře.",
+    "emptyFiltered": "V tomto filtru nic není.",
+    "exportCsv": "Export pro účetní (CSV)",
+    "nothingToSend": "nikdo nedluží, nic k odesílání",
+    "detail": {
+      "title": "Detail předpisu",
+      "unitDetail": "Byt {{unit}} · detail předpisu",
+      "noQr": "Bez účtu domu nejde vygenerovat QR.",
+      "sendReminder": "Poslat upomínku",
+      "reminderSent": "Upomínka odeslána",
+      "confirmPayment": "Potvrdit platbu",
+      "paidNote": "Zaplaceno, nic dalšího neřešíte.",
+      "clickHint": "Klikněte na řádek v tabulce. Uvidíte QR na účet domu, variabilní symbol a akce pro ten byt.",
+      "dueLabel": "splatnost {{due}}"
+    },
+    "missingAccount": {
+      "title": "Chybí účet domu",
+      "body": "Bez čísla účtu nejde generovat QR. Doplňte ho v Nastavení domu a sousedé zaplatí naskenováním."
+    },
+    "bankSync": "Párování s bankou: Fio napojíte ve Správě domu → Nastavení a příchozí platby se podle VS a částky potvrzují samy. ČS a KB připravujeme."
+  },
+  "toastMarkedPaid": "Označeno jako zaplaceno, čeká na potvrzení výboru",
+  "toastSaveFailed": "Nepodařilo se uložit",
+  "toastPaymentConfirmed": "Platba {{unit}} potvrzena",
+  "toastRemindersSent": "Upomínky odeslány ({{count}})",
+  "toastRemindersFailed": "Upomínky selhaly",
+  "toastReminderSentFor": "Upomínka odeslána ({{unit}})",
+  "toastReminderNoApp": "Byt {{unit}} zatím není v aplikaci — vytiskne se dopis",
+  "toastReminderFailed": "Upomínka selhala",
+  "toastIssuedCount": "Vystaveno {{count}} předpisů",
+  "toastAlreadyIssued": "Předpisy už jsou vystavené",
+  "toastIssueFailed": "Nepodařilo se vystavit",
+  "toastCsvDownloaded": "CSV pro účetní staženo",
+  "toastBankMatched": "Banka: spárováno {{count}} plateb"
+}

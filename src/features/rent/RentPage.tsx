@@ -1,19 +1,14 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { bank } from '../../lib/bank'
 import { api, currentPeriod, periodLabel } from '../../lib/api'
 import type { Charge, BuildingSettings, ChargeStatus } from '../../lib/types'
-import { can, reminderWord, czPlural } from '../../lib/types'
+import { can, chargeStatusLabel } from '../../lib/types'
 import { useSession } from '../../state/session'
 import { useToast } from '../../components/Toast'
 import { QrPlatba, PayModal } from '../../components/QrPlatba'
 import type { PayItem } from '../../components/QrPlatba'
 
-const money = (n: number) => n.toLocaleString('cs-CZ') + ' Kč'
-const STATE: Record<ChargeStatus, { l: string; c: string }> = {
-  paid: { l: 'Zaplaceno', c: 'ok' },
-  awaiting: { l: 'Čeká', c: 'neutral' },
-  unpaid: { l: 'Po splatnosti', c: 'warn' },
-}
 const asItem = (c: Charge): PayItem => ({
   id: c.id, label: c.label, amount: c.amount, vs: c.vs, due: c.due || '15.', recurring: true,
   msg: (c.label + ' ' + c.unitLabel).normalize('NFD').replace(/[\u0300-\u036f]/g, ''),
@@ -22,6 +17,13 @@ const asItem = (c: Charge): PayItem => ({
 // Platby (handoff 4b): předpisy, QR na účet domu, upomínky jedním klikem, export.
 // Peníze jdou přímo domu, přes nás neprotečou — proto jen předpis a potvrzení.
 export default function RentPage() {
+  const { t, i18n } = useTranslation(['rent', 'dashboard', 'common'])
+  const money = (n: number) => n.toLocaleString(i18n.language) + ' Kč'
+  const STATE: Record<ChargeStatus, { l: string; c: string }> = {
+    paid: { l: chargeStatusLabel('paid', t), c: 'ok' },
+    awaiting: { l: chargeStatusLabel('awaiting', t), c: 'neutral' },
+    unpaid: { l: chargeStatusLabel('unpaid', t), c: 'warn' },
+  }
   const { user } = useSession()
   const toast = useToast()
   const bid = user?.buildingId || ''
@@ -56,7 +58,7 @@ export default function RentPage() {
     bank.status(bid).then((st) => {
       if (!st?.enabled) return
       bank.syncNow(bid).then((r) => {
-        if (r.matched > 0) { toast(`Banka: spárováno ${r.matched} plateb`); api.getCharges(bid, period).then(setCharges).catch(() => {}) }
+        if (r.matched > 0) { toast(t('rent:toastBankMatched', { count: r.matched })); api.getCharges(bid, period).then(setCharges).catch(() => {}) }
       }).catch(() => {})
     }).catch(() => {})
   }, [bid, isResident])
@@ -88,15 +90,15 @@ export default function RentPage() {
     try {
       await api.setChargeStatus(id, 'awaiting')
       setMine((s) => s.map((p) => (p.id === id ? { ...p, status: 'awaiting' } : p)))
-      toast('Označeno jako zaplaceno, čeká na potvrzení výboru')
-    } catch (e: any) { toast(e.message || 'Nepodařilo se uložit') }
+      toast(t('rent:toastMarkedPaid'))
+    } catch (e: any) { toast(e.message || t('rent:toastSaveFailed')) }
   }
   async function confirmPaid(c: Charge) {
     try {
       await api.setChargeStatus(c.id, 'paid')
       setCharges((s) => s.map((x) => (x.id === c.id ? { ...x, status: 'paid' } : x)))
-      toast(`Platba ${c.unitLabel} potvrzena`)
-    } catch (e: any) { toast(e.message || 'Nepodařilo se uložit') }
+      toast(t('rent:toastPaymentConfirmed', { unit: c.unitLabel }))
+    } catch (e: any) { toast(e.message || t('rent:toastSaveFailed')) }
   }
   async function remindAll() {
     if (busy || !m.overdue.length) return
@@ -104,15 +106,15 @@ export default function RentPage() {
     try {
       for (const c of m.overdue) await api.remindCharge(c.id)
       setReminded(Object.fromEntries(m.overdue.map((c) => [c.id, true])))
-      toast(`Upomínky odeslány (${m.overdue.length})`)
-    } catch (e: any) { toast(e.message || 'Upomínky selhaly') } finally { setBusy(false) }
+      toast(t('rent:toastRemindersSent', { count: m.overdue.length }))
+    } catch (e: any) { toast(e.message || t('rent:toastRemindersFailed')) } finally { setBusy(false) }
   }
   async function remindOne(c: Charge) {
     try {
       const n = await api.remindCharge(c.id)
       setReminded((r) => ({ ...r, [c.id]: true }))
-      toast(n > 0 ? `Upomínka odeslána (${c.unitLabel})` : `Byt ${c.unitLabel} zatím není v aplikaci — vytiskne se dopis`)
-    } catch (e: any) { toast(e.message || 'Upomínka selhala') }
+      toast(n > 0 ? t('rent:toastReminderSentFor', { unit: c.unitLabel }) : t('rent:toastReminderNoApp', { unit: c.unitLabel }))
+    } catch (e: any) { toast(e.message || t('rent:toastReminderFailed')) }
   }
   async function issue() {
     if (busy) return
@@ -120,8 +122,8 @@ export default function RentPage() {
     try {
       const n = await api.generateCharges(bid, period)
       setCharges(await api.getCharges(bid, period))
-      toast(n > 0 ? `Vystaveno ${n} předpisů` : 'Předpisy už jsou vystavené')
-    } catch (e: any) { toast(e.message || 'Nepodařilo se vystavit') } finally { setBusy(false) }
+      toast(n > 0 ? t('rent:toastIssuedCount', { count: n }) : t('rent:toastAlreadyIssued'))
+    } catch (e: any) { toast(e.message || t('rent:toastIssueFailed')) } finally { setBusy(false) }
   }
   function exportCsv() {
     const head = 'byt;polozka;castka;vs;splatnost;stav\n'
@@ -130,7 +132,7 @@ export default function RentPage() {
     const a = document.createElement('a')
     a.href = url; a.download = `platby-${period}.csv`; a.click()
     URL.revokeObjectURL(url)
-    toast('CSV pro účetní staženo')
+    toast(t('rent:toastCsvDownloaded'))
   }
 
   if (!user) return null
@@ -143,10 +145,10 @@ export default function RentPage() {
       <div className="p-grid">
         <div className="s-card an" style={{ padding: '18px 20px' }}>
           <div className="d-mini-h" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <b style={{ fontSize: 14, fontWeight: 800 }}>Vaše platby · byt {user.unit}</b>
+            <b style={{ fontSize: 14, fontWeight: 800 }}>{t('rent:resident.yourPayments', { unit: user.unit })}</b>
             {due.length > 0
-              ? <span className="s-badge warn">{due.length} k zaplacení</span>
-              : <span className="s-badge ok">Vše uhrazeno</span>}
+              ? <span className="s-badge warn">{t('rent:resident.toPay', { count: due.length })}</span>
+              : <span className="s-badge ok">{t('rent:resident.allPaid')}</span>}
           </div>
 
           {next && canPay && (
@@ -154,40 +156,40 @@ export default function RentPage() {
               <QrPlatba account={settings.account} amount={next.amount} vs={next.vs}
                 message={asItem(next).msg} recipient={settings.recipient || user.buildingName} />
               <button className="s-btn s-primary" style={{ width: '100%', marginTop: 12 }} onClick={() => setModal(asItem(next))}>
-                Otevřít v bankovní aplikaci
+                {t('rent:resident.openInBank')}
               </button>
               <span style={{ display: 'block', textAlign: 'center', fontSize: 11, color: 'var(--s-muted)', marginTop: 7 }}>
-                platíte přímo domu — peníze nejdou přes Tasker
+                {t('rent:resident.payDirect')}
               </span>
             </div>
           )}
 
           {next && !canPay && (
             <p style={{ fontSize: 13, color: 'var(--s-ink-2)', lineHeight: 1.55, marginTop: 12 }}>
-              Výbor zatím nenastavil účet domu. Po zaplacení převodem to označte tlačítkem níže a výbor platbu potvrdí.
+              {t('rent:resident.noAccountYet')}
             </p>
           )}
           {next && !canPay && (
             <button className="s-btn s-dark" style={{ width: '100%', marginTop: 12 }} onClick={() => markPaid(next.id)}>
-              Zaplatil jsem
+              {t('rent:resident.iPaid')}
             </button>
           )}
           {!next && (
             <p style={{ fontSize: 13, color: 'var(--s-ink-2)', lineHeight: 1.55, marginTop: 12 }}>
-              Nic nečeká. Až výbor vystaví další předpis, přijde vám notifikace a QR najdete tady.
+              {t('rent:resident.nothingDue')}
             </p>
           )}
         </div>
 
         <div className="d-mini an" style={{ ['--d' as string]: '.07s' }}>
-          <div className="h"><b>Historie</b></div>
+          <div className="h"><b>{t('rent:resident.history')}</b></div>
           <div className="p-hist">
-            {mine.length === 0 && <div style={{ color: 'var(--s-muted)' }}>Zatím žádné předpisy.</div>}
+            {mine.length === 0 && <div style={{ color: 'var(--s-muted)' }}>{t('rent:resident.noChargesYet')}</div>}
             {mine.map((p) => (
               <div key={p.id}>
                 <span>{p.period || p.label} · {money(p.amount)}</span>
                 <span className={p.status === 'paid' ? 'g' : ''}>
-                  {p.status === 'paid' ? 'zaplaceno' : p.status === 'awaiting' ? 'čeká na potvrzení' : 'k zaplacení'}
+                  {p.status === 'paid' ? t('rent:resident.histPaid') : p.status === 'awaiting' ? t('rent:resident.histAwaiting') : t('rent:resident.histToPay')}
                 </span>
               </div>
             ))}
@@ -207,49 +209,47 @@ export default function RentPage() {
     <>
       <div className="d-hi">
         <div>
-          <h2>Platby · {periodLabel(period)}</h2>
-          <p>Peníze jdou přímo na účet domu. Vy jen vystavíte předpis a potvrdíte, co dorazilo.</p>
+          <h2>{t('rent:committee.title', { period: periodLabel(period, i18n.language) })}</h2>
+          <p>{t('rent:committee.subtitle')}</p>
         </div>
-        <button className="s-btn s-primary" onClick={issue} disabled={busy}>Vystavit předpisy</button>
+        <button className="s-btn s-primary" onClick={issue} disabled={busy}>{t('rent:committee.issue')}</button>
       </div>
 
       <div className="p-kpis" style={{ marginTop: 18 }}>
         <div className="d-kpi an">
-          <div className="k">Vybráno v {periodLabel(period).toLowerCase()}</div>
+          <div className="k">{t('rent:committee.collectedIn', { period: periodLabel(period, i18n.language) })}</div>
           <b className="g">{m.pct} % · {money(m.paidSum)}</b>
           <div className="bar"><i style={{ width: `${m.pct}%` }} /></div>
         </div>
         <div className="d-kpi an" style={{ ['--d' as string]: '.07s' }}>
-          <div className="k">Po splatnosti</div>
+          <div className="k">{t('rent:committee.overdueLabel')}</div>
           <b style={{ color: 'var(--s-warn)' }}>{money(m.overdueSum)}</b>
           <span className="note">
-            {m.overdue.length === 0 ? 'nikdo nedluží' : `${m.overdue.length} ${czPlural(m.overdue.length, 'byt', 'byty', 'bytů')} · upomínky připraveny`}
+            {m.overdue.length === 0 ? t('rent:committee.noOneOwes') : t('rent:committee.unitsReady', { units: t('common:units.unit', { count: m.overdue.length }) })}
           </span>
         </div>
         <div className="d-kpi an" style={{ ['--d' as string]: '.14s' }}>
-          <div className="k">Předpisy · {periodLabel(period)}</div>
+          <div className="k">{t('rent:committee.chargesFor', { period: periodLabel(period, i18n.language) })}</div>
           <b>{charges.length}</b>
-          <span className="note">celkem {money(m.total)} · {m.awaiting.length} čeká na potvrzení</span>
+          <span className="note">{t('rent:committee.totalAwaiting', { sum: money(m.total), count: m.awaiting.length })}</span>
         </div>
       </div>
 
       <div className="p-grid">
         <div className="s-card an" style={{ overflow: 'hidden' }}>
           <div className="p-filters">
-            {([['all', 'Vše', charges.length], ['paid', 'Zaplacené', m.paid.length],
-               ['unpaid', 'Po splatnosti', m.overdue.length], ['awaiting', 'Čeká', m.awaiting.length]] as const).map(([k, l, n]) => (
+            {([['all', t('rent:committee.filterAll'), charges.length], ['paid', t('rent:committee.filterPaid'), m.paid.length],
+               ['unpaid', t('rent:committee.filterUnpaid'), m.overdue.length], ['awaiting', t('rent:committee.filterAwaiting'), m.awaiting.length]] as const).map(([k, l, n]) => (
               <button key={k} className={'a-chip' + (filter === k ? ' on' : '')} onClick={() => setFilter(k as any)}>
                 {l} · {n}
               </button>
             ))}
-            <span className="p-per">‹ {periodLabel(period)} ›</span>
+            <span className="p-per">‹ {periodLabel(period, i18n.language)} ›</span>
           </div>
 
           {shown.length === 0 && (
             <div className="d-empty">
-              {charges.length === 0
-                ? 'Za toto období zatím nejsou vystavené předpisy. Vystavíte je tlačítkem nahoře.'
-                : 'V tomto filtru nic není.'}
+              {charges.length === 0 ? t('rent:committee.emptyNoCharges') : t('rent:committee.emptyFiltered')}
             </div>
           )}
 
@@ -270,11 +270,11 @@ export default function RentPage() {
             <div className="d-foot">
               {m.overdue.length > 0 && (
                 <button className="s-btn s-dark sm" onClick={remindAll} disabled={busy}>
-                  Poslat {m.overdue.length} {reminderWord(m.overdue.length)}
+                  {t('dashboard:committee.sendReminders', { count: m.overdue.length })}
                 </button>
               )}
-              <button className="s-btn s-ghost sm" onClick={exportCsv}>Export pro účetní (CSV)</button>
-              {m.overdue.length === 0 && <span className="m">nikdo nedluží, nic k odesílání</span>}
+              <button className="s-btn s-ghost sm" onClick={exportCsv}>{t('rent:committee.exportCsv')}</button>
+              {m.overdue.length === 0 && <span className="m">{t('rent:committee.nothingToSend')}</span>}
             </div>
           )}
         </div>
@@ -283,13 +283,13 @@ export default function RentPage() {
           {detail ? (
             <div className="d-mini an">
               <div className="h">
-                <b>Byt {detail.unitLabel} · detail předpisu</b>
+                <b>{t('rent:committee.detail.unitDetail', { unit: detail.unitLabel })}</b>
                 <span className={'s-badge ' + STATE[detail.status].c}>{STATE[detail.status].l}</span>
               </div>
               <div className="p-det">
                 <div>
                   <b className="a">{money(detail.amount)}</b>
-                  <span>{detail.label} · splatnost {detail.due}</span>
+                  <span>{detail.label} · {t('rent:committee.detail.dueLabel', { due: detail.due })}</span>
                 </div>
               </div>
               {canPay
@@ -297,40 +297,39 @@ export default function RentPage() {
                     <QrPlatba account={settings.account} amount={detail.amount} vs={detail.vs}
                       message={asItem(detail).msg} recipient={settings.recipient || user.buildingName} />
                   </div>
-                : <p style={{ fontSize: 12, color: 'var(--s-muted)', marginTop: 10 }}>Bez účtu domu nejde vygenerovat QR.</p>}
+                : <p style={{ fontSize: 12, color: 'var(--s-muted)', marginTop: 10 }}>{t('rent:committee.detail.noQr')}</p>}
               <div className="a-acts">
                 {detail.status !== 'paid' && (
                   <button className="s-btn s-dark sm" onClick={() => remindOne(detail)} disabled={reminded[detail.id]}>
-                    {reminded[detail.id] ? 'Upomínka odeslána' : 'Poslat upomínku'}
+                    {reminded[detail.id] ? t('rent:committee.detail.reminderSent') : t('rent:committee.detail.sendReminder')}
                   </button>
                 )}
                 {detail.status !== 'paid' && (
-                  <button className="s-btn s-ghost sm" onClick={() => confirmPaid(detail)}>Potvrdit platbu</button>
+                  <button className="s-btn s-ghost sm" onClick={() => confirmPaid(detail)}>{t('rent:committee.detail.confirmPayment')}</button>
                 )}
-                {detail.status === 'paid' && <span className="a-note">Zaplaceno, nic dalšího neřešíte.</span>}
+                {detail.status === 'paid' && <span className="a-note">{t('rent:committee.detail.paidNote')}</span>}
               </div>
             </div>
           ) : (
             <div className="d-mini an">
-              <div className="h"><b>Detail předpisu</b></div>
+              <div className="h"><b>{t('rent:committee.detail.title')}</b></div>
               <p style={{ fontSize: 12, color: 'var(--s-muted)', marginTop: 10, lineHeight: 1.5 }}>
-                Klikněte na řádek v tabulce. Uvidíte QR na účet domu, variabilní symbol a akce pro ten byt.
+                {t('rent:committee.detail.clickHint')}
               </p>
             </div>
           )}
 
           {!canPay && (
             <div className="d-mini an" style={{ ['--d' as string]: '.07s' }}>
-              <div className="h"><b>Chybí účet domu</b></div>
+              <div className="h"><b>{t('rent:committee.missingAccount.title')}</b></div>
               <p style={{ fontSize: 12, color: 'var(--s-ink-2)', marginTop: 8, lineHeight: 1.5 }}>
-                Bez čísla účtu nejde generovat QR. Doplňte ho v Nastavení domu a sousedé zaplatí naskenováním.
+                {t('rent:committee.missingAccount.body')}
               </p>
             </div>
           )}
 
           <div className="p-soon an" style={{ ['--d' as string]: '.14s' }}>
-            <b>Párování s bankou:</b> Fio napojíte ve Správě domu → Nastavení a příchozí platby se
-            podle VS a částky potvrzují samy. ČS a KB připravujeme.
+            {t('rent:committee.bankSync')}
           </div>
         </div>
       </div>

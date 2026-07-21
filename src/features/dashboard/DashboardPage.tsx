@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { useSession } from '../../state/session'
 import { api, currentPeriod, periodLabel } from '../../lib/api'
 import type { Charge, Fault, VoteData, Neighbor } from '../../lib/types'
+import { chargeStatusLabel } from '../../lib/types'
 import { SIcon } from '../../components/AppShell'
 import ResidentHome from './ResidentHome'
 import { useToast } from '../../components/Toast'
@@ -19,9 +20,9 @@ export default function DashboardPage() {
   const toast = useToast()
   const period = currentPeriod()
   const STATE: Record<string, { l: string; c: string }> = {
-    paid: { l: t('dashboard:committee.statePaid'), c: 'ok' },
-    awaiting: { l: t('dashboard:committee.stateAwaiting'), c: 'neutral' },
-    unpaid: { l: t('dashboard:committee.stateOverdue'), c: 'warn' },
+    paid: { l: chargeStatusLabel('paid', t), c: 'ok' },
+    awaiting: { l: chargeStatusLabel('awaiting', t), c: 'neutral' },
+    unpaid: { l: chargeStatusLabel('unpaid', t), c: 'warn' },
   }
 
   const [charges, setCharges] = useState<Charge[]>([])

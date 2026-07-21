@@ -45,7 +45,9 @@
     "months_one": "{{count}} Monat",
     "months_other": "{{count}} Monate",
     "hours_one": "{{count}} Stunde",
-    "hours_other": "{{count}} Stunden"
+    "hours_other": "{{count}} Stunden",
+    "unit_one": "{{count}} Einheit",
+    "unit_other": "{{count}} Einheiten"
   },
   "faultStatus": {
     "faultReported": "Gemeldet",
@@ -70,5 +72,10 @@
     "doorsLocks": "Türen & Schlösser",
     "cleaning": "Reinigung",
     "other": "Sonstiges"
+  },
+  "chargeStatus": {
+    "paid": "Bezahlt",
+    "awaiting": "Wartet auf Bestätigung",
+    "unpaid": "Überfällig"
   }
 }

@@ -1,0 +1,60 @@
+{
+  "resident": {
+    "yourPayments": "Your payments · unit {{unit}}",
+    "toPay": "{{count}} due",
+    "allPaid": "All paid up",
+    "openInBank": "Open in your banking app",
+    "payDirect": "you're paying the building directly — the money never passes through Tasker",
+    "noAccountYet": "The committee hasn't set up the building account yet. Once you pay by transfer, mark it with the button below and the committee will confirm it.",
+    "iPaid": "I've paid",
+    "nothingDue": "Nothing's due. Once the committee issues the next charge, you'll get a notification and the QR code will be here.",
+    "history": "History",
+    "noChargesYet": "No charges yet.",
+    "histPaid": "paid", "histAwaiting": "awaiting confirmation", "histToPay": "due"
+  },
+  "committee": {
+    "title": "Payments · {{period}}",
+    "subtitle": "The money goes straight to the building's account. You just issue the charge and confirm what came in.",
+    "issue": "Issue charges",
+    "collectedIn": "Collected in {{period}}",
+    "overdueLabel": "Overdue",
+    "noOneOwes": "no one owes anything",
+    "unitsReady": "{{units}} · reminders ready",
+    "chargesFor": "Charges · {{period}}",
+    "totalAwaiting": "{{sum}} total · {{count}} awaiting confirmation",
+    "filterAll": "All", "filterPaid": "Paid", "filterUnpaid": "Overdue", "filterAwaiting": "Awaiting",
+    "emptyNoCharges": "No charges have been issued for this period yet. Issue them with the button above.",
+    "emptyFiltered": "Nothing in this filter.",
+    "exportCsv": "Export for accountant (CSV)",
+    "nothingToSend": "no one owes anything, nothing to send",
+    "detail": {
+      "title": "Charge detail",
+      "unitDetail": "Unit {{unit}} · charge detail",
+      "noQr": "Can't generate a QR code without the building's account.",
+      "sendReminder": "Send reminder",
+      "reminderSent": "Reminder sent",
+      "confirmPayment": "Confirm payment",
+      "paidNote": "Paid, nothing else to do here.",
+      "clickHint": "Click a row in the table. You'll see the QR code for the building account, the variable symbol, and actions for that unit.",
+      "dueLabel": "due {{due}}"
+    },
+    "missingAccount": {
+      "title": "Building account missing",
+      "body": "Can't generate a QR code without an account number. Add it in Building Settings and neighbors can pay by scanning."
+    },
+    "bankSync": "Bank matching: connect Fio under Building Management → Settings and incoming payments confirm themselves by VS and amount. ČS and KB are coming soon."
+  },
+  "toastMarkedPaid": "Marked as paid, awaiting committee confirmation",
+  "toastSaveFailed": "Couldn't save",
+  "toastPaymentConfirmed": "Payment for {{unit}} confirmed",
+  "toastRemindersSent": "Reminders sent ({{count}})",
+  "toastRemindersFailed": "Reminders failed",
+  "toastReminderSentFor": "Reminder sent ({{unit}})",
+  "toastReminderNoApp": "Unit {{unit}} isn't on the app yet — a letter will be printed",
+  "toastReminderFailed": "Reminder failed",
+  "toastIssuedCount": "Issued {{count}} charges",
+  "toastAlreadyIssued": "Charges have already been issued",
+  "toastIssueFailed": "Couldn't issue charges",
+  "toastCsvDownloaded": "CSV for the accountant downloaded",
+  "toastBankMatched": "Bank: matched {{count}} payments"
+}

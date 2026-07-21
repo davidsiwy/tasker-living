@@ -1,0 +1,60 @@
+{
+  "resident": {
+    "yourPayments": "Ihre Zahlungen · Einheit {{unit}}",
+    "toPay": "{{count}} offen",
+    "allPaid": "Alles bezahlt",
+    "openInBank": "In der Banking-App öffnen",
+    "payDirect": "Sie zahlen direkt an das Haus — das Geld läuft nie über Tasker",
+    "noAccountYet": "Der Beirat hat das Hauskonto noch nicht eingerichtet. Zahlen Sie per Überweisung und markieren Sie es unten — der Beirat bestätigt die Zahlung.",
+    "iPaid": "Ich habe bezahlt",
+    "nothingDue": "Nichts ist fällig. Sobald der Beirat die nächste Vorschreibung ausstellt, erhalten Sie eine Benachrichtigung, und der QR-Code erscheint hier.",
+    "history": "Historie",
+    "noChargesYet": "Noch keine Vorschreibungen.",
+    "histPaid": "bezahlt", "histAwaiting": "wartet auf Bestätigung", "histToPay": "offen"
+  },
+  "committee": {
+    "title": "Zahlungen · {{period}}",
+    "subtitle": "Das Geld geht direkt auf das Hauskonto. Sie stellen nur die Vorschreibung aus und bestätigen, was eingegangen ist.",
+    "issue": "Vorschreibungen ausstellen",
+    "collectedIn": "Eingegangen im {{period}}",
+    "overdueLabel": "Überfällig",
+    "noOneOwes": "niemand schuldet etwas",
+    "unitsReady": "{{units}} · Erinnerungen bereit",
+    "chargesFor": "Vorschreibungen · {{period}}",
+    "totalAwaiting": "{{sum}} insgesamt · {{count}} wartet auf Bestätigung",
+    "filterAll": "Alle", "filterPaid": "Bezahlt", "filterUnpaid": "Überfällig", "filterAwaiting": "Wartet",
+    "emptyNoCharges": "Für diesen Zeitraum sind noch keine Vorschreibungen ausgestellt. Erstellen Sie sie mit der Schaltfläche oben.",
+    "emptyFiltered": "In diesem Filter ist nichts.",
+    "exportCsv": "Export für die Buchhaltung (CSV)",
+    "nothingToSend": "niemand schuldet etwas, nichts zu senden",
+    "detail": {
+      "title": "Details der Vorschreibung",
+      "unitDetail": "Einheit {{unit}} · Details der Vorschreibung",
+      "noQr": "Ohne Hauskonto kann kein QR-Code erzeugt werden.",
+      "sendReminder": "Erinnerung senden",
+      "reminderSent": "Erinnerung gesendet",
+      "confirmPayment": "Zahlung bestätigen",
+      "paidNote": "Bezahlt, nichts weiter zu tun.",
+      "clickHint": "Klicken Sie auf eine Zeile in der Tabelle. Sie sehen den QR-Code für das Hauskonto, den variablen Symbol und Aktionen für diese Einheit.",
+      "dueLabel": "fällig {{due}}"
+    },
+    "missingAccount": {
+      "title": "Hauskonto fehlt",
+      "body": "Ohne Kontonummer kann kein QR-Code erzeugt werden. Tragen Sie sie in den Hauseinstellungen ein, dann können Nachbarn per Scan bezahlen."
+    },
+    "bankSync": "Bankabgleich: Verbinden Sie Fio unter Hausverwaltung → Einstellungen, eingehende Zahlungen bestätigen sich dann selbst nach VS und Betrag. ČS und KB sind in Vorbereitung."
+  },
+  "toastMarkedPaid": "Als bezahlt markiert, wartet auf Bestätigung des Beirats",
+  "toastSaveFailed": "Speichern fehlgeschlagen",
+  "toastPaymentConfirmed": "Zahlung für {{unit}} bestätigt",
+  "toastRemindersSent": "Erinnerungen gesendet ({{count}})",
+  "toastRemindersFailed": "Erinnerungen fehlgeschlagen",
+  "toastReminderSentFor": "Erinnerung gesendet ({{unit}})",
+  "toastReminderNoApp": "Einheit {{unit}} ist noch nicht in der App — ein Brief wird gedruckt",
+  "toastReminderFailed": "Erinnerung fehlgeschlagen",
+  "toastIssuedCount": "{{count}} Vorschreibungen ausgestellt",
+  "toastAlreadyIssued": "Vorschreibungen sind bereits ausgestellt",
+  "toastIssueFailed": "Ausstellung fehlgeschlagen",
+  "toastCsvDownloaded": "CSV für die Buchhaltung heruntergeladen",
+  "toastBankMatched": "Bank: {{count}} Zahlungen abgeglichen"
+}

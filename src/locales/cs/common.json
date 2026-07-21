@@ -47,7 +47,10 @@
     "months_other": "{{count}} měsíců",
     "hours_one": "{{count}} hodinu",
     "hours_few": "{{count}} hodiny",
-    "hours_other": "{{count}} hodin"
+    "hours_other": "{{count}} hodin",
+    "unit_one": "{{count}} byt",
+    "unit_few": "{{count}} byty",
+    "unit_other": "{{count}} bytů"
   },
   "faultStatus": {
     "faultReported": "Nahlášeno",
@@ -72,5 +75,10 @@
     "doorsLocks": "Dveře a zámky",
     "cleaning": "Úklid",
     "other": "Jiné"
+  },
+  "chargeStatus": {
+    "paid": "Zaplaceno",
+    "awaiting": "Čeká na potvrzení",
+    "unpaid": "Po splatnosti"
   }
 }

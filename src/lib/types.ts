@@ -74,6 +74,14 @@ export const FAULT_CAT_KEYS: Record<string, string> = {
 }
 export const catLabel = (cat: string, t: (k: string) => string): string =>
   FAULT_CAT_KEYS[cat] ? t(`common:faultCat.${FAULT_CAT_KEYS[cat]}`) : cat
+
+// Stejný vzor jako faultStatusLabel — 'paid'/'awaiting'/'unpaid' jsou
+// hodnoty ChargeStatus používané k porovnávání napříč appkou (Dashboard,
+// Sprava, Platby), tohle je jen sdílené zobrazovací mapování, aby se
+// štítky "Zaplaceno/Čeká na potvrzení/Po splatnosti" nepsaly na třech
+// místech zvlášť.
+export const chargeStatusLabel = (s: string, t: (k: string) => string): string =>
+  t(`common:chargeStatus.${s === 'paid' ? 'paid' : s === 'awaiting' ? 'awaiting' : 'unpaid'}`)
 export interface FaultEvent { status: string; at: string; note?: string }
 export interface Fault { id: string; cat: string; loc: string; desc: string; status: FaultStatus; date: string; by: string; photos?: string[]; vendor?: string; timeline?: FaultEvent[] }
 

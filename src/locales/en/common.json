@@ -45,7 +45,9 @@
     "months_one": "{{count}} month",
     "months_other": "{{count}} months",
     "hours_one": "{{count}} hour",
-    "hours_other": "{{count}} hours"
+    "hours_other": "{{count}} hours",
+    "unit_one": "{{count}} unit",
+    "unit_other": "{{count}} units"
   },
   "faultStatus": {
     "faultReported": "Reported",
@@ -70,5 +72,10 @@
     "doorsLocks": "Doors & locks",
     "cleaning": "Cleaning",
     "other": "Other"
+  },
+  "chargeStatus": {
+    "paid": "Paid",
+    "awaiting": "Awaiting confirmation",
+    "unpaid": "Overdue"
   }
 }
