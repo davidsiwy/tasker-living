@@ -292,7 +292,13 @@
     "sending": "Wird gesendet...",
     "cta": "Kostenlose Demo anfragen",
     "formNote": "Wir melden uns innerhalb von 24 Stunden an Werktagen. Kein Spam, keine Verpflichtung. Mit dem Absenden stimmen Sie der",
-    "formNoteLink": "Datenverarbeitung"
+    "formNoteLink": "Datenverarbeitung",
+    "pickSlotTitle": "Wählen Sie zuerst Ihren Termin",
+    "pickSlotHint": "Wählen Sie einen Tag und eine Uhrzeit, die Ihnen passt. Wir bestätigen innerhalb von 24 Stunden — konkret, nicht irgendwann.",
+    "yourSlot": "Ihr Termin",
+    "change": "Ändern",
+    "confirmSlot": "{{day}} um {{time}} bestätigen",
+    "doneBodySlot": "Wir bestätigen {{day}} um {{time}} innerhalb von 24 Stunden."
   },
   "footer": {
     "copy": "© 2026 · Hergestellt in Prag",

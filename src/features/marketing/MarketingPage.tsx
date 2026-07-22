@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { enterDemo } from '../../lib/supabase'
@@ -9,6 +9,31 @@ import './landing.css'
 const CONTACT_EMAIL = 'info@tasker.cz'
 const SIZE_KEYS = ['s1', 's2', 's3', 's4'] as const
 const SIZE_CZ: Record<string, string> = { s1: 'do 20 jednotek', s2: '20 až 50 jednotek', s3: '50 a více jednotek', s4: 'více domů / portfolio' }
+
+// Vyber terminu schuzky misto obycejneho formulare: konkretni den + konkretni
+// cas donuti cloveka udelat malé rozhodnuti hned (misto "nekdy to vyplnim"),
+// a David dostane e-mail rovnou s pozadovanym terminem, ne jen obecnou poptavkou.
+// Sloty NEJSOU napojene na skutecny kalendar (zadna takova infrastruktura
+// neexistuje) — text proto rika "termin, ktery vam vyhovuje" a "potvrdime do
+// 24 hodin", ne "nase volne terminy", coz zustava pravdive.
+const SLOT_HOURS = [9, 13, 16]
+const BUSINESS_DAYS = 5
+function nextBusinessDays(n: number): Date[] {
+  const out: Date[] = []
+  const cursor = new Date(); cursor.setHours(0, 0, 0, 0)
+  if (new Date().getHours() >= 15) cursor.setDate(cursor.getDate() + 1) // dnešek po 15:00 už nenabízíme
+  while (out.length < n) {
+    if (cursor.getDay() !== 0 && cursor.getDay() !== 6) out.push(new Date(cursor))
+    cursor.setDate(cursor.getDate() + 1)
+  }
+  return out
+}
+const fmtHour = (h: number, lng: string) => {
+  if (lng === 'en') { const am = h < 12; const h12 = h % 12 === 0 ? 12 : h % 12; return `${h12}:00${am ? 'am' : 'pm'}` }
+  return `${h}:00`
+}
+const fmtDayShort = (d: Date, lng: string) => new Intl.DateTimeFormat(lng, { weekday: 'short', day: 'numeric', month: 'numeric' }).format(d)
+const fmtDayLong = (d: Date, lng: string) => new Intl.DateTimeFormat(lng, { weekday: 'long', day: 'numeric', month: 'long' }).format(d)
 
 // The offer. One place to tune the promise the ads and the page make.
 const OFFER = { freeMonths: 2, launchHours: 48, pricePerUnit: 399 }
@@ -65,13 +90,17 @@ const G = {
 type Tour = { today: string; h: string; p: string; ticks: string[]; mock: JSX.Element; flip?: boolean }
 
 export default function MarketingPage() {
-  const { t } = useTranslation('marketing')
+  const { t, i18n } = useTranslation('marketing')
   const freeMonthsLabel = t('common:units.months', { count: OFFER.freeMonths })
   const launchLabel = t('common:units.hours', { count: OFFER.launchHours })
   const go = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
   const [cName, setCName] = useState(''); const [cEmail, setCEmail] = useState(''); const [cPhone, setCPhone] = useState('')
   const [cSize, setCSize] = useState('s1'); const [cMsg, setCMsg] = useState('')
   const [cState, setCState] = useState<'idle' | 'busy' | 'done' | 'err'>('idle')
+  const [dayIdx, setDayIdx] = useState(-1)
+  const [timeIdx, setTimeIdx] = useState(-1)
+  const slotDays = useMemo(() => nextBusinessDays(BUSINESS_DAYS), [])
+  const slotPicked = dayIdx >= 0 && timeIdx >= 0
   const [scrolled, setScrolled] = useState(false)
   const [sticky, setSticky] = useState(false)
 
@@ -97,15 +126,17 @@ export default function MarketingPage() {
 
   async function sendContact() {
     if (cState === 'busy') return
-    if (!cName.trim() || !cEmail.trim()) { setCState('err'); return }
+    if (!cName.trim() || !cEmail.trim() || !slotPicked) { setCState('err'); return }
     setCState('busy')
     try {
+      const czSlot = `${fmtDayLong(slotDays[dayIdx], 'cs')} v ${fmtHour(SLOT_HOURS[timeIdx], 'cs')}`
       const res = await fetch('https://formsubmit.co/ajax/' + CONTACT_EMAIL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
         body: JSON.stringify({
-          _subject: 'Tasker Living: poptávka ukázky z webu',
+          _subject: `Tasker Living: žádost o termín – ${czSlot}`,
           Jmeno: cName.trim(), Email: cEmail.trim(), Telefon: cPhone.trim(),
+          'Požadovaný termín': czSlot,
           Velikost: SIZE_CZ[cSize] || cSize, Zprava: cMsg.trim(),
         }),
       })
@@ -681,44 +712,77 @@ export default function MarketingPage() {
             {cState === 'done' ? (
               <div className="l-done">
                 <span className="ic"><Chk w={22} /></span>
-                <p><b>{t('contact.doneTitle')}</b><br />{t('contact.doneBody')}</p>
+                <p><b>{t('contact.doneTitle')}</b><br />{slotPicked ? t('contact.doneBodySlot', { day: fmtDayShort(slotDays[dayIdx], i18n.language), time: fmtHour(SLOT_HOURS[timeIdx], i18n.language) }) : t('contact.doneBody')}</p>
               </div>
             ) : (
               <>
-                <div className="l-f2">
-                  <div className="l-field">
-                    <label htmlFor="l-name">{t('contact.labelName')}</label>
-                    <input id="l-name" value={cName} onChange={(e) => setCName(e.target.value)} placeholder="Jan Novák" />
+                <div className="l-slotpick">
+                  <b>{t('contact.pickSlotTitle')}</b>
+                  <p>{t('contact.pickSlotHint')}</p>
+                  <div className="l-slot-days">
+                    {slotDays.map((d, i) => (
+                      <button key={i} className={'l-slot-day' + (dayIdx === i ? ' on' : '')}
+                        onClick={() => { setDayIdx(i); setTimeIdx(-1) }}>
+                        {fmtDayShort(d, i18n.language).split(' ').map((part, pi) => <span key={pi}>{part}</span>)}
+                      </button>
+                    ))}
                   </div>
-                  <div className="l-field">
-                    <label htmlFor="l-phone">{t('contact.labelPhone')}</label>
-                    <input id="l-phone" value={cPhone} onChange={(e) => setCPhone(e.target.value)} placeholder="+420 ..." />
+                  {dayIdx >= 0 && (
+                    <div className="l-slot-times an">
+                      {SLOT_HOURS.map((h, i) => (
+                        <button key={h} className={'l-slot-time' + (timeIdx === i ? ' on' : '')} onClick={() => setTimeIdx(i)}>
+                          {fmtHour(h, i18n.language)}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {slotPicked && (
+                  <div className="l-slot-bar an">
+                    <span>{t('contact.yourSlot')}: <b>{fmtDayLong(slotDays[dayIdx], i18n.language)} · {fmtHour(SLOT_HOURS[timeIdx], i18n.language)}</b></span>
+                    <button onClick={() => { setDayIdx(-1); setTimeIdx(-1) }}>{t('contact.change')}</button>
                   </div>
-                </div>
-                <div className="l-field" style={{ marginTop: 12 }}>
-                  <label htmlFor="l-mail">{t('contact.labelEmail')}</label>
-                  <input id="l-mail" type="email" value={cEmail} onChange={(e) => setCEmail(e.target.value)} placeholder="vas@email.cz" />
-                </div>
-                <div className="l-field" style={{ marginTop: 12 }}>
-                  <label htmlFor="l-size">{t('contact.labelSize')}</label>
-                  <select id="l-size" value={cSize} onChange={(e) => setCSize(e.target.value)}>
-                    {SIZE_KEYS.map((k) => <option key={k} value={k}>{t('contact.sizeOpts.' + k)}</option>)}
-                  </select>
-                </div>
-                <div className="l-field" style={{ marginTop: 12 }}>
-                  <label htmlFor="l-msg">{t('contact.labelMsg')}</label>
-                  <textarea id="l-msg" rows={2} value={cMsg} onChange={(e) => setCMsg(e.target.value)} placeholder={t('contact.msgPlaceholder')} />
-                </div>
-                {cState === 'err' && (
-                  <p className="l-err">{t('contact.errRequired', { email: CONTACT_EMAIL })}</p>
                 )}
-                <button className="l-btn l-dark" onClick={sendContact} disabled={cState === 'busy'}>
-                  {cState === 'busy' ? t('contact.sending') : t('contact.cta')}
-                </button>
-                <p className="l-form-note">
-                  {t('contact.formNote')}{' '}
-                  <Link to="/ochrana-udaju">{t('contact.formNoteLink')}</Link>.
-                </p>
+
+                {slotPicked && (
+                  <div className="an" style={{ ['--d' as string]: '.05s' }}>
+                    <div className="l-f2" style={{ marginTop: 14 }}>
+                      <div className="l-field">
+                        <label htmlFor="l-name">{t('contact.labelName')}</label>
+                        <input id="l-name" value={cName} onChange={(e) => setCName(e.target.value)} placeholder="Jan Novák" />
+                      </div>
+                      <div className="l-field">
+                        <label htmlFor="l-phone">{t('contact.labelPhone')}</label>
+                        <input id="l-phone" value={cPhone} onChange={(e) => setCPhone(e.target.value)} placeholder="+420 ..." />
+                      </div>
+                    </div>
+                    <div className="l-field" style={{ marginTop: 12 }}>
+                      <label htmlFor="l-mail">{t('contact.labelEmail')}</label>
+                      <input id="l-mail" type="email" value={cEmail} onChange={(e) => setCEmail(e.target.value)} placeholder="vas@email.cz" />
+                    </div>
+                    <div className="l-field" style={{ marginTop: 12 }}>
+                      <label htmlFor="l-size">{t('contact.labelSize')}</label>
+                      <select id="l-size" value={cSize} onChange={(e) => setCSize(e.target.value)}>
+                        {SIZE_KEYS.map((k) => <option key={k} value={k}>{t('contact.sizeOpts.' + k)}</option>)}
+                      </select>
+                    </div>
+                    <div className="l-field" style={{ marginTop: 12 }}>
+                      <label htmlFor="l-msg">{t('contact.labelMsg')}</label>
+                      <textarea id="l-msg" rows={2} value={cMsg} onChange={(e) => setCMsg(e.target.value)} placeholder={t('contact.msgPlaceholder')} />
+                    </div>
+                    {cState === 'err' && (
+                      <p className="l-err">{t('contact.errRequired', { email: CONTACT_EMAIL })}</p>
+                    )}
+                    <button className="l-btn l-dark" onClick={sendContact} disabled={cState === 'busy'}>
+                      {cState === 'busy' ? t('contact.sending') : t('contact.confirmSlot', { day: fmtDayShort(slotDays[dayIdx], i18n.language), time: fmtHour(SLOT_HOURS[timeIdx], i18n.language) })}
+                    </button>
+                    <p className="l-form-note">
+                      {t('contact.formNote')}{' '}
+                      <Link to="/ochrana-udaju">{t('contact.formNoteLink')}</Link>.
+                    </p>
+                  </div>
+                )}
               </>
             )}
           </div>

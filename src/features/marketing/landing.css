@@ -323,6 +323,28 @@
 .lp2 .l-close-mail{font-size:13.5px;color:rgba(255,255,255,.85);margin-top:22px}
 .lp2 .l-close-mail a{color:#fff;font-weight:700;text-decoration:underline}
 .lp2 .l-form{background:#fff;border-radius:18px;padding:26px;box-shadow:0 40px 80px -30px rgba(0,0,0,.35)}
+
+.lp2 .l-slotpick b{font-size:15px;font-weight:800;color:var(--l-ink);display:block}
+.lp2 .l-slotpick p{font-size:12.5px;color:var(--l-ink-2);line-height:1.5;margin:5px 0 14px}
+.lp2 .l-slot-days{display:grid;grid-template-columns:repeat(5,1fr);gap:7px}
+.lp2 .l-slot-day{display:flex;flex-direction:column;align-items:center;gap:2px;padding:10px 4px;border-radius:12px;
+  border:1px solid var(--l-line-2);background:#fff;cursor:pointer;font:inherit}
+.lp2 .l-slot-day span:first-child{font-family:var(--l-mono);font-size:9.5px;font-weight:700;letter-spacing:.04em;
+  text-transform:uppercase;color:var(--l-muted)}
+.lp2 .l-slot-day span:last-child{font-size:15px;font-weight:800;color:var(--l-ink)}
+.lp2 .l-slot-day:hover{border-color:var(--l-muted)}
+.lp2 .l-slot-day.on{background:var(--l-green);border-color:var(--l-green)}
+.lp2 .l-slot-day.on span{color:#fff}
+.lp2 .l-slot-times{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.lp2 .l-slot-time{padding:9px 18px;border-radius:999px;border:1px solid var(--l-line-2);background:#fff;
+  font:inherit;font-size:13.5px;font-weight:700;color:var(--l-ink);cursor:pointer}
+.lp2 .l-slot-time:hover{border-color:var(--l-muted)}
+.lp2 .l-slot-time.on{background:var(--l-ink);border-color:var(--l-ink);color:#fff}
+.lp2 .l-slot-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:16px;
+  padding:12px 16px;background:var(--l-green-050);border-radius:12px;font-size:13px;color:var(--l-green-txt)}
+.lp2 .l-slot-bar b{font-weight:800}
+.lp2 .l-slot-bar button{background:none;border:none;font:inherit;font-size:12.5px;font-weight:700;
+  color:var(--l-green-ink);text-decoration:underline;cursor:pointer;flex:none}
 .lp2 .l-f2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .lp2 .l-field label{display:block;font-size:12.5px;font-weight:700;color:var(--l-ink-2);margin-bottom:6px}
 .lp2 .l-field input,.lp2 .l-field select,.lp2 .l-field textarea{width:100%;padding:12px 14px;border:1px solid var(--l-line-2);
@@ -392,6 +414,10 @@
   .lp2 .l-faq{gap:0}
   .lp2 .l-price-card{padding:24px 20px}
   .lp2 .l-form{padding:20px}
+  .lp2 .l-slot-days{gap:5px}
+  .lp2 .l-slot-day{padding:8px 2px}
+  .lp2 .l-slot-day span:last-child{font-size:13px}
+  .lp2 .l-slot-time{padding:8px 12px;font-size:12.5px}
   .lp2 .l-foot-in{flex-direction:column;align-items:flex-start;gap:14px}
   .lp2 .l-foot-links{margin-left:0}
   .lp2 .l-strip{padding:16px}

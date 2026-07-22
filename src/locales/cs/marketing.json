@@ -292,7 +292,13 @@
     "sending": "Odesílám...",
     "cta": "Chci ukázku zdarma",
     "formNote": "Ozveme se do 24 hodin v pracovní dny. Žádný spam, žádné závazky. Odesláním souhlasíte se",
-    "formNoteLink": "zpracováním údajů"
+    "formNoteLink": "zpracováním údajů",
+    "pickSlotTitle": "Nejdřív si vyberte termín",
+    "pickSlotHint": "Vyberte den a čas, který vám vyhovuje. Potvrdíme ho do 24 hodin, ne někdy — konkrétně.",
+    "yourSlot": "Váš termín",
+    "change": "Změnit",
+    "confirmSlot": "Potvrdit termín {{day}} v {{time}}",
+    "doneBodySlot": "Potvrdíme termín {{day}} v {{time}} do 24 hodin."
   },
   "footer": {
     "copy": "© 2026 · Vyrobeno v Praze",

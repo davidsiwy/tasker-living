@@ -292,7 +292,13 @@
     "sending": "Sending...",
     "cta": "Get a free demo",
     "formNote": "We'll get back to you within 24 hours on business days. No spam, no commitment. By submitting you agree to our",
-    "formNoteLink": "data processing"
+    "formNoteLink": "data processing",
+    "pickSlotTitle": "First, pick your slot",
+    "pickSlotHint": "Pick a day and time that works for you. We'll confirm it within 24 hours — not eventually, specifically.",
+    "yourSlot": "Your slot",
+    "change": "Change",
+    "confirmSlot": "Confirm {{day}} at {{time}}",
+    "doneBodySlot": "We'll confirm {{day}} at {{time}} within 24 hours."
   },
   "footer": {
     "copy": "© 2026 · Made in Prague",
