@@ -241,7 +241,12 @@
     "cta": "Kostenlose Demo anfragen",
     "underPre": "Bauträger oder Investor? Portfolios und Neubau-Übergaben gestalten wir nach Maß —",
     "underLink": "Konditionen besprechen",
-    "fine": "Preise verstehen sich zzgl. MwSt. Wir nehmen Häuser für das Pilotprogramm nach und nach auf, damit jedes volle Unterstützung bekommt."
+    "fine": "Preise verstehen sich zzgl. MwSt. Wir nehmen Häuser für das Pilotprogramm nach und nach auf, damit jedes volle Unterstützung bekommt.",
+    "guarTitle": "Das Risiko tragen wir, nicht Sie",
+    "g1": "Die ersten {{months}} kostenlos, ohne Kreditkarte",
+    "g2": "Wir richten das ganze Haus innerhalb von {{launch}} ein",
+    "g3": "Die Daten gehören Ihnen: Export jederzeit, nach Kündigung Löschung binnen 30 Tagen",
+    "g4": "Kündigung mit einer Nachricht, ohne Diskussion"
   },
   "faq": {
     "num": "07 · Häufige Fragen",

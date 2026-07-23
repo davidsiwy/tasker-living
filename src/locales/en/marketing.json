@@ -241,7 +241,12 @@
     "cta": "Get a free demo",
     "underPre": "Developer or investor? We tailor terms for portfolios and new-build handovers —",
     "underLink": "let's talk terms",
-    "fine": "Prices exclude VAT. We're onboarding pilot-program buildings gradually so everyone gets full support."
+    "fine": "Prices exclude VAT. We're onboarding pilot-program buildings gradually so everyone gets full support.",
+    "guarTitle": "We carry the risk, not you",
+    "g1": "First {{months}} free, no card required",
+    "g2": "We set up the entire building within {{launch}}",
+    "g3": "The data is yours: export anytime, deleted within 30 days if you leave",
+    "g4": "Cancel with one message, no back-and-forth"
   },
   "faq": {
     "num": "07 · Frequently asked questions",

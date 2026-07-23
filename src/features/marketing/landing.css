@@ -288,8 +288,12 @@
 .lp2 .l-price-desc{font-size:14px;color:var(--l-ink-2);margin-top:10px;line-height:1.55}
 .lp2 .l-incl{display:grid;grid-template-columns:1fr 1fr;gap:10px 20px;margin-top:20px}
 .lp2 .l-incl span{display:flex;gap:9px;align-items:flex-start;font-size:13.5px;color:var(--l-ink-2)}
-.lp2 .l-guar{display:flex;gap:12px;align-items:flex-start;background:var(--l-green-050);border-radius:12px;padding:14px 16px;margin-top:20px;
+.lp2 .l-guar{background:var(--l-green-050);border-radius:12px;padding:16px 18px;margin-top:20px;
   font-size:13px;color:var(--l-green-txt);line-height:1.55}
+.lp2 .l-guar-h{display:flex;align-items:center;gap:9px;margin-bottom:11px}
+.lp2 .l-guar-h b{font-size:14.5px;font-weight:800;color:var(--l-green-ink)}
+.lp2 .l-guar-list{display:grid;gap:8px}
+.lp2 .l-guar-list span{display:flex;align-items:flex-start;gap:9px}
 .lp2 .l-guar b{font-weight:800}
 .lp2 .l-under{text-align:center;font-size:13.5px;color:var(--l-ink-2);margin-top:18px}
 .lp2 .l-under button{background:none;border:none;font:inherit;font-weight:700;color:var(--l-green-ink);cursor:pointer;padding:0}

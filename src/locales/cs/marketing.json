@@ -241,7 +241,12 @@
     "cta": "Chci ukázku zdarma",
     "underPre": "Developer nebo investor? Portfolio a předání novostavby řešíme na míru —",
     "underLink": "domluvit podmínky",
-    "fine": "Ceny jsou bez DPH. Domy do pilotního programu spouštíme postupně, ať má každý plnou podporu."
+    "fine": "Ceny jsou bez DPH. Domy do pilotního programu spouštíme postupně, ať má každý plnou podporu.",
+    "guarTitle": "Riziko neseme my, ne vy",
+    "g1": "První {{months}} zdarma, bez zadání karty",
+    "g2": "Nastavení celého domu do {{launch}} uděláme my",
+    "g3": "Data jsou vaše: export kdykoli, po ukončení smažeme do 30 dnů",
+    "g4": "Konec jednou zprávou, bez dohadování"
   },
   "faq": {
     "num": "07 · Časté dotazy",

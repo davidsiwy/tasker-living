@@ -647,9 +647,15 @@ export default function MarketingPage() {
             <span><Chk />{t('pricing.i6')}</span>
           </div>
           <div className="l-guar">
-            <Glyph d={G.shield} size={18} stroke="#12901E" />
-            <div>
-              <b>{t('pricing.guarLabel')}</b> {t('pricing.guarBody', { months: freeMonthsLabel, launch: launchLabel })}
+            <div className="l-guar-h">
+              <Glyph d={G.shield} size={18} stroke="#12901E" />
+              <b>{t('pricing.guarTitle')}</b>
+            </div>
+            <div className="l-guar-list">
+              <span><Chk w={14} />{t('pricing.g1', { months: freeMonthsLabel })}</span>
+              <span><Chk w={14} />{t('pricing.g2', { launch: launchLabel })}</span>
+              <span><Chk w={14} />{t('pricing.g3')}</span>
+              <span><Chk w={14} />{t('pricing.g4')}</span>
             </div>
           </div>
           <button className="l-btn l-primary" style={{ width: '100%', marginTop: 20, padding: 14 }} onClick={() => go('kontakt')}>
