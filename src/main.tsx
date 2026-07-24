@@ -19,8 +19,8 @@ createRoot(document.getElementById('root')!).render(
   </React.StrictMode>,
 )
 
-// Remove the instant preloader once the app has painted. A short minimum keeps
-// it from flickering on fast loads; the fade is handled by CSS on #boot.
+// Preloader zmizi, jakmile React nabehne. Drzime jen 180 ms, aby na rychlem
+// pripojeni neproblikl — ne aby uměle zdrzoval. Fade resi CSS na #boot.
 const boot = document.getElementById('boot')
 if (boot) {
   const start = Number(boot.dataset.t || 0) || performance.now()
@@ -29,5 +29,5 @@ if (boot) {
     setTimeout(() => boot.remove(), 500)
   }
   const waited = performance.now() - start
-  setTimeout(hide, Math.max(0, 400 - waited))
+  setTimeout(hide, Math.max(0, 180 - waited))
 }

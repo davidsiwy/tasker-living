@@ -59,49 +59,23 @@
          Odstranuje ho main.tsx, jakmile React nabehne. -->
     <div id="boot">
       <div class="boot-stage">
-        <div class="boot-build">
-          <i style="--i:0"></i><i style="--i:1"></i><i style="--i:2"></i>
-          <i style="--i:3"></i><i style="--i:4"></i>
-        </div>
-        <div class="boot-word"><img class="boot-logo" src="logo-sm.png" alt="Tasker Living" /><span class="boot-dots"><b>.</b><b>.</b><b>.</b></span></div>
+        <img class="boot-logo" src="logo-sm.png" alt="Tasker Living" />
+        <span class="boot-spin"></span>
       </div>
     </div>
 
     <style>
+      /* Jednoduchy svetly preloader. Pozadi je stejny papirovy odstin jako
+         telo dokumentu (#F4F6F9), takze prechod na aplikaci neblikne. */
       #boot{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;
-        background:radial-gradient(130% 100% at 50% 30%,#17251a 0%,#12161D 58%,#0c0f12 100%);
-        transition:opacity .45s ease,visibility .45s ease}
+        background:#F4F6F9;transition:opacity .3s ease,visibility .3s ease}
       #boot.boot-hide{opacity:0;visibility:hidden;pointer-events:none}
-      .boot-stage{display:flex;flex-direction:column;align-items:center;gap:26px}
-      .boot-logo{height:46px;width:auto;display:block}
-      /* a building assembling itself, floor by floor */
-      .boot-build{display:flex;flex-direction:column-reverse;gap:5px;width:78px;height:96px;justify-content:flex-start}
-      .boot-build i{display:block;height:14px;border-radius:4px;background:linear-gradient(90deg,#05A808,#06C40A);
-        transform-origin:left center;opacity:0;
-        animation:boot-floor 2.2s cubic-bezier(.3,.7,.2,1) infinite;animation-delay:calc(var(--i)*.16s)}
-      .boot-build i:nth-child(1){width:78px}
-      .boot-build i:nth-child(2){width:64px}
-      .boot-build i:nth-child(3){width:70px}
-      .boot-build i:nth-child(4){width:52px}
-      .boot-build i:nth-child(5){width:40px}
-      .boot-word{font-family:'Plus Jakarta Sans',system-ui,sans-serif;font-weight:800;font-size:15px;
-        letter-spacing:.04em;color:#fff;opacity:.94;display:flex;align-items:baseline}
-      .boot-dots{display:inline-flex;margin-left:1px}
-      .boot-dots b{animation:boot-blink 1.4s infinite;opacity:.3}
-      .boot-dots b:nth-child(2){animation-delay:.2s}
-      .boot-dots b:nth-child(3){animation-delay:.4s}
-      @keyframes boot-floor{
-        0%{opacity:0;transform:scaleX(0) translateY(6px)}
-        18%{opacity:1;transform:scaleX(1) translateY(0)}
-        70%{opacity:1;transform:scaleX(1) translateY(0)}
-        90%,100%{opacity:0;transform:scaleX(1) translateY(-4px)}
-      }
-      @keyframes boot-blink{0%,100%{opacity:.3}50%{opacity:1}}
-      @media(prefers-reduced-motion:reduce){
-        .boot-build i{opacity:.85;animation:boot-breathe 1.6s ease-in-out infinite}
-        .boot-dots b{animation-duration:0s;opacity:.7}
-        @keyframes boot-breathe{0%,100%{opacity:.5}50%{opacity:.9}}
-      }
+      .boot-stage{display:flex;flex-direction:column;align-items:center;gap:20px}
+      .boot-logo{height:44px;width:auto;display:block}
+      .boot-spin{width:22px;height:22px;border-radius:50%;box-sizing:border-box;
+        border:2.5px solid #E1E5EA;border-top-color:#06C40A;animation:boot-spin .7s linear infinite}
+      @keyframes boot-spin{to{transform:rotate(360deg)}}
+      @media(prefers-reduced-motion:reduce){.boot-spin{animation-duration:2.4s}}
     </style>
 
     <script type="module" src="/src/main.tsx"></script>
