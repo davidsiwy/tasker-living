@@ -38,12 +38,25 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <script>
+      // Preloader jen tam, kde se skutecne ceka na session a data (#/app, #/operator, #/go).
+      // Verejna homepage a Legal stranky se maji vykreslit hned — tmavy preloader
+      // pred svetlou landing page je horsi nez zadny preloader.
+      (function () {
+        var h = window.location.hash || ''
+        if (!/^#\/(app|operator|go)\b/.test(h)) document.documentElement.className += ' no-boot'
+      })()
+    </script>
+    <style>html.no-boot #boot{display:none !important}</style>
   </head>
   <body>
     <div id="root"></div>
 
-    <!-- Instant preloader: paints before the JS bundle downloads, so there is no
-         white flash. Removed by main.tsx once React mounts. -->
+    <!-- Instant preloader pro aplikacni routy: vykresli se driv, nez se stahne JS
+         bundle, takze neni bily blesk pri obnoveni session. Na verejne homepage
+         a Legal strankach se NEZOBRAZUJE (viz skript v <head>) — tam je obsah
+         staticky a tmavy preloader pred svetlou strankou jen vadi.
+         Odstranuje ho main.tsx, jakmile React nabehne. -->
     <div id="boot">
       <div class="boot-stage">
         <div class="boot-build">
