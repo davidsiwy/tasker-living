@@ -18,7 +18,7 @@ function Shell({ title, children }: { title: string; children: React.ReactNode }
       <nav className="nav">
         <div className="nav-in">
           <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }}>
-            <div className="logo"><img className="l-logo" src={logo} alt="Tasker Living" /><small>Součást Tasker</small></div>
+            <div className="logo"><img className="l-logo" src={logo} alt="Tasker Living" /><a className="brand-tag" href="https://tasker.cz" target="_blank" rel="noopener noreferrer">{t('shell:brand.tagline')}</a></div>
           </Link>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <LanguageSwitcher />

@@ -23,7 +23,8 @@
 .sh .s-brand{display:flex;align-items:center;gap:10px;padding:0 8px 14px;flex:none}
 .sh .s-brand .s-logo{height:44px;width:auto;display:block;flex:none}
 .sh .s-brand b{display:block;font-weight:800;font-size:14.5px;letter-spacing:-.02em;line-height:1.1;color:#fff}
-.sh .s-brand small{font-family:var(--s-mono);font-size:8px;letter-spacing:.14em;color:var(--s-muted);text-transform:uppercase;white-space:nowrap}
+.sh .s-brand small,.sh .s-brand .brand-tag{font-family:var(--s-mono);font-size:8px;letter-spacing:.14em;color:var(--s-muted);text-transform:uppercase;white-space:nowrap;text-decoration:none;transition:color .15s}
+.sh .s-brand .brand-tag:hover{color:var(--s-green)}
 .sh .s-brand small.hq{color:var(--s-dark-green)}
 
 /* přepínač domu */

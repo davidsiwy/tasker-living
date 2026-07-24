@@ -218,7 +218,7 @@ export default function AppShell() {
       <aside className={'s-side' + (open ? ' open' : '')}>
         <div className="s-brand">
           <img className="s-logo" src={logo} alt="Tasker Living" />
-          <small>{t('brand.tagline')}</small>
+          <a className="brand-tag" href="https://tasker.cz" target="_blank" rel="noopener noreferrer">{t('brand.tagline')}</a>
         </div>
 
         <div className="s-house">

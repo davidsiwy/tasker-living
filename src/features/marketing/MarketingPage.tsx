@@ -337,7 +337,7 @@ export default function MarketingPage() {
         <div className="l-nav-in">
           <div className="l-brand">
             <img className="l-logo" src={logo} alt="Tasker Living" />
-            <small>{t('shell:brand.tagline')}</small>
+            <a className="brand-tag" href="https://tasker.cz" target="_blank" rel="noopener noreferrer">{t('shell:brand.tagline')}</a>
           </div>
           <div className="l-nav-links">
             <button onClick={() => go('prohlidka')}>{t('nav.prohlidka')}</button>
@@ -897,7 +897,7 @@ export default function MarketingPage() {
         <div className="l-foot-in">
           <div className="l-foot-brand">
             <img className="l-logo" src={logo} alt="Tasker Living" />
-            <small>{t('shell:brand.tagline')}</small>
+            <a className="brand-tag" href="https://tasker.cz" target="_blank" rel="noopener noreferrer">{t('shell:brand.tagline')}</a>
           </div>
           <div className="l-foot-links">
             <button onClick={() => go('prohlidka')}>{t('nav.prohlidka')}</button>

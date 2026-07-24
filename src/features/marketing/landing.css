@@ -68,7 +68,8 @@
 .lp2 .l-brand{display:flex;align-items:center;gap:11px;flex:none}
 .lp2 .l-brand .l-logo{height:42px;width:auto;display:block}
 .lp2 .l-brand b{display:block;font-weight:800;font-size:16px;letter-spacing:-.02em;line-height:1.1}
-.lp2 .l-brand small{font-family:var(--l-mono);font-size:9px;letter-spacing:.14em;color:var(--l-muted);text-transform:uppercase;white-space:nowrap}
+.lp2 .l-brand small,.lp2 .l-brand .brand-tag{font-family:var(--l-mono);font-size:9px;letter-spacing:.14em;color:var(--l-muted);text-transform:uppercase;white-space:nowrap;text-decoration:none;transition:color .15s}
+.lp2 .l-brand .brand-tag:hover{color:var(--l-green-ink)}
 .lp2 .l-nav-links{display:flex;gap:4px;font-size:14px;font-weight:600}
 .lp2 .l-nav-links button{background:none;border:none;font:inherit;cursor:pointer;color:var(--l-ink-2);padding:8px 13px;border-radius:999px;transition:background .15s ease,color .15s ease}
 .lp2 .l-nav-links button:hover{background:var(--l-chip);color:var(--l-ink)}
@@ -348,7 +349,8 @@
 .lp2 .l-foot-brand{display:flex;align-items:center;gap:10px;flex:none}
 .lp2 .l-foot-brand .l-logo{height:36px;width:auto;display:block}
 .lp2 .l-foot-brand b{font-weight:800;font-size:14.5px;letter-spacing:-.02em;color:#fff}
-.lp2 .l-foot-brand small{font-family:var(--l-mono);font-size:9px;letter-spacing:.14em;color:var(--l-muted);text-transform:uppercase}
+.lp2 .l-foot-brand small,.lp2 .l-foot-brand .brand-tag{font-family:var(--l-mono);font-size:9px;letter-spacing:.14em;color:var(--l-muted);text-transform:uppercase;text-decoration:none;transition:color .15s}
+.lp2 .l-foot-brand .brand-tag:hover{color:var(--l-green)}
 .lp2 .l-foot-links{display:flex;gap:20px;font-size:13px;margin-left:auto;flex-wrap:wrap}
 .lp2 .l-foot-links a,.lp2 .l-foot-links button{color:var(--l-dark-txt);background:none;border:none;font:inherit;font-size:13px;cursor:pointer;padding:0;text-decoration:none}
 .lp2 .l-foot-links a:hover,.lp2 .l-foot-links button:hover{color:#fff}
@@ -497,7 +499,7 @@
   .lp2 .l-proof .l-pgrid{grid-template-columns:1fr}
   .lp2 .l-slots span{min-width:0}
   .lp2 .l-nav-in{gap:8px}
-  .lp2 .l-brand small{display:none}
+  .lp2 .l-brand small,.lp2 .l-brand .brand-tag{display:none}
   .lp2 .l-lang{padding:6px 5px;font-size:11px;min-width:0}
   .lp2 .l-nav-right{gap:8px}
   .lp2 .l-nav-right .l-btn.l-sm{padding:8px 12px;font-size:12.5px}

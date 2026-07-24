@@ -608,6 +608,7 @@
 /* Logo v hlavicce Legal stranek + operatorske konzoli */
 .lp .logo{display:flex;align-items:center;gap:12px}
 .lp .logo .l-logo{height:38px;width:auto;display:block}
-.lp .logo small{font-family:var(--mono,monospace);font-size:9px;letter-spacing:.14em;color:var(--muted);text-transform:uppercase;white-space:nowrap}
+.lp .logo small,.lp .logo .brand-tag{font-family:var(--fm);font-size:9px;letter-spacing:.14em;color:var(--ink-3);text-transform:uppercase;white-space:nowrap;text-decoration:none;transition:color .15s}
+.lp .logo .brand-tag:hover{color:var(--green-ink)}
 .op-brand img{height:32px;width:auto;display:block}
 .op-logo{height:30px;width:auto;display:block;margin-bottom:2px}
