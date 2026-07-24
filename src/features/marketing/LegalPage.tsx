@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Icon } from '../../components/Icon'
 import { LanguageSwitcher } from '../../components/LanguageSwitcher'
+import logo from '../../assets/logo-sm.png'
 
 const OPERATOR = 'Tasker s.r.o. [doplňte přesný název, IČO a sídlo provozovatele]'
 const CONTACT = 'info@tasker.cz'
@@ -17,7 +18,7 @@ function Shell({ title, children }: { title: string; children: React.ReactNode }
       <nav className="nav">
         <div className="nav-in">
           <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }}>
-            <div className="logo"><span className="mark"><span className="f f1" /><span className="f f2" /><span className="f f3" /><span className="w" /></span><div><b>Tasker Living</b><small>Součást Tasker</small></div></div>
+            <div className="logo"><img className="l-logo" src={logo} alt="Tasker Living" /><small>Součást Tasker</small></div>
           </Link>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <LanguageSwitcher />

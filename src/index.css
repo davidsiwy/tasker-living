@@ -614,3 +614,10 @@
 .lang-pill.on{background:#fff;color:var(--ink);box-shadow:0 1px 3px rgba(18,22,29,.12)}
 .lang-select{border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-size:12.5px;background:#fff;color:var(--ink)}
 .lang-select.compact{width:auto;min-width:50px;padding:6px 8px;text-align:center;text-align-last:center}
+
+/* Logo v hlavicce Legal stranek + operatorske konzoli */
+.lp .logo{display:flex;align-items:center;gap:12px}
+.lp .logo .l-logo{height:38px;width:auto;display:block}
+.lp .logo small{font-family:var(--mono,monospace);font-size:9px;letter-spacing:.14em;color:var(--muted);text-transform:uppercase;white-space:nowrap}
+.op-brand img{height:32px;width:auto;display:block}
+.op-logo{height:30px;width:auto;display:block;margin-bottom:2px}

@@ -5,7 +5,7 @@ import { enterDemo } from '../../lib/supabase'
 import { api } from '../../lib/api'
 import { LanguageSwitcher } from '../../components/LanguageSwitcher'
 import mark from '../../assets/mark.png'
-import logo from '../../assets/tasker-living-logo.png'
+import logo from '../../assets/logo-sm.png'
 import './landing.css'
 
 const CONTACT_EMAIL = 'info@tasker.cz'
@@ -773,7 +773,7 @@ export default function MarketingPage() {
 
           <div className="l-form an" style={{ ['--d' as string]: '.1s' }}>
             <div className="bk-brandrow">
-              <div className="bk-brand"><span className="dot" />Tasker&nbsp;Living</div>
+              <div className="bk-brand"><img src={logo} alt="Tasker Living" /></div>
               <span className="bk-pill">{t('book.pill')}</span>
             </div>
             <div className="bk-rule" />

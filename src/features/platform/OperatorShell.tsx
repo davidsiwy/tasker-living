@@ -1,4 +1,5 @@
 // Operator shell: standalone environment for platform operators. Own sidebar,
+import logo from '../../assets/logo-sm.png'
 // own routes, no client features. The client app stays reachable via one link.
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useSession } from '../../state/session'
@@ -22,7 +23,7 @@ export default function OperatorShell() {
   return (
     <div className="app">
       <aside className="side">
-        <div className="op-brand"><span className="op-brand-dot" /><b>Tasker Living</b></div>
+        <div className="op-brand"><img src={logo} alt="Tasker Living" /></div>
         <div className="side-lbl">Operátor platformy</div>
         {OPNAV.map((n) => (
           <NavLink key={n.id} to={'/operator' + (n.id ? '/' + n.id : '')} end={n.end}
@@ -42,7 +43,7 @@ export default function OperatorShell() {
         <header className="topbar">
           <div className="bldg">
             <span className="cf-ic"><Icon name="sprava" small /></span>
-            <div style={{ minWidth: 0 }}><b>Tasker Living</b><br /><span>Operátorská konzole</span></div>
+            <div style={{ minWidth: 0 }}><img className="op-logo" src={logo} alt="Tasker Living" /><span>Operátorská konzole</span></div>
           </div>
           <div className="top-actions">
             <div className="avatar" title={user.name}>{user.initials}</div>

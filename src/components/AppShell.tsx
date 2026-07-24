@@ -9,7 +9,7 @@ import { LanguageSwitcher } from './LanguageSwitcher'
 import { buildSearchIndex, runSearch } from '../lib/search'
 import type { SearchHit, SearchIndex } from '../lib/search'
 import mark from '../assets/mark.png'
-import logo from '../assets/tasker-living-logo.png'
+import logo from '../assets/logo-sm.png'
 import './shell.css'
 
 // Sidebar podle handoffu 3b: SPRÁVA DOMU + PLATFORMA, aktivní položka zelená.

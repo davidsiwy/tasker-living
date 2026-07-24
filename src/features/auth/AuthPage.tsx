@@ -6,13 +6,13 @@ import type { Role } from '../../lib/types'
 import { Icon } from '../../components/Icon'
 import { LanguageSwitcher } from '../../components/LanguageSwitcher'
 import { backendAvailable, exitDemo } from '../../lib/supabase'
-import logoWhite from '../../assets/logo-stacked-white.png'
+import logoBig from '../../assets/logo-lg.png'
 
 export function AuthSide() {
   const { t } = useTranslation('auth')
   return (
     <div className="auth-side">
-      <img className="auth-logo" src={logoWhite} alt="Tasker Living" />
+      <img className="auth-logo" src={logoBig} alt="Tasker Living" />
       <div className="auth-quote"><h2>{t('side.headline')}</h2><p>{t('side.sub')}</p></div>
       <div className="auth-feats">
         <div className="auth-feat"><span className="cf-ic"><Icon name="check" small /></span> {t('side.feat1')}</div>

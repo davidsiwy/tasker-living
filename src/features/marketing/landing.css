@@ -66,7 +66,7 @@
 .lp2 .l-nav.scrolled{background:rgba(246,247,250,.98);box-shadow:0 12px 32px -20px rgba(18,22,29,.35)}
 .lp2 .l-nav-in{max-width:1120px;margin:0 auto;padding:0 48px;display:flex;align-items:center;gap:32px;height:66px}
 .lp2 .l-brand{display:flex;align-items:center;gap:11px;flex:none}
-.lp2 .l-brand .l-logo{height:38px;width:auto;display:block}
+.lp2 .l-brand .l-logo{height:42px;width:auto;display:block}
 .lp2 .l-brand b{display:block;font-weight:800;font-size:16px;letter-spacing:-.02em;line-height:1.1}
 .lp2 .l-brand small{font-family:var(--l-mono);font-size:9px;letter-spacing:.14em;color:var(--l-muted);text-transform:uppercase;white-space:nowrap}
 .lp2 .l-nav-links{display:flex;gap:4px;font-size:14px;font-weight:600}
@@ -346,7 +346,7 @@
 .lp2 .l-foot{background:var(--l-ink);color:var(--l-dark-txt);padding:26px 48px}
 .lp2 .l-foot-in{max-width:1120px;margin:0 auto;display:flex;align-items:center;gap:24px;flex-wrap:wrap}
 .lp2 .l-foot-brand{display:flex;align-items:center;gap:10px;flex:none}
-.lp2 .l-foot-brand .l-logo{height:34px;width:auto;display:block}
+.lp2 .l-foot-brand .l-logo{height:36px;width:auto;display:block}
 .lp2 .l-foot-brand b{font-weight:800;font-size:14.5px;letter-spacing:-.02em;color:#fff}
 .lp2 .l-foot-brand small{font-family:var(--l-mono);font-size:9px;letter-spacing:.14em;color:var(--l-muted);text-transform:uppercase}
 .lp2 .l-foot-links{display:flex;gap:20px;font-size:13px;margin-left:auto;flex-wrap:wrap}
@@ -363,7 +363,7 @@
 /* ---------------- rezervace hovoru (3krokovy wizard v zelene sekci) */
 .lp2 .bk-brandrow{display:flex;align-items:center;justify-content:space-between;gap:16px}
 .lp2 .bk-brand{display:flex;align-items:center;gap:10px;font-size:14px;font-weight:800;letter-spacing:-.01em}
-.lp2 .bk-brand .dot{width:11px;height:11px;border-radius:50%;background:var(--l-green);flex:none}
+.lp2 .bk-brand img{height:30px;width:auto;display:block}
 .lp2 .bk-pill{font-size:12.5px;font-weight:700;color:var(--l-ink-2);background:var(--l-chip);
   border-radius:999px;padding:7px 14px;white-space:nowrap}
 .lp2 .bk-rule{height:1px;background:var(--l-line);margin:22px 0}
