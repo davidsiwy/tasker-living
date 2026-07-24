@@ -5,6 +5,7 @@ import { enterDemo } from '../../lib/supabase'
 import { api } from '../../lib/api'
 import { LanguageSwitcher } from '../../components/LanguageSwitcher'
 import mark from '../../assets/mark.png'
+import logo from '../../assets/tasker-living-logo.png'
 import './landing.css'
 
 const CONTACT_EMAIL = 'info@tasker.cz'
@@ -335,8 +336,8 @@ export default function MarketingPage() {
       <nav className={'l-nav' + (scrolled ? ' scrolled' : '')}>
         <div className="l-nav-in">
           <div className="l-brand">
-            <img src={mark} alt="" />
-            <div><b>Tasker Living</b><small>{t('shell:brand.tagline')}</small></div>
+            <img className="l-logo" src={logo} alt="Tasker Living" />
+            <small>{t('shell:brand.tagline')}</small>
           </div>
           <div className="l-nav-links">
             <button onClick={() => go('prohlidka')}>{t('nav.prohlidka')}</button>
@@ -895,8 +896,7 @@ export default function MarketingPage() {
       <footer className="l-foot">
         <div className="l-foot-in">
           <div className="l-foot-brand">
-            <img src={mark} alt="" />
-            <b>Tasker Living</b>
+            <img className="l-logo" src={logo} alt="Tasker Living" />
             <small>{t('shell:brand.tagline')}</small>
           </div>
           <div className="l-foot-links">

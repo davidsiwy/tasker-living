@@ -21,9 +21,9 @@
 .sh .s-side{background:var(--s-ink);color:var(--s-dark-txt);padding:20px 14px 18px;
   display:flex;flex-direction:column;gap:4px;position:sticky;top:0;height:100vh;overflow-y:auto}
 .sh .s-brand{display:flex;align-items:center;gap:10px;padding:0 8px 14px;flex:none}
-.sh .s-brand img{width:30px;height:30px;border-radius:8px;box-shadow:0 4px 10px -4px rgba(6,196,10,.5)}
+.sh .s-brand .s-logo{height:40px;width:auto;display:block;flex:none}
 .sh .s-brand b{display:block;font-weight:800;font-size:14.5px;letter-spacing:-.02em;line-height:1.1;color:#fff}
-.sh .s-brand small{display:block;font-family:var(--s-mono);font-size:8px;letter-spacing:.14em;color:var(--s-muted);text-transform:uppercase;margin-top:1px}
+.sh .s-brand small{font-family:var(--s-mono);font-size:8px;letter-spacing:.14em;color:var(--s-muted);text-transform:uppercase;white-space:nowrap}
 .sh .s-brand small.hq{color:var(--s-dark-green)}
 
 /* přepínač domu */

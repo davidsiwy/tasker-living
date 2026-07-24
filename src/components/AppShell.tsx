@@ -9,6 +9,7 @@ import { LanguageSwitcher } from './LanguageSwitcher'
 import { buildSearchIndex, runSearch } from '../lib/search'
 import type { SearchHit, SearchIndex } from '../lib/search'
 import mark from '../assets/mark.png'
+import logo from '../assets/tasker-living-logo.png'
 import './shell.css'
 
 // Sidebar podle handoffu 3b: SPRÁVA DOMU + PLATFORMA, aktivní položka zelená.
@@ -216,8 +217,8 @@ export default function AppShell() {
       {open && <div className="s-scrim" onClick={() => setOpen(false)} />}
       <aside className={'s-side' + (open ? ' open' : '')}>
         <div className="s-brand">
-          <img src={mark} alt="" />
-          <div><b>{t('brand.name')}</b><small>{t('brand.tagline')}</small></div>
+          <img className="s-logo" src={logo} alt="Tasker Living" />
+          <small>{t('brand.tagline')}</small>
         </div>
 
         <div className="s-house">
