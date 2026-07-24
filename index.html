@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="cs">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="favicon.png" />
+    <link rel="apple-touch-icon" href="icon-192.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <meta name="theme-color" content="#FFFFFF" />
+    <title>Tasker Living, celý dům v jedné aplikaci</title>
+    <meta name="description" content="Konec papírků ve vchodě. Oznámení přijdou sousedům jako notifikace, nájmy se platí QR kódem, hlasování se konečně sejde. Spuštění do 48 hodin, první 2 měsíce zdarma." />
+    <link rel="canonical" href="https://davidsiwy.github.io/tasker-living/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Tasker Living" />
+    <meta property="og:title" content="Tasker Living, celý dům v jedné aplikaci" />
+    <meta property="og:description" content="Konec papírků ve vchodě. Oznámení přijdou sousedům jako notifikace, nájmy se platí QR kódem, hlasování se konečně sejde. Spuštění do 48 hodin, první 2 měsíce zdarma." />
+    <meta property="og:url" content="https://davidsiwy.github.io/tasker-living/" />
+    <meta property="og:image" content="https://davidsiwy.github.io/tasker-living/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:locale" content="cs_CZ" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Tasker Living, celý dům v jedné aplikaci" />
+    <meta name="twitter:description" content="Konec papírků ve vchodě. Oznámení přijdou sousedům jako notifikace, nájmy se platí QR kódem, hlasování se konečně sejde. Spuštění do 48 hodin, první 2 měsíce zdarma." />
+    <meta name="twitter:image" content="https://davidsiwy.github.io/tasker-living/og-image.png" />
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "Tasker Living",
+      "applicationCategory": "BusinessApplication",
+      "operatingSystem": "Web",
+      "description": "Aplikace pro komunikaci a správu bytového domu: nástěnka, závady, platby, schůze, hlasování a služby Tasker.",
+      "inLanguage": "cs",
+      "offers": { "@type": "Offer", "price": "399", "priceCurrency": "CZK" }
+    }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <script>
+      // Preloader jen tam, kde se skutecne ceka na session a data (#/app, #/operator, #/go).
+      // Verejna homepage a Legal stranky se maji vykreslit hned — tmavy preloader
+      // pred svetlou landing page je horsi nez zadny preloader.
+      (function () {
+        var h = window.location.hash || ''
+        if (!/^#\/(app|operator|go)\b/.test(h)) document.documentElement.className += ' no-boot'
+      })()
+    </script>
+    <style>html.no-boot #boot{display:none !important}</style>
+    <script type="module" crossorigin src="./assets/index-mKWc70fi.js"></script>
+    <link rel="modulepreload" crossorigin href="./assets/react-CQrXKZwB.js">
+    <link rel="modulepreload" crossorigin href="./assets/supabase-CMEY6uiz.js">
+    <link rel="modulepreload" crossorigin href="./assets/qrcode-CjSdxGTc.js">
+    <link rel="stylesheet" crossorigin href="./assets/index-p5PNZKlo.css">
+  </head>
+  <body>
+    <div id="root"></div>
+
+    <!-- Instant preloader pro aplikacni routy: vykresli se driv, nez se stahne JS
+         bundle, takze neni bily blesk pri obnoveni session. Na verejne homepage
+         a Legal strankach se NEZOBRAZUJE (viz skript v <head>) — tam je obsah
+         staticky a tmavy preloader pred svetlou strankou jen vadi.
+         Odstranuje ho main.tsx, jakmile React nabehne. -->
+    <div id="boot">
+      <div class="boot-stage">
+        <img class="boot-logo" src="logo-sm.png" alt="Tasker Living" />
+        <span class="boot-spin"></span>
+      </div>
+    </div>
+
+    <style>
+      /* Jednoduchy svetly preloader. Pozadi je stejny papirovy odstin jako
+         telo dokumentu (#F4F6F9), takze prechod na aplikaci neblikne. */
+      #boot{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;
+        background:#F4F6F9;transition:opacity .3s ease,visibility .3s ease}
+      #boot.boot-hide{opacity:0;visibility:hidden;pointer-events:none}
+      .boot-stage{display:flex;flex-direction:column;align-items:center;gap:20px}
+      .boot-logo{height:44px;width:auto;display:block}
+      .boot-spin{width:22px;height:22px;border-radius:50%;box-sizing:border-box;
+        border:2.5px solid #E1E5EA;border-top-color:#06C40A;animation:boot-spin .7s linear infinite}
+      @keyframes boot-spin{to{transform:rotate(360deg)}}
+      @media(prefers-reduced-motion:reduce){.boot-spin{animation-duration:2.4s}}
+    </style>
+
+  </body>
+</html>
