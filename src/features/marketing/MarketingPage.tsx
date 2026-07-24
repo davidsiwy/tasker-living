@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { enterDemo } from '../../lib/supabase'
+import { api } from '../../lib/api'
 import { LanguageSwitcher } from '../../components/LanguageSwitcher'
 import mark from '../../assets/mark.png'
 import './landing.css'
@@ -10,13 +11,10 @@ const CONTACT_EMAIL = 'info@tasker.cz'
 const SIZE_KEYS = ['s1', 's2', 's3', 's4'] as const
 const SIZE_CZ: Record<string, string> = { s1: 'do 20 jednotek', s2: '20 až 50 jednotek', s3: '50 a více jednotek', s4: 'více domů / portfolio' }
 
-// Vyber terminu schuzky misto obycejneho formulare: konkretni den + konkretni
-// cas donuti cloveka udelat malé rozhodnuti hned (misto "nekdy to vyplnim"),
-// a David dostane e-mail rovnou s pozadovanym terminem, ne jen obecnou poptavkou.
-// Sloty NEJSOU napojene na skutecny kalendar (zadna takova infrastruktura
-// neexistuje) — text proto rika "termin, ktery vam vyhovuje" a "potvrdime do
-// 24 hodin", ne "nase volne terminy", coz zustava pravdive.
-const SLOT_HOURS = [9, 13, 16]
+// Rezervace uvodniho hovoru. Sloty jsou po pul hodine 9:00-16:30; hodnota se
+// drzi vzdy v kanonickem 24h tvaru ('14:30') a preklada se az pri zobrazeni —
+// aby prepnuti jazyka uprostred vyberu neponechalo stary text.
+const SLOT_TIMES = (() => { const o: string[] = []; for (let h = 9; h <= 16; h++) { o.push(h + ':00'); o.push(h + ':30') } return o })()
 const BUSINESS_DAYS = 5
 function nextBusinessDays(n: number): Date[] {
   const out: Date[] = []
@@ -28,12 +26,30 @@ function nextBusinessDays(n: number): Date[] {
   }
   return out
 }
-const fmtHour = (h: number, lng: string) => {
-  if (lng === 'en') { const am = h < 12; const h12 = h % 12 === 0 ? 12 : h % 12; return `${h12}:00${am ? 'am' : 'pm'}` }
-  return `${h}:00`
+const isoDate = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+const fmtSlot = (hhmm: string, lng: string) => {
+  if (lng !== 'en') return hhmm
+  const [h, m] = hhmm.split(':').map(Number)
+  const am = h < 12; const h12 = h % 12 === 0 ? 12 : h % 12
+  return `${h12}:${String(m).padStart(2, '0')}${am ? 'am' : 'pm'}`
 }
-const fmtDayShort = (d: Date, lng: string) => new Intl.DateTimeFormat(lng, { weekday: 'short', day: 'numeric', month: 'numeric' }).format(d)
-const fmtDayLong = (d: Date, lng: string) => new Intl.DateTimeFormat(lng, { weekday: 'long', day: 'numeric', month: 'long' }).format(d)
+const fmtDayLong = (d: Date, lng: string) => new Intl.DateTimeFormat(lng, { weekday: 'long', day: 'numeric', month: 'numeric' }).format(d)
+const fmtDayAbbr = (d: Date, lng: string) => new Intl.DateTimeFormat(lng, { weekday: 'short' }).format(d).replace('.', '').toUpperCase()
+const fmtMonChip = (d: Date, lng: string) =>
+  lng === 'en' ? new Intl.DateTimeFormat('en', { month: 'short' }).format(d) : `${d.getMonth() + 1}.`
+
+function calendarLinks(d: Date, hhmm: string, title: string, desc: string, loc: string) {
+  const [h, m] = hhmm.split(':').map(Number)
+  const s = new Date(d); s.setHours(h, m, 0, 0)
+  const e = new Date(s.getTime() + 15 * 60000)
+  const p = (n: number) => String(n).padStart(2, '0')
+  const f = (x: Date) => `${x.getFullYear()}${p(x.getMonth() + 1)}${p(x.getDate())}T${p(x.getHours())}${p(x.getMinutes())}00`
+  const g = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${f(s)}/${f(e)}&details=${encodeURIComponent(desc)}&location=${encodeURIComponent(loc)}`
+  const ics = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Tasker Living//CS', 'BEGIN:VEVENT',
+    `UID:${f(s)}-tasker@tasker.cz`, `DTSTAMP:${f(new Date())}`, `DTSTART:${f(s)}`, `DTEND:${f(e)}`,
+    `SUMMARY:${title}`, `DESCRIPTION:${desc}`, `LOCATION:${loc}`, 'END:VEVENT', 'END:VCALENDAR'].join('\r\n')
+  return { g, ics: 'data:text/calendar;charset=utf-8,' + encodeURIComponent(ics) }
+}
 
 // The offer. One place to tune the promise the ads and the page make.
 const OFFER = { freeMonths: 2, launchHours: 48, pricePerUnit: 399 }
@@ -97,10 +113,24 @@ export default function MarketingPage() {
   const [cName, setCName] = useState(''); const [cEmail, setCEmail] = useState(''); const [cPhone, setCPhone] = useState('')
   const [cSize, setCSize] = useState('s1'); const [cMsg, setCMsg] = useState('')
   const [cState, setCState] = useState<'idle' | 'busy' | 'done' | 'err'>('idle')
-  const [dayIdx, setDayIdx] = useState(-1)
-  const [timeIdx, setTimeIdx] = useState(-1)
+  const [bStep, setBStep] = useState<'date' | 'time' | 'contact' | 'done'>('date')
+  const [dayIdx, setDayIdx] = useState<number | null>(null)
+  const [slot, setSlot] = useState<string | null>(null)
+  const [fErr, setFErr] = useState<Record<string, string>>({})
+  const [formErr, setFormErr] = useState('')
+  const [taken, setTaken] = useState<Set<string>>(new Set())
   const slotDays = useMemo(() => nextBusinessDays(BUSINESS_DAYS), [])
-  const slotPicked = dayIdx >= 0 && timeIdx >= 0
+
+  // Skutecne obsazene terminy z databaze — zadna vymyslena data.
+  useEffect(() => {
+    if (!slotDays.length) return
+    api.getTakenSlots(isoDate(slotDays[0]), isoDate(slotDays[slotDays.length - 1]))
+      .then((rows) => setTaken(new Set(rows.map((r) => r.date + ' ' + r.time))))
+      .catch(() => setTaken(new Set()))
+  }, [slotDays])
+
+  const isTaken = (d: Date, hhmm: string) => taken.has(isoDate(d) + ' ' + hhmm)
+  const freeCount = (d: Date) => SLOT_TIMES.filter((s) => !isTaken(d, s)).length
   const [scrolled, setScrolled] = useState(false)
   const [sticky, setSticky] = useState(false)
 
@@ -125,24 +155,50 @@ export default function MarketingPage() {
   }, [])
 
   async function sendContact() {
-    if (cState === 'busy') return
-    if (!cName.trim() || !cEmail.trim() || !slotPicked) { setCState('err'); return }
-    setCState('busy')
+    if (cState === 'busy' || dayIdx === null || !slot) return
+    const e: Record<string, string> = {}
+    if (cName.trim().length < 2) e.name = t('book.eName')
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cEmail.trim())) e.email = t('book.eEmail')
+    if (cPhone.replace(/\D/g, '').length < 9) e.phone = t('book.ePhone')
+    setFErr(e)
+    if (Object.keys(e).length) return
+
+    setCState('busy'); setFormErr('')
+    const day = slotDays[dayIdx]
+    const czSlot = `${fmtDayLong(day, 'cs')} v ${slot}`
     try {
-      const czSlot = `${fmtDayLong(slotDays[dayIdx], 'cs')} v ${fmtHour(SLOT_HOURS[timeIdx], 'cs')}`
-      const res = await fetch('https://formsubmit.co/ajax/' + CONTACT_EMAIL, {
+      // 1) skutecna rezervace terminu (unique index zabrani dvojitemu bookingu)
+      await api.bookMeeting({
+        date: isoDate(day), time: slot, name: cName.trim(), email: cEmail.trim(),
+        phone: cPhone.trim(), size: SIZE_CZ[cSize] || cSize, note: cMsg.trim(), lang: i18n.language.slice(0, 2),
+      })
+    } catch (err: any) {
+      // 23505 = unique violation → slot mezitim nekdo zabral
+      const dup = String(err?.code) === '23505' || /duplicate|unique/i.test(String(err?.message || ''))
+      setCState('idle')
+      setFormErr(dup ? t('book.takenErr') : t('book.failErr', { email: CONTACT_EMAIL }))
+      if (dup) { setTaken((s) => new Set(s).add(isoDate(day) + ' ' + slot)); setSlot(null); setBStep('time') }
+      return
+    }
+    // 2) notifikace e-mailem (rezervace uz je ulozena, tak selhani mailu neblokuje)
+    try {
+      await fetch('https://formsubmit.co/ajax/' + CONTACT_EMAIL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
         body: JSON.stringify({
-          _subject: `Tasker Living: žádost o termín – ${czSlot}`,
+          _subject: `Tasker Living: rezervace hovoru – ${czSlot}`,
           Jmeno: cName.trim(), Email: cEmail.trim(), Telefon: cPhone.trim(),
-          'Požadovaný termín': czSlot,
+          'Rezervovaný termín': czSlot,
           Velikost: SIZE_CZ[cSize] || cSize, Zprava: cMsg.trim(),
         }),
       })
-      if (!res.ok) throw new Error('send failed')
-      setCState('done')
-    } catch { setCState('err') }
+    } catch { /* rezervace v DB je zapsana, e-mail je jen notifikace navic */ }
+    setCState('done'); setBStep('done')
+  }
+
+  function resetBooking() {
+    setBStep('date'); setDayIdx(null); setSlot(null); setFErr({}); setFormErr('')
+    setCName(''); setCEmail(''); setCPhone(''); setCMsg(''); setCState('idle')
   }
 
   /* ----- 01 tour: four manual processes, each with the real UI next to it ----- */
@@ -715,82 +771,122 @@ export default function MarketingPage() {
           </div>
 
           <div className="l-form an" style={{ ['--d' as string]: '.1s' }}>
-            {cState === 'done' ? (
-              <div className="l-done">
-                <span className="ic"><Chk w={22} /></span>
-                <p><b>{t('contact.doneTitle')}</b><br />{slotPicked ? t('contact.doneBodySlot', { day: fmtDayShort(slotDays[dayIdx], i18n.language), time: fmtHour(SLOT_HOURS[timeIdx], i18n.language) }) : t('contact.doneBody')}</p>
+            <div className="bk-brandrow">
+              <div className="bk-brand"><span className="dot" />Tasker&nbsp;Living</div>
+              <span className="bk-pill">{t('book.pill')}</span>
+            </div>
+            <div className="bk-rule" />
+
+            {bStep !== 'done' && (
+              <div className="bk-chrome">
+                {bStep !== 'date'
+                  ? <button className="bk-back" onClick={() => setBStep(bStep === 'contact' ? 'time' : 'date')}>{t('book.back')}</button>
+                  : <span />}
+                <span className="bk-stepno">{t('book.stepOf', { n: bStep === 'date' ? 1 : bStep === 'time' ? 2 : 3 })}</span>
               </div>
-            ) : (
-              <>
-                <div className="l-slotpick">
-                  <b>{t('contact.pickSlotTitle')}</b>
-                  <p>{t('contact.pickSlotHint')}</p>
-                  <div className="l-slot-days">
-                    {slotDays.map((d, i) => (
-                      <button key={i} className={'l-slot-day' + (dayIdx === i ? ' on' : '')}
-                        onClick={() => { setDayIdx(i); setTimeIdx(-1) }}>
-                        {fmtDayShort(d, i18n.language).split(' ').map((part, pi) => <span key={pi}>{part}</span>)}
-                      </button>
-                    ))}
-                  </div>
-                  {dayIdx >= 0 && (
-                    <div className="l-slot-times an">
-                      {SLOT_HOURS.map((h, i) => (
-                        <button key={h} className={'l-slot-time' + (timeIdx === i ? ' on' : '')} onClick={() => setTimeIdx(i)}>
-                          {fmtHour(h, i18n.language)}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                {slotPicked && (
-                  <div className="l-slot-bar an">
-                    <span>{t('contact.yourSlot')}: <b>{fmtDayLong(slotDays[dayIdx], i18n.language)} · {fmtHour(SLOT_HOURS[timeIdx], i18n.language)}</b></span>
-                    <button onClick={() => { setDayIdx(-1); setTimeIdx(-1) }}>{t('contact.change')}</button>
-                  </div>
-                )}
-
-                {slotPicked && (
-                  <div className="an" style={{ ['--d' as string]: '.05s' }}>
-                    <div className="l-f2" style={{ marginTop: 14 }}>
-                      <div className="l-field">
-                        <label htmlFor="l-name">{t('contact.labelName')}</label>
-                        <input id="l-name" value={cName} onChange={(e) => setCName(e.target.value)} placeholder="Jan Novák" />
-                      </div>
-                      <div className="l-field">
-                        <label htmlFor="l-phone">{t('contact.labelPhone')}</label>
-                        <input id="l-phone" value={cPhone} onChange={(e) => setCPhone(e.target.value)} placeholder="+420 ..." />
-                      </div>
-                    </div>
-                    <div className="l-field" style={{ marginTop: 12 }}>
-                      <label htmlFor="l-mail">{t('contact.labelEmail')}</label>
-                      <input id="l-mail" type="email" value={cEmail} onChange={(e) => setCEmail(e.target.value)} placeholder="vas@email.cz" />
-                    </div>
-                    <div className="l-field" style={{ marginTop: 12 }}>
-                      <label htmlFor="l-size">{t('contact.labelSize')}</label>
-                      <select id="l-size" value={cSize} onChange={(e) => setCSize(e.target.value)}>
-                        {SIZE_KEYS.map((k) => <option key={k} value={k}>{t('contact.sizeOpts.' + k)}</option>)}
-                      </select>
-                    </div>
-                    <div className="l-field" style={{ marginTop: 12 }}>
-                      <label htmlFor="l-msg">{t('contact.labelMsg')}</label>
-                      <textarea id="l-msg" rows={2} value={cMsg} onChange={(e) => setCMsg(e.target.value)} placeholder={t('contact.msgPlaceholder')} />
-                    </div>
-                    {cState === 'err' && (
-                      <p className="l-err">{t('contact.errRequired', { email: CONTACT_EMAIL })}</p>
-                    )}
-                    <button className="l-btn l-dark" onClick={sendContact} disabled={cState === 'busy'}>
-                      {cState === 'busy' ? t('contact.sending') : t('contact.confirmSlot', { day: fmtDayShort(slotDays[dayIdx], i18n.language), time: fmtHour(SLOT_HOURS[timeIdx], i18n.language) })}
-                    </button>
-                    <p className="l-form-note">
-                      {t('contact.formNote')}{' '}
-                      <Link to="/ochrana-udaju">{t('contact.formNoteLink')}</Link>.
-                    </p>
-                  </div>
-                )}
-              </>
             )}
+
+            {bStep === 'date' && (
+              <div className="bk-step">
+                <h3>{t('book.s1title')}</h3>
+                <p className="bk-sub">{t('book.s1sub')}</p>
+                <div className="bk-dates">
+                  {slotDays.map((d, i) => {
+                    const full = freeCount(d) === 0
+                    return (
+                      <button key={i} className={'bk-date' + (dayIdx === i ? ' sel' : '') + (full ? ' full' : '')}
+                        disabled={full} onClick={() => { setDayIdx(i); setSlot(null) }}>
+                        <span className="abbr">{fmtDayAbbr(d, i18n.language)}</span>
+                        <span className="num">{d.getDate()}{i18n.language.startsWith('en') ? '' : '.'}</span>
+                        <span className="mon">{fmtMonChip(d, i18n.language)}</span>
+                      </button>
+                    )
+                  })}
+                </div>
+                <button className="l-btn l-primary bk-go" disabled={dayIdx === null} onClick={() => setBStep('time')}>
+                  {t('book.continue')}
+                </button>
+              </div>
+            )}
+
+            {bStep === 'time' && dayIdx !== null && (
+              <div className="bk-step">
+                <h3>{t('book.s2title')}</h3>
+                <p className="bk-sub">{t('book.s2sub', { date: fmtDayLong(slotDays[dayIdx], i18n.language) })}</p>
+                <div className="bk-grid">
+                  {SLOT_TIMES.map((s) => {
+                    const tk = isTaken(slotDays[dayIdx], s)
+                    return (
+                      <button key={s} className={'bk-slot' + (tk ? ' taken' : '') + (slot === s ? ' sel' : '')}
+                        disabled={tk} onClick={() => setSlot(s)}>
+                        {fmtSlot(s, i18n.language)}
+                      </button>
+                    )
+                  })}
+                </div>
+                {freeCount(slotDays[dayIdx]) === 0 && <p className="bk-sub">{t('book.s2none')}</p>}
+                <button className="l-btn l-primary bk-go" disabled={!slot} onClick={() => setBStep('contact')}>
+                  {t('book.continue')}
+                </button>
+              </div>
+            )}
+
+            {bStep === 'contact' && dayIdx !== null && slot && (
+              <div className="bk-step">
+                <h3>{t('book.s3title')}</h3>
+                <p className="bk-sub">{t('book.s3sub', { date: fmtDayLong(slotDays[dayIdx], i18n.language), time: fmtSlot(slot, i18n.language) })}</p>
+                <div className={'l-field bk-field' + (fErr.name ? ' invalid' : '')}>
+                  <label htmlFor="l-name">{t('book.fName')}</label>
+                  <input id="l-name" value={cName} onChange={(e) => { setCName(e.target.value); setFErr((s) => ({ ...s, name: '' })) }} placeholder={t('book.phName')} />
+                  {fErr.name && <div className="bk-err">{fErr.name}</div>}
+                </div>
+                <div className={'l-field bk-field' + (fErr.email ? ' invalid' : '')}>
+                  <label htmlFor="l-mail">{t('book.fEmail')}</label>
+                  <input id="l-mail" type="email" value={cEmail} onChange={(e) => { setCEmail(e.target.value); setFErr((s) => ({ ...s, email: '' })) }} placeholder={t('book.phEmail')} />
+                  {fErr.email && <div className="bk-err">{fErr.email}</div>}
+                </div>
+                <div className={'l-field bk-field' + (fErr.phone ? ' invalid' : '')}>
+                  <label htmlFor="l-phone">{t('book.fPhone')}</label>
+                  <input id="l-phone" type="tel" value={cPhone} onChange={(e) => { setCPhone(e.target.value); setFErr((s) => ({ ...s, phone: '' })) }} placeholder={t('book.phPhone')} />
+                  {fErr.phone && <div className="bk-err">{fErr.phone}</div>}
+                </div>
+                <div className="l-field bk-field">
+                  <label htmlFor="l-size">{t('contact.labelSize')}</label>
+                  <select id="l-size" value={cSize} onChange={(e) => setCSize(e.target.value)}>
+                    {SIZE_KEYS.map((k) => <option key={k} value={k}>{t('contact.sizeOpts.' + k)}</option>)}
+                  </select>
+                </div>
+                {formErr && <p className="l-err">{formErr}</p>}
+                <button className="l-btn l-primary bk-go" onClick={sendContact} disabled={cState === 'busy'}>
+                  {cState === 'busy' ? t('book.sending') : t('book.submit')}
+                </button>
+                <p className="l-form-note">
+                  {t('book.fine')}{' '}
+                  <Link to="/ochrana-udaju">{t('contact.formNoteLink')}</Link>.
+                </p>
+              </div>
+            )}
+
+            {bStep === 'done' && dayIdx !== null && slot && (() => {
+              const c = calendarLinks(slotDays[dayIdx], slot, t('book.calTitle'), t('book.calDesc'), t('book.calLoc'))
+              return (
+                <div className="bk-step bk-done">
+                  <div className="bk-check"><Chk w={26} /></div>
+                  <h3>{t('book.doneTitle')}</h3>
+                  <p className="bk-sub">{t('book.doneSub')}</p>
+                  <div className="bk-summary">
+                    <div className="row"><div className="k">{t('book.sumWhen')}</div><div className="v">{fmtDayLong(slotDays[dayIdx], i18n.language)} · {fmtSlot(slot, i18n.language)}</div></div>
+                    <div className="row"><div className="k">{t('book.sumFormat')}</div><div className="v">{t('book.sumFormatVal')}</div></div>
+                    <div className="row"><div className="k">{t('book.sumContact')}</div><div className="v">{cName}<small>{cEmail}{cPhone ? ' · ' + cPhone : ''}</small></div></div>
+                  </div>
+                  <div className="bk-cal">
+                    <a href={c.g} target="_blank" rel="noopener noreferrer">{t('book.gcal')}</a>
+                    <a href={c.ics} download="tasker-hovor.ics">{t('book.ics')}</a>
+                  </div>
+                  <button className="bk-again" onClick={resetBooking}>{t('book.again')}</button>
+                </div>
+              )
+            })()}
           </div>
         </div>
       </section>

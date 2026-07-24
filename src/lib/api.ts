@@ -693,6 +693,27 @@ export const api = {
   },
 
   // ------- jazyk rozhraní (per-resident, ne za dům) -------
+  // ------- rezervace úvodního hovoru z veřejného webu -------
+  // Obsazené termíny čte kdokoli (i nepřihlášený), ale RPC vrací výhradně
+  // datum + čas — žádná jména, e-maily ani telefony (viz taken_slots v migraci).
+  async getTakenSlots(fromISO: string, toISO: string): Promise<{ date: string; time: string }[]> {
+    if (!isSupabaseConfigured) return []
+    const { data, error } = await supabase!.rpc('taken_slots', { p_from: fromISO, p_to: toISO })
+    // Fail open: když se seznam nenačte, radši nabídneme všechny sloty a případnou
+    // kolizi zachytí unique index při zápisu, než abychom rozbili celou stránku.
+    if (error) return []
+    return (data || []).map((r: any) => ({ date: String(r.slot_date), time: String(r.slot_time) }))
+  },
+
+  async bookMeeting(b: { date: string; time: string; name: string; email: string; phone?: string; size?: string; note?: string; lang?: string }): Promise<void> {
+    if (!isSupabaseConfigured) return // demo/sandbox: rezervace se neukládá
+    const { error } = await supabase!.from('meeting_bookings').insert({
+      slot_date: b.date, slot_time: b.time, name: b.name, email: b.email,
+      phone: b.phone || null, building_size: b.size || null, note: b.note || null, lang: b.lang || 'cs',
+    })
+    if (error) throw error
+  },
+
   async getMyLanguage(): Promise<string | null> {
     if (!isSupabaseConfigured) return null // demo: řídí to jen i18next-browser-languagedetector v prohlížeči
     const sb = supabase!
