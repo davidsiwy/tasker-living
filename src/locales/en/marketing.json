@@ -5,14 +5,14 @@
     "cenik": "Pricing",
     "faq": "FAQ",
     "demo": "Try the demo",
-    "cta": "Free demo"
+    "cta": "Book a time"
   },
   "hero": {
     "eyebrow": "An app for residential buildings and owners' associations",
     "titleA": "Your whole building, one app.",
     "titleEm": "No more paper in the stairwell.",
     "lead": "Announcements reach neighbors as phone notifications, rent gets paid by QR code, maintenance issues come with a photo and a status, and votes finally reach quorum. For the committee, residents, and developers alike.",
-    "ctaPrimary": "Get a free demo",
+    "ctaPrimary": "Book a demo slot",
     "ctaDemo": "Try the demo now",
     "riskLaunch": "Live within {{launch}}",
     "riskFree": "First {{months}} free",
@@ -154,7 +154,7 @@
       "t1": "Payments and reminders without spreadsheets",
       "t2": "Votes that actually reach quorum",
       "t3": "Issues with an owner and a deadline",
-      "cta": "Get a free demo →"
+      "cta": "Book a time →"
     },
     "rezident": {
       "kicker": "Neighbor · resident",
@@ -170,7 +170,7 @@
       "t1": "New builds delivered with the app already set up",
       "t2": "Rent overview across your whole portfolio",
       "t3": "Terms and rollout tailored to you",
-      "cta": "Discuss terms →"
+      "cta": "Book a time →"
     }
   },
   "launch": {
@@ -221,7 +221,7 @@
     "who3r": "tenant · unit B-112",
     "note": "Residents of the pilot building, names and units shared with consent. These numbers come from real use, not a pitch deck.",
     "ctaText": "Want to see it live? We'll walk you through the app on Vista Park's actual data.",
-    "ctaBtn": "Get a free demo"
+    "ctaBtn": "Book a time"
   },
   "pricing": {
     "num": "06 · Pricing",
@@ -229,7 +229,7 @@
     "sub": "No modules, no add-on fees, no three-page price list. You only pay for occupied units.",
     "flag": "2026 pilot program",
     "perUnit": "/ unit / month · everything included",
-    "desc": "About 13 Kč per unit per day. Less than a building pays for stairwell cleaning, and it saves the committee evenings every month.",
+    "desc": "One rate per occupied unit. No modules, no setup fee, no annual contract. We launch every building personally.",
     "i1": "Announcements with notifications",
     "i2": "Charges, QR payments, reminders",
     "i3": "Meetings and share-weighted voting",
@@ -238,7 +238,7 @@
     "i6": "Tasker Services with vetted professionals",
     "guarLabel": "Our guarantee:",
     "guarBody": "the first {{months}} free, no card, no commitment. We handle setup within {{launch}}. If it's not a fit, cancel with one message and we'll export your data to you and delete it.",
-    "cta": "Get a free demo",
+    "cta": "Book a time",
     "underPre": "Developer or investor? We tailor terms for portfolios and new-build handovers —",
     "underLink": "let's talk terms",
     "fine": "Prices exclude VAT. We're onboarding pilot-program buildings gradually so everyone gets full support.",
@@ -295,7 +295,7 @@
     "msgPlaceholder": "A few words about your building and what's bothering you most...",
     "errRequired": "Please fill in your name and email. If sending fails, just email us directly at {{email}}.",
     "sending": "Sending...",
-    "cta": "Get a free demo",
+    "cta": "Book a time",
     "formNote": "We'll get back to you within 24 hours on business days. No spam, no commitment. By submitting you agree to our",
     "formNoteLink": "data processing",
     "pickSlotTitle": "First, pick your slot",

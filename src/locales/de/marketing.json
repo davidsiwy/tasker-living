@@ -5,14 +5,14 @@
     "cenik": "Preise",
     "faq": "FAQ",
     "demo": "Demo testen",
-    "cta": "Kostenlose Demo"
+    "cta": "Termin reservieren"
   },
   "hero": {
     "eyebrow": "Die App für Wohnhäuser und Eigentümergemeinschaften",
     "titleA": "Ihr ganzes Haus in einer App.",
     "titleEm": "Schluss mit Zetteln im Treppenhaus.",
     "lead": "Ankündigungen erreichen Nachbarn als Push-Benachrichtigung, die Miete wird per QR-Code bezahlt, Mängel kommen mit Foto und Verlauf, und Abstimmungen erreichen endlich ihr Quorum. Für Beirat, Bewohner und Bauträger gleichermaßen.",
-    "ctaPrimary": "Kostenlose Demo anfragen",
+    "ctaPrimary": "Demo-Termin reservieren",
     "ctaDemo": "Jetzt Demo testen",
     "riskLaunch": "Start innerhalb von {{launch}}",
     "riskFree": "Die ersten {{months}} kostenlos",
@@ -154,7 +154,7 @@
       "t1": "Zahlungen und Erinnerungen ohne Excel-Tabellen",
       "t2": "Abstimmungen, die wirklich beschlussfähig sind",
       "t3": "Mängel mit Verantwortlichem und Termin",
-      "cta": "Kostenlose Demo anfragen →"
+      "cta": "Termin reservieren →"
     },
     "rezident": {
       "kicker": "Nachbar · Bewohner",
@@ -170,7 +170,7 @@
       "t1": "Neubau mit bereits eingerichteter App übergeben",
       "t2": "Mietübersicht über Ihr gesamtes Portfolio",
       "t3": "Konditionen und Einführung nach Maß",
-      "cta": "Konditionen besprechen →"
+      "cta": "Termin reservieren →"
     }
   },
   "launch": {
@@ -221,7 +221,7 @@
     "who3r": "Mieter · Einheit B-112",
     "note": "Bewohner des Pilothauses, Namen und Einheiten mit Zustimmung veröffentlicht. Die Zahlen stammen aus dem echten Betrieb, nicht aus einer Präsentation.",
     "ctaText": "Wollen Sie es live sehen? Wir zeigen Ihnen die App direkt an den echten Daten von Vista Park.",
-    "ctaBtn": "Kostenlose Demo anfragen"
+    "ctaBtn": "Termin reservieren"
   },
   "pricing": {
     "num": "06 · Preise",
@@ -229,7 +229,7 @@
     "sub": "Keine Module, keine Aufpreise, keine dreiseitige Preisliste. Sie zahlen nur für belegte Einheiten.",
     "flag": "Pilotprogramm 2026",
     "perUnit": "/ Einheit / Monat · alles inklusive",
-    "desc": "Etwa 13 Kč pro Einheit und Tag. Weniger, als ein Haus für die Treppenhausreinigung zahlt — und spart dem Beirat jeden Monat mehrere Abende.",
+    "desc": "Ein Satz pro belegter Einheit. Keine Module, keine Einrichtungsgebühr, kein Jahresvertrag. Wir starten jedes Haus persönlich.",
     "i1": "Ankündigungen mit Push-Benachrichtigungen",
     "i2": "Vorschreibungen, QR-Zahlungen, Erinnerungen",
     "i3": "Versammlungen und Abstimmungen nach Anteilen",
@@ -238,7 +238,7 @@
     "i6": "Tasker-Services mit geprüften Fachkräften",
     "guarLabel": "Unsere Garantie:",
     "guarBody": "die ersten {{months}} kostenlos, ohne Kreditkarte, ohne Verpflichtung. Die Einrichtung innerhalb von {{launch}} übernehmen wir. Passt es nicht, kündigen Sie mit einer Nachricht, und wir exportieren Ihnen die Daten und löschen sie.",
-    "cta": "Kostenlose Demo anfragen",
+    "cta": "Termin reservieren",
     "underPre": "Bauträger oder Investor? Portfolios und Neubau-Übergaben gestalten wir nach Maß —",
     "underLink": "Konditionen besprechen",
     "fine": "Preise verstehen sich zzgl. MwSt. Wir nehmen Häuser für das Pilotprogramm nach und nach auf, damit jedes volle Unterstützung bekommt.",
@@ -295,7 +295,7 @@
     "msgPlaceholder": "Kurz zu Ihrem Haus und was Sie am meisten stört...",
     "errRequired": "Bitte Name und E-Mail ausfüllen. Falls das Absenden fehlschlägt, schreiben Sie uns direkt an {{email}}.",
     "sending": "Wird gesendet...",
-    "cta": "Kostenlose Demo anfragen",
+    "cta": "Termin reservieren",
     "formNote": "Wir melden uns innerhalb von 24 Stunden an Werktagen. Kein Spam, keine Verpflichtung. Mit dem Absenden stimmen Sie der",
     "formNoteLink": "Datenverarbeitung",
     "pickSlotTitle": "Wählen Sie zuerst Ihren Termin",

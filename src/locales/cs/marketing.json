@@ -5,14 +5,14 @@
     "cenik": "Ceník",
     "faq": "Dotazy",
     "demo": "Vyzkoušet demo",
-    "cta": "Ukázka zdarma"
+    "cta": "Rezervovat termín"
   },
   "hero": {
     "eyebrow": "Aplikace pro bytové domy a SVJ",
     "titleA": "Celý dům v jedné aplikaci.",
     "titleEm": "Konec papírků ve vchodě.",
     "lead": "Oznámení přijdou sousedům jako notifikace, nájmy se platí QR kódem, závady mají fotku a průběh a hlasování se konečně sejde. Pro výbor, rezidenty i developera.",
-    "ctaPrimary": "Chci ukázku zdarma",
+    "ctaPrimary": "Rezervovat termín ukázky",
     "ctaDemo": "Vyzkoušet demo hned",
     "riskLaunch": "Spuštění do {{launch}}",
     "riskFree": "Prvních {{months}} zdarma",
@@ -154,7 +154,7 @@
       "t1": "Platby a upomínky bez tabulek",
       "t2": "Hlasování, které je usnášeníschopné",
       "t3": "Závady s odpovědným a termínem",
-      "cta": "Chci ukázku zdarma →"
+      "cta": "Rezervovat termín →"
     },
     "rezident": {
       "kicker": "Soused · rezident",
@@ -170,7 +170,7 @@
       "t1": "Novostavba předaná s hotovou aplikací",
       "t2": "Přehled nájmů napříč portfoliem",
       "t3": "Podmínky a nasazení na míru",
-      "cta": "Domluvit podmínky →"
+      "cta": "Rezervovat termín →"
     }
   },
   "launch": {
@@ -221,7 +221,7 @@
     "who3r": "nájemník · byt B-112",
     "note": "Rezidenti pilotního domu, jména a byty se souhlasem. Čísla jsou z provozu, ne z prezentace.",
     "ctaText": "Chcete to vidět naživo? Ukážeme vám aplikaci přímo na datech Vista Parku.",
-    "ctaBtn": "Chci ukázku zdarma"
+    "ctaBtn": "Rezervovat termín"
   },
   "pricing": {
     "num": "06 · Ceník",
@@ -229,7 +229,7 @@
     "sub": "Žádné moduly, žádné příplatky, žádný ceník na tři stránky. Platíte jen za obsazené jednotky.",
     "flag": "Pilotní program 2026",
     "perUnit": "/ jednotka / měsíc · vše v ceně",
-    "desc": "Zhruba 13 Kč na byt a den. Méně, než dům platí za úklid schodiště, a ušetří výboru večery každý měsíc.",
+    "desc": "Jedna sazba za obsazenou jednotku. Žádné moduly, žádný poplatek za spuštění, žádná roční smlouva. Každý dům spouštíme osobně.",
     "i1": "Oznámení s notifikacemi",
     "i2": "Předpisy, QR platby, upomínky",
     "i3": "Schůze a hlasování podle podílů",
@@ -238,7 +238,7 @@
     "i6": "Služby Tasker s ověřenými pracovníky",
     "guarLabel": "Garance:",
     "guarBody": "prvních {{months}} zdarma, bez karty a bez závazku. Nastavení do {{launch}} uděláme my. Když se dům nechytne, zrušíte to jednou zprávou a data vám vyexportujeme a smažeme.",
-    "cta": "Chci ukázku zdarma",
+    "cta": "Rezervovat termín",
     "underPre": "Developer nebo investor? Portfolio a předání novostavby řešíme na míru —",
     "underLink": "domluvit podmínky",
     "fine": "Ceny jsou bez DPH. Domy do pilotního programu spouštíme postupně, ať má každý plnou podporu.",
@@ -295,7 +295,7 @@
     "msgPlaceholder": "Krátce o vašem domě a co vás pálí nejvíc...",
     "errRequired": "Vyplňte prosím jméno a e-mail. Pokud odeslání selhalo, napište nám přímo na {{email}}.",
     "sending": "Odesílám...",
-    "cta": "Chci ukázku zdarma",
+    "cta": "Rezervovat termín",
     "formNote": "Ozveme se do 24 hodin v pracovní dny. Žádný spam, žádné závazky. Odesláním souhlasíte se",
     "formNoteLink": "zpracováním údajů",
     "pickSlotTitle": "Nejdřív si vyberte termín",
