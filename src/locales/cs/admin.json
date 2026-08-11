@@ -229,6 +229,8 @@
     "toastPaymentSettingsSaved": "Nastavení plateb uloženo",
     "toastSaveFailed": "Uložení selhalo",
     "toastExportDownloaded": "Export stažen",
-    "toastExportFailed": "Export selhal"
+    "toastExportFailed": "Export selhal",
+    "soonTitle": "Platební nastavení připravujeme",
+    "soonBody": "Účet domu, QR platby a napojení na banku se zpřístupní se spuštěním plateb."
   }
 }

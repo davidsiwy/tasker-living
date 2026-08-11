@@ -94,5 +94,10 @@
     "contracts": "Verträge",
     "meetings": "Versammlungen",
     "other": "Sonstiges"
+  },
+  "comingSoon": {
+    "badge": "Demnächst",
+    "title": "Demnächst verfügbar",
+    "body": "Dieser Teil der App wird noch gebaut. Wir melden uns, sobald er live ist."
   }
 }

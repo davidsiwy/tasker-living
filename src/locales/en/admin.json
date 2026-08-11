@@ -224,6 +224,8 @@
     "toastPaymentSettingsSaved": "Payment settings saved",
     "toastSaveFailed": "Save failed",
     "toastExportDownloaded": "Export downloaded",
-    "toastExportFailed": "Export failed"
+    "toastExportFailed": "Export failed",
+    "soonTitle": "Payment settings are coming soon",
+    "soonBody": "The building account, QR payments and bank connection open up once payments go live."
   }
 }

@@ -55,7 +55,9 @@
     "toastRemindFailed": "Die Erinnerungen konnten nicht gesendet werden",
     "statePaid": "Bezahlt",
     "stateAwaiting": "Ausstehend",
-    "stateOverdue": "Überfällig"
+    "stateOverdue": "Überfällig",
+    "soonTitle": "Zahlungen kommen bald",
+    "soonBody": "Vorschreibungen, Zahlungsübersicht und Mahnungen starten in einer späteren Version."
   },
   "resident": {
     "greetingLine": "{{building}} · Einheit {{unit}}",
@@ -84,6 +86,8 @@
     "voteBodyOther": "{{q}} — stimmen Sie vom Telefon aus ab.",
     "fromBuilding": "Aus dem Haus",
     "seeAll": "Alle →",
-    "noAnnouncements": "Noch keine Ankündigungen."
+    "noAnnouncements": "Noch keine Ankündigungen.",
+    "soonTitle": "Zahlungen kommen bald",
+    "soonBody": "Zahlungen gibt es in der App noch nicht. Wir bereiten sie für eine spätere Version vor."
   }
 }

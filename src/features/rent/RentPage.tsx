@@ -8,6 +8,8 @@ import { useSession } from '../../state/session'
 import { useToast } from '../../components/Toast'
 import { QrPlatba, PayModal } from '../../components/QrPlatba'
 import type { PayItem } from '../../components/QrPlatba'
+import { ComingSoon } from '../../components/ComingSoon'
+import { paymentsEnabled } from '../../lib/features'
 
 const asItem = (c: Charge): PayItem => ({
   id: c.id, label: c.label, amount: c.amount, vs: c.vs, due: c.due || '15.', recurring: true,
@@ -40,7 +42,7 @@ export default function RentPage() {
   const [reminded, setReminded] = useState<Record<string, boolean>>({})
 
   useEffect(() => {
-    if (!bid) return
+    if (!bid || !paymentsEnabled) return
     api.getBuildingSettings(bid).then(setSettings).catch(() => {})
     if (isResident) {
       if (user?.unitId) api.getMyCharges(bid, user.unitId).then(setMine).catch(console.error)
@@ -51,7 +53,7 @@ export default function RentPage() {
 
   useEffect(() => {
     // tiché dopárování z banky při otevření Plateb (výbor/developer, max 1x za 15 min)
-    if (!bank.available || !bid || isResident) return
+    if (!paymentsEnabled || !bank.available || !bid || isResident) return
     const key = 'tl-banksync-' + bid
     if (Date.now() - Number(sessionStorage.getItem(key) || 0) < 15 * 60e3) return
     sessionStorage.setItem(key, String(Date.now()))
@@ -136,6 +138,7 @@ export default function RentPage() {
   }
 
   if (!user) return null
+  if (!paymentsEnabled) return <ComingSoon title={t('rent:soon.title')} body={t('rent:soon.body')} />
 
   // ---------- soused: jedna platba = jedna obrazovka, QR hned nahoře ----------
   if (isResident) {

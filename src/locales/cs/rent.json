@@ -10,7 +10,9 @@
     "nothingDue": "Nic nečeká. Až výbor vystaví další předpis, přijde vám notifikace a QR najdete tady.",
     "history": "Historie",
     "noChargesYet": "Zatím žádné předpisy.",
-    "histPaid": "zaplaceno", "histAwaiting": "čeká na potvrzení", "histToPay": "k zaplacení"
+    "histPaid": "zaplaceno",
+    "histAwaiting": "čeká na potvrzení",
+    "histToPay": "k zaplacení"
   },
   "committee": {
     "title": "Platby · {{period}}",
@@ -22,7 +24,10 @@
     "unitsReady": "{{units}} · upomínky připraveny",
     "chargesFor": "Předpisy · {{period}}",
     "totalAwaiting": "celkem {{sum}} · {{count}} čeká na potvrzení",
-    "filterAll": "Vše", "filterPaid": "Zaplacené", "filterUnpaid": "Po splatnosti", "filterAwaiting": "Čeká",
+    "filterAll": "Vše",
+    "filterPaid": "Zaplacené",
+    "filterUnpaid": "Po splatnosti",
+    "filterAwaiting": "Čeká",
     "emptyNoCharges": "Za toto období zatím nejsou vystavené předpisy. Vystavíte je tlačítkem nahoře.",
     "emptyFiltered": "V tomto filtru nic není.",
     "exportCsv": "Export pro účetní (CSV)",
@@ -56,5 +61,9 @@
   "toastAlreadyIssued": "Předpisy už jsou vystavené",
   "toastIssueFailed": "Nepodařilo se vystavit",
   "toastCsvDownloaded": "CSV pro účetní staženo",
-  "toastBankMatched": "Banka: spárováno {{count}} plateb"
+  "toastBankMatched": "Banka: spárováno {{count}} plateb",
+  "soon": {
+    "title": "Platby připravujeme",
+    "body": "Předpisy, QR platby, upomínky a párování plateb z banky spustíme v další verzi. Zatím platby řešte jako dosud, zbytek aplikace funguje normálně."
+  }
 }

@@ -10,7 +10,9 @@
     "nothingDue": "Nothing's due. Once the committee issues the next charge, you'll get a notification and the QR code will be here.",
     "history": "History",
     "noChargesYet": "No charges yet.",
-    "histPaid": "paid", "histAwaiting": "awaiting confirmation", "histToPay": "due"
+    "histPaid": "paid",
+    "histAwaiting": "awaiting confirmation",
+    "histToPay": "due"
   },
   "committee": {
     "title": "Payments · {{period}}",
@@ -22,7 +24,10 @@
     "unitsReady": "{{units}} · reminders ready",
     "chargesFor": "Charges · {{period}}",
     "totalAwaiting": "{{sum}} total · {{count}} awaiting confirmation",
-    "filterAll": "All", "filterPaid": "Paid", "filterUnpaid": "Overdue", "filterAwaiting": "Awaiting",
+    "filterAll": "All",
+    "filterPaid": "Paid",
+    "filterUnpaid": "Overdue",
+    "filterAwaiting": "Awaiting",
     "emptyNoCharges": "No charges have been issued for this period yet. Issue them with the button above.",
     "emptyFiltered": "Nothing in this filter.",
     "exportCsv": "Export for accountant (CSV)",
@@ -56,5 +61,9 @@
   "toastAlreadyIssued": "Charges have already been issued",
   "toastIssueFailed": "Couldn't issue charges",
   "toastCsvDownloaded": "CSV for the accountant downloaded",
-  "toastBankMatched": "Bank: matched {{count}} payments"
+  "toastBankMatched": "Bank: matched {{count}} payments",
+  "soon": {
+    "title": "Payments are coming soon",
+    "body": "Charges, QR payments, reminders and bank matching launch in a later release. Keep handling payments the way you do today, the rest of the app works as usual."
+  }
 }

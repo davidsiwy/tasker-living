@@ -97,5 +97,10 @@
     "contracts": "Smlouvy",
     "meetings": "Schůze",
     "other": "Ostatní"
+  },
+  "comingSoon": {
+    "badge": "Připravujeme",
+    "title": "Připravujeme",
+    "body": "Tahle část aplikace se ještě dodělává. Dáme vám vědět, jakmile bude spuštěná."
   }
 }

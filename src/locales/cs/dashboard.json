@@ -58,7 +58,9 @@
     "remindNonVoters_other": "Připomenout {{count}} nehlasujícím",
     "statePaid": "Zaplaceno",
     "stateAwaiting": "Čeká",
-    "stateOverdue": "Po splatnosti"
+    "stateOverdue": "Po splatnosti",
+    "soonTitle": "Platby připravujeme",
+    "soonBody": "Předpisy, přehled vybraných plateb a upomínky spustíme v další verzi."
   },
   "resident": {
     "greetingLine": "{{building}} · byt {{unit}}",
@@ -87,6 +89,8 @@
     "voteBodyOther": "{{q}} — odhlasujte z telefonu.",
     "fromBuilding": "Z domu",
     "seeAll": "Vše →",
-    "noAnnouncements": "Zatím žádná oznámení."
+    "noAnnouncements": "Zatím žádná oznámení.",
+    "soonTitle": "Platby připravujeme",
+    "soonBody": "Platby zatím v aplikaci nenajdete. Chystáme je na další verzi."
   }
 }

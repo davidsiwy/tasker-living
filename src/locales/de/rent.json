@@ -10,7 +10,9 @@
     "nothingDue": "Nichts ist fällig. Sobald der Beirat die nächste Vorschreibung ausstellt, erhalten Sie eine Benachrichtigung, und der QR-Code erscheint hier.",
     "history": "Historie",
     "noChargesYet": "Noch keine Vorschreibungen.",
-    "histPaid": "bezahlt", "histAwaiting": "wartet auf Bestätigung", "histToPay": "offen"
+    "histPaid": "bezahlt",
+    "histAwaiting": "wartet auf Bestätigung",
+    "histToPay": "offen"
   },
   "committee": {
     "title": "Zahlungen · {{period}}",
@@ -22,7 +24,10 @@
     "unitsReady": "{{units}} · Erinnerungen bereit",
     "chargesFor": "Vorschreibungen · {{period}}",
     "totalAwaiting": "{{sum}} insgesamt · {{count}} wartet auf Bestätigung",
-    "filterAll": "Alle", "filterPaid": "Bezahlt", "filterUnpaid": "Überfällig", "filterAwaiting": "Wartet",
+    "filterAll": "Alle",
+    "filterPaid": "Bezahlt",
+    "filterUnpaid": "Überfällig",
+    "filterAwaiting": "Wartet",
     "emptyNoCharges": "Für diesen Zeitraum sind noch keine Vorschreibungen ausgestellt. Erstellen Sie sie mit der Schaltfläche oben.",
     "emptyFiltered": "In diesem Filter ist nichts.",
     "exportCsv": "Export für die Buchhaltung (CSV)",
@@ -56,5 +61,9 @@
   "toastAlreadyIssued": "Vorschreibungen sind bereits ausgestellt",
   "toastIssueFailed": "Ausstellung fehlgeschlagen",
   "toastCsvDownloaded": "CSV für die Buchhaltung heruntergeladen",
-  "toastBankMatched": "Bank: {{count}} Zahlungen abgeglichen"
+  "toastBankMatched": "Bank: {{count}} Zahlungen abgeglichen",
+  "soon": {
+    "title": "Zahlungen kommen bald",
+    "body": "Vorschreibungen, QR-Zahlungen, Mahnungen und der Bankabgleich starten in einer späteren Version. Zahlungen laufen bis dahin wie bisher, der Rest der App funktioniert normal."
+  }
 }

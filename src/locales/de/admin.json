@@ -224,6 +224,8 @@
     "toastPaymentSettingsSaved": "Zahlungseinstellungen gespeichert",
     "toastSaveFailed": "Speichern fehlgeschlagen",
     "toastExportDownloaded": "Export heruntergeladen",
-    "toastExportFailed": "Export fehlgeschlagen"
+    "toastExportFailed": "Export fehlgeschlagen",
+    "soonTitle": "Zahlungseinstellungen kommen bald",
+    "soonBody": "Hauskonto, QR-Zahlungen und Bankanbindung werden mit dem Start der Zahlungen freigeschaltet."
   }
 }

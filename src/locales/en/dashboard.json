@@ -55,7 +55,9 @@
     "toastRemindFailed": "Couldn't send the reminders",
     "statePaid": "Paid",
     "stateAwaiting": "Pending",
-    "stateOverdue": "Overdue"
+    "stateOverdue": "Overdue",
+    "soonTitle": "Payments are coming soon",
+    "soonBody": "Charges, collection overview and reminders launch in a later release."
   },
   "resident": {
     "greetingLine": "{{building}} · unit {{unit}}",
@@ -84,6 +86,8 @@
     "voteBodyOther": "{{q}} — cast your vote from your phone.",
     "fromBuilding": "From the building",
     "seeAll": "See all →",
-    "noAnnouncements": "No announcements yet."
+    "noAnnouncements": "No announcements yet.",
+    "soonTitle": "Payments are coming soon",
+    "soonBody": "Payments aren't in the app yet. We're preparing them for a later release."
   }
 }

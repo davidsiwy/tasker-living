@@ -5,6 +5,7 @@ import { useSession } from '../state/session'
 import { can } from '../lib/types'
 import type { Role } from '../lib/types'
 import { api } from '../lib/api'
+import { paymentsEnabled } from '../lib/features'
 import { LanguageSwitcher } from './LanguageSwitcher'
 import { buildSearchIndex, runSearch } from '../lib/search'
 import type { SearchHit, SearchIndex } from '../lib/search'
@@ -53,6 +54,7 @@ const P: Record<string, string> = {
   fund: '<rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="3"/><path d="M6 9v.01M18 15v.01"/>',
   heart: '<path d="M20.8 4.9a5.5 5.5 0 0 0-7.8 0L12 5.9l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21.5l7.8-7.8 1-1a5.5 5.5 0 0 0 0-7.8z"/>',
   plus: '<path d="M12 5v14M5 12h14"/>',
+  lock: '<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
 }
 export function SIcon({ n, s = 16, filled = false }: { n: string; s?: number; filled?: boolean }) {
   return (
@@ -204,13 +206,21 @@ export default function AppShell() {
   async function logout() { await signOut(); nav('/') }
 
   const navLabel = (i: Item) => (i.id === 'prehled' && isHomeRole ? t('nav.domu') : t(`nav.${i.id}`))
-  const link = (i: Item) => (
-    <NavLink key={i.id} to={`/app/${i.id}`} className={({ isActive }) => 's-item' + (isActive ? ' active' : '')}>
-      <span className="s-i"><SIcon n={i.icon} /></span>
-      <span className="l">{navLabel(i)}</span>
-      {countFor(i.id) > 0 && <span className="n">{countFor(i.id)}</span>}
-    </NavLink>
-  )
+  const isLocked = (i: Item) => i.id === 'najmy' && !paymentsEnabled
+  const link = (i: Item) =>
+    isLocked(i) ? (
+      <span key={i.id} className="s-item soon" aria-disabled="true" title={t('common:comingSoon.badge')}>
+        <span className="s-i"><SIcon n="lock" /></span>
+        <span className="l">{navLabel(i)}</span>
+        <span className="n">{t('common:comingSoon.badge')}</span>
+      </span>
+    ) : (
+      <NavLink key={i.id} to={`/app/${i.id}`} className={({ isActive }) => 's-item' + (isActive ? ' active' : '')}>
+        <span className="s-i"><SIcon n={i.icon} /></span>
+        <span className="l">{navLabel(i)}</span>
+        {countFor(i.id) > 0 && <span className="n">{countFor(i.id)}</span>}
+      </NavLink>
+    )
 
   return (
     <div className="sh">

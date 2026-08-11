@@ -14,6 +14,8 @@ import { Icon } from '../../components/Icon'
 import { SIcon } from '../../components/AppShell'
 import { exportBuilding } from '../../lib/exportBuilding'
 import { BankCard } from '../../components/BankCard'
+import { ComingSoon } from '../../components/ComingSoon'
+import { paymentsEnabled } from '../../lib/features'
 
 const money = (n: number, lng: string) => n.toLocaleString(lng) + ' Kč'
 type Toast = (m: string) => void
@@ -27,7 +29,8 @@ export default function AdminPage() {
   const toast = useToast()
   const [params] = useSearchParams()
   const initialTab = params.get('tab')
-  const [tab, setTab] = useState(TAB_IDS.includes(initialTab || '') ? initialTab! : 'prehled')
+  const tabIds = TAB_IDS.filter((id) => id !== 'finance' || paymentsEnabled)
+  const [tab, setTab] = useState(tabIds.includes(initialTab || '') ? initialTab! : 'prehled')
 
   if (!user || !can(user.role as Role, 'admin')) {
     return (
@@ -52,14 +55,14 @@ export default function AdminPage() {
       </div>
 
       <div className="ad-tabs">
-        {TAB_IDS.map((id) => <button key={id} className={'ad-tab' + (tab === id ? ' on' : '')} onClick={() => setTab(id)}>{t(`admin:tabs.${id}`)}</button>)}
+        {tabIds.map((id) => <button key={id} className={'ad-tab' + (tab === id ? ' on' : '')} onClick={() => setTab(id)}>{t(`admin:tabs.${id}`)}</button>)}
       </div>
 
       <div className="ad-wrap">
         {tab === 'prehled' && <Overview toast={toast} bid={bid} />}
         {tab === 'jednotky' && <Units toast={toast} bid={bid} />}
         {tab === 'lide' && <People toast={toast} />}
-        {tab === 'finance' && <Finance toast={toast} bid={bid} />}
+        {tab === 'finance' && paymentsEnabled && <Finance toast={toast} bid={bid} />}
         {tab === 'fond' && <ReserveFundTab toast={toast} bid={bid} />}
         {tab === 'udrzba' && <Maintenance toast={toast} bid={bid} isDemo={isDemo} />}
         {tab === 'schuze' && <MeetingsAdmin />}
@@ -83,7 +86,7 @@ function Overview({ toast, bid }: { toast: Toast; bid: string }) {
 
   useEffect(() => {
     Promise.all([
-      api.getUnitsFull(bid), api.getCharges(bid, period), api.getFaults(bid),
+      api.getUnitsFull(bid), paymentsEnabled ? api.getCharges(bid, period) : Promise.resolve([]), api.getFaults(bid),
       api.getComplaintsCount(bid), adminApi.listCodes(bid),
     ]).then(([u, c, f, cc, cd]) => { setUnits(u); setCharges(c); setFaults(f); setComplaints(cc); setCodes(cd) })
       .catch((e: any) => toast(t('admin:overview.loadFailed', { err: e.message || e })))
@@ -101,17 +104,21 @@ function Overview({ toast, bid }: { toast: Toast; bid: string }) {
 
   const kpis = [
     { l: t('admin:overview.occupancy'), v: `${occupied.length}/${units.length}`, i: 'people' },
-    { l: t('admin:overview.collectedIn', { period: periodLabel(period, i18n.language) }), v: rentRoll ? `${Math.round((collected / rentRoll) * 100)} %` : t('admin:overview.noCharges'), i: 'card', g: true },
-    { l: t('admin:overview.monthlyCharge'), v: money(rentRoll, i18n.language), i: 'card' },
+    ...(paymentsEnabled
+      ? [
+          { l: t('admin:overview.collectedIn', { period: periodLabel(period, i18n.language) }), v: rentRoll ? `${Math.round((collected / rentRoll) * 100)} %` : t('admin:overview.noCharges'), i: 'card', g: true },
+          { l: t('admin:overview.monthlyCharge'), v: money(rentRoll, i18n.language), i: 'card' },
+        ]
+      : []),
     { l: t('admin:overview.openFaults'), v: String(faultsOpen.length), i: 'wrench' },
     { l: t('admin:overview.totalComplaints'), v: String(complaints), i: 'shield' },
     { l: t('admin:overview.freeCodes'), v: String(codesFree), i: 'people' },
   ]
   const alerts: { c: string; t: string; s: string }[] = []
-  if (unpaid.length) alerts.push({ c: 'warn', t: t('admin:overview.alertUnpaid', { count: unpaid.length }), s: unpaid.map((c) => c.unitLabel).join(', ') })
+  if (paymentsEnabled && unpaid.length) alerts.push({ c: 'warn', t: t('admin:overview.alertUnpaid', { count: unpaid.length }), s: unpaid.map((c) => c.unitLabel).join(', ') })
   if (noVendor.length) alerts.push({ c: 'warn', t: t('admin:overview.alertNoVendor', { count: noVendor.length }), s: noVendor.map((f) => f.cat).join(', ') })
   if (ending.length) alerts.push({ c: 'warn', t: t('admin:overview.alertLeaseEnding'), s: ending.map((u) => `${u.label} (${u.leaseEnd})`).join(', ') })
-  if (!charges.length && occupied.some((u) => u.rent > 0)) alerts.push({ c: 'warn', t: t('admin:overview.alertNoChargesTitle'), s: t('admin:overview.alertNoChargesBody') })
+  if (paymentsEnabled && !charges.length && occupied.some((u) => u.rent > 0)) alerts.push({ c: 'warn', t: t('admin:overview.alertNoChargesTitle'), s: t('admin:overview.alertNoChargesBody') })
   if (codesFree) alerts.push({ c: 'ok', t: t('admin:overview.alertCodesFree', { count: codesFree }), s: t('admin:overview.alertCodesFreeBody') })
 
   return (
@@ -686,7 +693,7 @@ function BuildingSettingsTab({ toast, bid, isDemo, buildingName }: { toast: Toas
   const [busy, setBusy] = useState(false)
 
   useEffect(() => {
-    api.getBuildingSettings(bid).then((s) => { setAccount(s.account); setRecipient(s.recipient) }).catch(() => {})
+    if (paymentsEnabled) api.getBuildingSettings(bid).then((s) => { setAccount(s.account); setRecipient(s.recipient) }).catch(() => {})
   }, [bid])
 
   async function save() {
@@ -703,6 +710,12 @@ function BuildingSettingsTab({ toast, bid, isDemo, buildingName }: { toast: Toas
 
   return (
     <div className="ad-2">
+      {!paymentsEnabled && (
+        <div style={{ gridColumn: '1 / -1' }}>
+          <ComingSoon variant="card" title={t('admin:settings.soonTitle')} body={t('admin:settings.soonBody')} />
+        </div>
+      )}
+      {paymentsEnabled && (
       <div className="s-card" style={{ padding: '18px 20px' }}>
         <b style={{ fontSize: 14, fontWeight: 800 }}>{t('admin:settings.accountTitle')}</b>
         <div className="a-f" style={{ marginTop: 12 }}>
@@ -718,6 +731,8 @@ function BuildingSettingsTab({ toast, bid, isDemo, buildingName }: { toast: Toas
           {t('admin:settings.accountNote')}
         </p>
       </div>
+      )}
+      {paymentsEnabled && (
       <div className="s-card" style={{ overflow: 'hidden' }}>
         <div className="ad-hd"><b>{t('admin:settings.integrationsTitle')}</b><span className="s-mono" style={{ fontSize: 10, color: 'var(--s-muted)' }}>ROADMAP</span></div>
         {integrations.map((i) => (
@@ -732,11 +747,14 @@ function BuildingSettingsTab({ toast, bid, isDemo, buildingName }: { toast: Toas
         ))}
         <p className="a-note" style={{ padding: '4px 16px 14px' }}>{t('admin:settings.integrationsNote')}</p>
       </div>
+      )}
 
+      {paymentsEnabled && (
       <div className="s-card" style={{ gridColumn: '1 / -1', padding: '18px 20px' }}>
         <b style={{ fontSize: 14, fontWeight: 800, display: 'block', marginBottom: 10 }}>{t('admin:settings.bankTitle')}</b>
         <BankCard buildingId={bid} variant="sh" toast={toast} />
       </div>
+      )}
 
       <div className="s-card" style={{ gridColumn: '1 / -1', padding: '18px 20px' }}>
         <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start', flexWrap: 'wrap' }}>

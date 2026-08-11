@@ -7,6 +7,8 @@ import type { Charge, Fault, VoteData, Neighbor } from '../../lib/types'
 import { chargeStatusLabel } from '../../lib/types'
 import { SIcon } from '../../components/AppShell'
 import ResidentHome from './ResidentHome'
+import { ComingSoon } from '../../components/ComingSoon'
+import { paymentsEnabled } from '../../lib/features'
 import { useToast } from '../../components/Toast'
 
 const money = (n: number, lng: string) => n.toLocaleString(lng) + ' Kč'
@@ -35,7 +37,7 @@ export default function DashboardPage() {
   useEffect(() => {
     if (!user) return
     const bid = user.buildingId
-    api.getCharges(bid, period).then(setCharges).catch(() => setCharges([]))
+    if (paymentsEnabled) api.getCharges(bid, period).then(setCharges).catch(() => setCharges([]))
     api.getFaults(bid).then(setFaults).catch(() => setFaults([]))
     api.getVote(bid).then(setVote).catch(() => setVote(null))
     api.getNeighbors(bid).then(setNeighbors).catch(() => setNeighbors([]))
@@ -92,7 +94,7 @@ export default function DashboardPage() {
   }
 
   const first = user.name.split(' ')[0]
-  const attention = m.overdue.length > 0 || (v?.open && v.missing > 0) || m.unassigned.length > 0
+  const attention = (paymentsEnabled && m.overdue.length > 0) || (v?.open && v.missing > 0) || m.unassigned.length > 0
   const hour = new Date().getHours()
   const hi = hour < 10 ? t('dashboard:greeting.morning') : hour < 18 ? t('dashboard:greeting.day') : t('dashboard:greeting.evening')
 
@@ -108,7 +110,7 @@ export default function DashboardPage() {
 
       {/* co potřebuje rozhodnutí — každá karta má právě jednu akci */}
       <div className="d-act3">
-        {m.overdue.length > 0 && (
+        {paymentsEnabled && m.overdue.length > 0 && (
           <div className="d-act warn-l an">
             <div className="h">
               <span className="ic w"><SIcon n="card" /></span>
@@ -164,11 +166,13 @@ export default function DashboardPage() {
 
       {/* co běží samo */}
       <div className="d-kpis">
-        <div className="d-kpi an">
-          <div className="k">{t('dashboard:committee.collectedIn', { period: periodLabel(period, i18n.language) })}</div>
-          <b className="g">{m.pct} %</b>
-          <div className="bar"><i style={{ width: `${m.pct}%` }} /></div>
-        </div>
+        {paymentsEnabled && (
+          <div className="d-kpi an">
+            <div className="k">{t('dashboard:committee.collectedIn', { period: periodLabel(period, i18n.language) })}</div>
+            <b className="g">{m.pct} %</b>
+            <div className="bar"><i style={{ width: `${m.pct}%` }} /></div>
+          </div>
+        )}
         <div className="d-kpi an" style={{ ['--d' as string]: '.06s' }}>
           <div className="k">{t('dashboard:committee.connectedUnits')}</div>
           <b>{m.joined} / {m.units || '—'}</b>
@@ -179,14 +183,19 @@ export default function DashboardPage() {
           <b>{m.open.length}</b>
           <span className="note">{m.unassigned.length > 0 ? t('dashboard:committee.waitingAssign', { count: m.unassigned.length }) : t('dashboard:committee.allAssigned')}</span>
         </div>
-        <div className="d-kpi an" style={{ ['--d' as string]: '.18s' }}>
-          <div className="k">{t('dashboard:committee.chargesFor', { period: periodLabel(period, i18n.language) })}</div>
-          <b>{charges.length} / {m.units || charges.length}</b>
-          <span className="note">{t('dashboard:committee.totalOf', { sum: money(m.total, i18n.language) })}</span>
-        </div>
+        {paymentsEnabled && (
+          <div className="d-kpi an" style={{ ['--d' as string]: '.18s' }}>
+            <div className="k">{t('dashboard:committee.chargesFor', { period: periodLabel(period, i18n.language) })}</div>
+            <b>{charges.length} / {m.units || charges.length}</b>
+            <span className="note">{t('dashboard:committee.totalOf', { sum: money(m.total, i18n.language) })}</span>
+          </div>
+        )}
       </div>
 
       <div className="d-grid">
+        {!paymentsEnabled ? (
+          <ComingSoon variant="card" title={t('dashboard:committee.soonTitle')} body={t('dashboard:committee.soonBody')} />
+        ) : (
         <div className="s-card an" style={{ overflow: 'hidden' }}>
           <div className="d-ch">
             <b>{t('dashboard:committee.paymentsFor', { period: periodLabel(period, i18n.language) })}</b>
@@ -213,6 +222,7 @@ export default function DashboardPage() {
             </div>
           )}
         </div>
+        )}
 
         <div className="d-col">
           {v && (

@@ -7,6 +7,8 @@ import { useSession } from '../../state/session'
 import { QrPlatba, PayModal } from '../../components/QrPlatba'
 import type { PayItem } from '../../components/QrPlatba'
 import { SIcon } from '../../components/AppShell'
+import { ComingSoon } from '../../components/ComingSoon'
+import { paymentsEnabled } from '../../lib/features'
 
 const money = (n: number, lng: string) => n.toLocaleString(lng) + ' Kč'
 const when = (iso: string, t: (k: string, o?: Record<string, unknown>) => string, lng: string) => {
@@ -34,11 +36,11 @@ export default function ResidentHome() {
   useEffect(() => {
     if (!user) return
     const bid = user.buildingId
-    if (user.unitId) api.getMyCharges(bid, user.unitId).then(setCharges).catch(() => {})
+    if (user.unitId && paymentsEnabled) api.getMyCharges(bid, user.unitId).then(setCharges).catch(() => {})
     feed.list(bid).then(setPosts).catch(() => {})
     api.getFaults(bid).then(setFaults).catch(() => {})
     api.getVote(bid).then(setVote).catch(() => {})
-    api.getBuildingSettings(bid).then(setSettings).catch(() => {})
+    if (paymentsEnabled) api.getBuildingSettings(bid).then(setSettings).catch(() => {})
     api.getReserveFund(bid).then((f) => setFund(f.visible ? f : null)).catch(() => setFund(null))
   }, [user?.buildingId, user?.unitId])
 
@@ -66,7 +68,9 @@ export default function ResidentHome() {
 
       <div className="r-grid">
         {/* platba — jediná věc, co má soused „udělat" */}
-        {next ? (
+        {!paymentsEnabled ? (
+          <ComingSoon variant="card" title={t('dashboard:resident.soonTitle')} body={t('dashboard:resident.soonBody')} />
+        ) : next ? (
           <div className="r-pay an">
             <div className="k">{t('dashboard:resident.rentLabel', { label: next.label })}</div>
             <b className="a">{money(next.amount, i18n.language)}</b>

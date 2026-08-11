@@ -94,5 +94,10 @@
     "contracts": "Contracts",
     "meetings": "Meetings",
     "other": "Other"
+  },
+  "comingSoon": {
+    "badge": "Coming soon",
+    "title": "Coming soon",
+    "body": "This part of the app is still being built. We'll let you know as soon as it goes live."
   }
 }
