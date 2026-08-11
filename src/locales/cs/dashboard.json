@@ -60,7 +60,13 @@
     "stateAwaiting": "Čeká",
     "stateOverdue": "Po splatnosti",
     "soonTitle": "Platby připravujeme",
-    "soonBody": "Předpisy, přehled vybraných plateb a upomínky spustíme v další verzi."
+    "soonBody": "Předpisy, přehled vybraných plateb a upomínky spustíme v další verzi.",
+    "soonNote": "Předpisy, výběr a upomínky přibudou v další verzi.",
+    "postsTitle": "Poslední oznámení",
+    "postsEmpty": "Zatím žádná oznámení.",
+    "kpiComplaints": "Podněty v Soužití",
+    "kpiComplaintsOpen": "čeká na vyřízení",
+    "kpiComplaintsNone": "nic k řešení"
   },
   "resident": {
     "greetingLine": "{{building}} · byt {{unit}}",
@@ -91,6 +97,7 @@
     "seeAll": "Vše →",
     "noAnnouncements": "Zatím žádná oznámení.",
     "soonTitle": "Platby připravujeme",
-    "soonBody": "Platby zatím v aplikaci nenajdete. Chystáme je na další verzi."
+    "soonBody": "Platby zatím v aplikaci nenajdete. Chystáme je na další verzi.",
+    "soonNote": "Předpisy a QR platba přibudou v další verzi."
   }
 }

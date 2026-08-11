@@ -57,7 +57,13 @@
     "stateAwaiting": "Ausstehend",
     "stateOverdue": "Überfällig",
     "soonTitle": "Zahlungen kommen bald",
-    "soonBody": "Vorschreibungen, Zahlungsübersicht und Mahnungen starten in einer späteren Version."
+    "soonBody": "Vorschreibungen, Zahlungsübersicht und Mahnungen starten in einer späteren Version.",
+    "soonNote": "Vorschreibungen, Einzug und Mahnungen folgen in einer späteren Version.",
+    "postsTitle": "Neueste Mitteilungen",
+    "postsEmpty": "Noch keine Mitteilungen.",
+    "kpiComplaints": "Meldungen Zusammenleben",
+    "kpiComplaintsOpen": "wartet auf Erledigung",
+    "kpiComplaintsNone": "nichts offen"
   },
   "resident": {
     "greetingLine": "{{building}} · Einheit {{unit}}",
@@ -88,6 +94,7 @@
     "seeAll": "Alle →",
     "noAnnouncements": "Noch keine Ankündigungen.",
     "soonTitle": "Zahlungen kommen bald",
-    "soonBody": "Zahlungen gibt es in der App noch nicht. Wir bereiten sie für eine spätere Version vor."
+    "soonBody": "Zahlungen gibt es in der App noch nicht. Wir bereiten sie für eine spätere Version vor.",
+    "soonNote": "Vorschreibungen und QR-Zahlung folgen in einer späteren Version."
   }
 }

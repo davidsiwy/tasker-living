@@ -7,7 +7,6 @@ import { useSession } from '../../state/session'
 import { QrPlatba, PayModal } from '../../components/QrPlatba'
 import type { PayItem } from '../../components/QrPlatba'
 import { SIcon } from '../../components/AppShell'
-import { ComingSoon } from '../../components/ComingSoon'
 import { paymentsEnabled } from '../../lib/features'
 
 const money = (n: number, lng: string) => n.toLocaleString(lng) + ' Kč'
@@ -68,9 +67,7 @@ export default function ResidentHome() {
 
       <div className="r-grid">
         {/* platba — jediná věc, co má soused „udělat" */}
-        {!paymentsEnabled ? (
-          <ComingSoon variant="card" title={t('dashboard:resident.soonTitle')} body={t('dashboard:resident.soonBody')} />
-        ) : next ? (
+        {paymentsEnabled && (next ? (
           <div className="r-pay an">
             <div className="k">{t('dashboard:resident.rentLabel', { label: next.label })}</div>
             <b className="a">{money(next.amount, i18n.language)}</b>
@@ -95,7 +92,7 @@ export default function ResidentHome() {
             <div className="due" style={{ color: 'var(--s-green-txt)' }}>{t('dashboard:resident.nothingDue')}</div>
             <button className="s-btn s-ghost" style={{ marginTop: 14, width: '100%' }} onClick={() => nav('/app/najmy')}>{t('dashboard:resident.paymentHistory')}</button>
           </div>
-        )}
+        ))}
 
         <button className="r-tile an" style={{ ['--d' as string]: '.06s' }} onClick={() => nav('/app/zavady')}>
           <div className="th">
@@ -167,6 +164,12 @@ export default function ResidentHome() {
             </div>
           ))}
         </div>
+
+        {!paymentsEnabled && (
+          <div className="p-soon an" style={{ gridColumn: '1 / -1', ['--d' as string]: '.24s' }}>
+            <b>{t('dashboard:resident.soonTitle')}.</b> {t('dashboard:resident.soonNote')}
+          </div>
+        )}
       </div>
 
       {canPay && (

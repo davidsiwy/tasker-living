@@ -57,7 +57,13 @@
     "stateAwaiting": "Pending",
     "stateOverdue": "Overdue",
     "soonTitle": "Payments are coming soon",
-    "soonBody": "Charges, collection overview and reminders launch in a later release."
+    "soonBody": "Charges, collection overview and reminders launch in a later release.",
+    "soonNote": "Charges, collection and reminders arrive in a later release.",
+    "postsTitle": "Latest announcements",
+    "postsEmpty": "No announcements yet.",
+    "kpiComplaints": "Community issues",
+    "kpiComplaintsOpen": "awaiting action",
+    "kpiComplaintsNone": "nothing to resolve"
   },
   "resident": {
     "greetingLine": "{{building}} · unit {{unit}}",
@@ -88,6 +94,7 @@
     "seeAll": "See all →",
     "noAnnouncements": "No announcements yet.",
     "soonTitle": "Payments are coming soon",
-    "soonBody": "Payments aren't in the app yet. We're preparing them for a later release."
+    "soonBody": "Payments aren't in the app yet. We're preparing them for a later release.",
+    "soonNote": "Charges and QR payment arrive in a later release."
   }
 }

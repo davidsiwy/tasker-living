@@ -2,12 +2,11 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useSession } from '../../state/session'
-import { api, currentPeriod, periodLabel } from '../../lib/api'
-import type { Charge, Fault, VoteData, Neighbor } from '../../lib/types'
+import { api, feed, currentPeriod, periodLabel } from '../../lib/api'
+import type { Charge, Fault, VoteData, Neighbor, FeedPost } from '../../lib/types'
 import { chargeStatusLabel } from '../../lib/types'
 import { SIcon } from '../../components/AppShell'
 import ResidentHome from './ResidentHome'
-import { ComingSoon } from '../../components/ComingSoon'
 import { paymentsEnabled } from '../../lib/features'
 import { useToast } from '../../components/Toast'
 
@@ -31,6 +30,8 @@ export default function DashboardPage() {
   const [faults, setFaults] = useState<Fault[]>([])
   const [vote, setVote] = useState<VoteData | null>(null)
   const [neighbors, setNeighbors] = useState<Neighbor[]>([])
+  const [posts, setPosts] = useState<FeedPost[]>([])
+  const [complaints, setComplaints] = useState(0)
   const [busy, setBusy] = useState(false)
   const [reminded, setReminded] = useState(false)
 
@@ -41,6 +42,10 @@ export default function DashboardPage() {
     api.getFaults(bid).then(setFaults).catch(() => setFaults([]))
     api.getVote(bid).then(setVote).catch(() => setVote(null))
     api.getNeighbors(bid).then(setNeighbors).catch(() => setNeighbors([]))
+    if (!paymentsEnabled) {
+      feed.list(bid).then(setPosts).catch(() => setPosts([]))
+      api.getComplaintsCount(bid).then(setComplaints).catch(() => setComplaints(0))
+    }
   }, [user?.buildingId, period])
 
   const m = useMemo(() => {
@@ -165,7 +170,7 @@ export default function DashboardPage() {
       </div>
 
       {/* co běží samo */}
-      <div className="d-kpis">
+      <div className="d-kpis" style={paymentsEnabled ? undefined : { gridTemplateColumns: 'repeat(3,1fr)' }}>
         {paymentsEnabled && (
           <div className="d-kpi an">
             <div className="k">{t('dashboard:committee.collectedIn', { period: periodLabel(period, i18n.language) })}</div>
@@ -183,6 +188,13 @@ export default function DashboardPage() {
           <b>{m.open.length}</b>
           <span className="note">{m.unassigned.length > 0 ? t('dashboard:committee.waitingAssign', { count: m.unassigned.length }) : t('dashboard:committee.allAssigned')}</span>
         </div>
+        {!paymentsEnabled && (
+          <div className="d-kpi an" style={{ ['--d' as string]: '.18s' }}>
+            <div className="k">{t('dashboard:committee.kpiComplaints')}</div>
+            <b style={{ color: complaints ? 'var(--s-warn)' : undefined }}>{complaints}</b>
+            <span className="note">{complaints ? t('dashboard:committee.kpiComplaintsOpen') : t('dashboard:committee.kpiComplaintsNone')}</span>
+          </div>
+        )}
         {paymentsEnabled && (
           <div className="d-kpi an" style={{ ['--d' as string]: '.18s' }}>
             <div className="k">{t('dashboard:committee.chargesFor', { period: periodLabel(period, i18n.language) })}</div>
@@ -194,7 +206,23 @@ export default function DashboardPage() {
 
       <div className="d-grid">
         {!paymentsEnabled ? (
-          <ComingSoon variant="card" title={t('dashboard:committee.soonTitle')} body={t('dashboard:committee.soonBody')} />
+        <div className="s-card an" style={{ overflow: 'hidden' }}>
+          <div className="d-ch">
+            <b>{t('dashboard:committee.postsTitle')}</b>
+            <button className="d-link" onClick={() => nav('/app/nastenka')}>{t('dashboard:committee.seeAll')}</button>
+          </div>
+          {posts.length === 0 && <div className="d-empty">{t('dashboard:committee.postsEmpty')}</div>}
+          {posts.slice(0, 5).map((p) => (
+            <div className="d-row" key={p.id}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <b style={{ display: 'block', fontSize: 12.5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.title || p.body.slice(0, 80)}</b>
+                <span style={{ fontSize: 11, color: 'var(--s-muted)' }}>
+                  {new Date(p.createdAt).toLocaleDateString(i18n.language, { day: 'numeric', month: 'numeric' })} · {p.authorName}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
         ) : (
         <div className="s-card an" style={{ overflow: 'hidden' }}>
           <div className="d-ch">
@@ -273,6 +301,12 @@ export default function DashboardPage() {
             <p>{t('dashboard:committee.svcBody')}</p>
             <button className="s-btn s-primary sm" onClick={() => nav('/app/sluzby')}>{t('dashboard:committee.svcCta')}</button>
           </div>
+
+          {!paymentsEnabled && (
+            <div className="p-soon an" style={{ ['--d' as string]: '.2s' }}>
+              <b>{t('dashboard:committee.soonTitle')}.</b> {t('dashboard:committee.soonNote')}
+            </div>
+          )}
         </div>
       </div>
     </>
